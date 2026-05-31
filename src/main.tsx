@@ -147,10 +147,10 @@ function App() {
           <div className="hero-media" aria-hidden="true" />
           <div className="hero-copy">
             <p className="eyebrow">Træningsmester</p>
-            <h1 id="hero-title">Færre løse ender i træningen.</h1>
+            <h1 id="hero-title">Næste træning. Ingen tvivl.</h1>
             <p>
-              Programmet før passet. Loggen undervejs. Historikken bagefter.
-              Coachen, når strukturen skal holde.
+              Program, log, historik og coacharbejde samlet, så beslutningerne
+              ligger klar før passet starter.
             </p>
           </div>
           <div className="hero-product" aria-label="Appen i brug">
@@ -171,15 +171,15 @@ function App() {
 
         <section className="thesis section-band">
           <p>
-            En god træningsapp skal ikke føles som endnu en ting, du skal holde
-            styr på. Den skal tage rod fra dig.
+            Når du åbner appen, skal kroppen falde ned: færre valg, tydeligere
+            pas og mere sikkerhed i næste løft.
           </p>
         </section>
 
         <section className="mode-section" id="for-hvem">
           <div className="mode-intro section-band">
             <p className="eyebrow">For hvem</p>
-            <h2>Fire brugere. Fire slags uro.</h2>
+            <h2>Fire slags træning. Samme behov for klarhed.</h2>
             <p>
               Nogle skal bare i gang. Nogle bygger selv. Nogle jagter tal.
               Nogle styrer klienter.
