@@ -1,66 +1,97 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
-const appMoments = [
+type ModeId = "begynder" | "selvoevet" | "logger" | "traener";
+
+type Mode = {
+  id: ModeId;
+  name: string;
+  mood: string;
+  promise: string;
+  before: string;
+  after: string;
+  first: string[];
+  image: string;
+  screen: string;
+  screenAlt: string;
+};
+
+const modes: Mode[] = [
   {
-    step: "01",
-    kicker: "Før passet",
-    title: "Dagens træning ligger klar.",
-    text: "Program, øvelser, sæt og noter er samlet, så du ikke starter med at lede.",
-    image: "/app/home-training.jpg",
-    alt: "Dagens træning i Træningsmester"
+    id: "begynder",
+    name: "Begynder",
+    mood: "Mindre usikkerhed",
+    promise: "Du skal kunne åbne appen og vide, hvad næste sæt er.",
+    before: "For mange valg gør træningen tung, før den overhovedet starter.",
+    after: "Dagens pas står klart. Øvelserne er konkrete. Starten føles enkel.",
+    first: ["Dagens træning", "Tydelige øvelser", "Færre valg ad gangen"],
+    image:
+      "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=1500&q=82",
+    screen: "/app/home-training.jpg",
+    screenAlt: "Dagens træning i Træningsmester"
   },
   {
-    step: "02",
-    kicker: "Under passet",
-    title: "Loggen følger tempoet.",
-    text: "Skriv vægt, gentagelser og hvordan sættet føltes, mens du stadig er i gang.",
-    image: "/app/exercises.jpg",
-    alt: "Øvelseskatalog i Træningsmester"
+    id: "selvoevet",
+    name: "Selvøvet",
+    mood: "Mere kontrol",
+    promise: "Du kan bygge, importere og justere uden at ødelægge planen.",
+    before: "Programmer, noter og center-varianter bliver hurtigt til rod.",
+    after: "Planen bliver ved med at hænge sammen, selv når du ændrer den.",
+    first: ["Programmer", "Import", "Skift og justering"],
+    image:
+      "https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?auto=format&fit=crop&w=1500&q=82",
+    screen: "/app/programs.jpg",
+    screenAlt: "Programmer i Træningsmester"
   },
   {
-    step: "03",
-    kicker: "Efter passet",
-    title: "Historikken gør næste valg lettere.",
-    text: "Se hvad du lavede sidst, hvad der flyttede sig, og hvad der bør justeres.",
-    image: "/app/programs.jpg",
-    alt: "Programmer i Træningsmester"
+    id: "logger",
+    name: "Logger",
+    mood: "Mere præcision",
+    promise: "Tallene skal være hurtige at skrive og lette at stole på.",
+    before: "Hvis loggen tager for meget plads, ryger fokus væk fra løftet.",
+    after: "Sæt, vægt, PR og historik ligger klar, når næste valg skal tages.",
+    first: ["Sæt og vægt", "Seneste løft", "Historik og PR"],
+    image:
+      "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1500&q=82",
+    screen: "/app/exercises.jpg",
+    screenAlt: "Øvelseskatalog i Træningsmester"
   },
   {
-    step: "04",
-    kicker: "Med coach",
-    title: "Træneren får arbejdsro.",
-    text: "Klienter, planer og opfølgning bor samme sted, uden at hverdagen bliver tungere.",
-    image: "/app/coach.jpg",
-    alt: "Coach-overblik i Træningsmester"
+    id: "traener",
+    name: "Træner",
+    mood: "Mere overblik",
+    promise: "Klienter, planer og opfølgning skal kunne styres uden støj.",
+    before: "Trænerarbejde falder fra hinanden, når alt lever i beskeder.",
+    after: "Du ser hvem der kræver opmærksomhed, og hvad der skal gøres.",
+    first: ["Klienter", "Planer", "Opfølgning"],
+    image:
+      "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?auto=format&fit=crop&w=1500&q=82",
+    screen: "/app/coach.jpg",
+    screenAlt: "Coach-overblik i Træningsmester"
   }
 ];
 
-const audiences = [
+const flow = [
   {
-    name: "Begynder",
-    line: "Vil vide præcis, hvad der skal ske i dag.",
-    image:
-      "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=1400&q=80"
+    label: "Plan",
+    title: "Vælg retning",
+    text: "Programmet ligger klar, men kan stadig ændres, når virkeligheden ændrer sig."
   },
   {
-    name: "Selvøvet",
-    line: "Vil bygge programmer og skifte øvelser uden at miste strukturen.",
-    image:
-      "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?auto=format&fit=crop&w=1400&q=80"
+    label: "Pas",
+    title: "Træn uden jagt",
+    text: "Dagens øvelser, sæt og noter ligger samlet, så starten ikke kræver forklaring."
   },
   {
-    name: "Logger",
-    line: "Vil have sæt, PR, cardio og historik samlet uden regneark.",
-    image:
-      "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1400&q=80"
+    label: "Log",
+    title: "Skriv det vigtige",
+    text: "Vægt, reps og oplevelse gemmes tæt på selve træningen."
   },
   {
-    name: "Træner",
-    line: "Vil styre klienter, planer og opfølgning uden at miste overblik.",
-    image:
-      "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?auto=format&fit=crop&w=1400&q=80"
+    label: "Fremgang",
+    title: "Se næste valg",
+    text: "Historikken hjælper dig med at vælge rigtigt næste gang."
   }
 ];
 
@@ -77,19 +108,25 @@ const evidence = [
   },
   {
     value: "4",
-    label: "kerneflader",
-    note: "Program, træning, historik og coach"
+    label: "måder at bruge appen på",
+    note: "Start, byg, log og coach"
   }
 ];
 
 const principles = [
-  "Næste træning skal være tydelig.",
-  "Data skal give ro, ikke støj.",
-  "Trænerarbejde skal føles praktisk.",
-  "Socialt indhold skal være optjent."
+  "Første skærm skal give retning.",
+  "Loggen må ikke stjæle træningen.",
+  "Tal skal gøre næste valg lettere.",
+  "Coach-delen skal spare opmærksomhed."
 ];
 
 function App() {
+  const [activeMode, setActiveMode] = useState<ModeId>("begynder");
+  const selectedMode = useMemo(
+    () => modes.find((mode) => mode.id === activeMode) ?? modes[0],
+    [activeMode]
+  );
+
   return (
     <>
       <header className="site-header" aria-label="Hovednavigation">
@@ -98,9 +135,9 @@ function App() {
           <span>Træningsmester</span>
         </a>
         <nav>
-          <a href="#appen">Appen</a>
-          <a href="#hverdagen">Hverdagen</a>
           <a href="#for-hvem">For hvem</a>
+          <a href="#flow">Flow</a>
+          <a href="#fakta">Fakta</a>
           <a href="#team">Team</a>
         </nav>
       </header>
@@ -109,89 +146,123 @@ function App() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-media" aria-hidden="true" />
           <div className="hero-copy">
-            <p className="eyebrow">Dansk træningsapp</p>
-            <h1 id="hero-title">Træning uden gætteri.</h1>
+            <p className="eyebrow">Træningsmester</p>
+            <h1 id="hero-title">Færre løse ender i træningen.</h1>
             <p>
-              Byg programmet. Start dagens pas. Log sættene. Se hvad der
-              flytter sig. Få coachen med, når strukturen skal holde.
+              Programmet før passet. Loggen undervejs. Historikken bagefter.
+              Coachen, når strukturen skal holde.
             </p>
           </div>
-          <div className="hero-screens" aria-label="Skærme fra Træningsmester">
-            <img src="/app/home-training.jpg" alt="Dagens træning" />
-            <img src="/app/programs.jpg" alt="Programoversigt" />
+          <div className="hero-product" aria-label="Appen i brug">
+            <img src="/app/home-training.jpg" alt="Dagens træning i appen" />
+            <div>
+              <span>Dagens pas</span>
+              <strong>Full Body A</strong>
+              <p>sidst trænet for 4 dage siden</p>
+            </div>
           </div>
-          <div className="hero-baseline" aria-hidden="true">
+          <div className="hero-line" aria-hidden="true">
             <span>Plan</span>
+            <span>Pas</span>
             <span>Log</span>
-            <span>Historik</span>
             <span>Coach</span>
           </div>
         </section>
 
-        <section className="opening section-band">
+        <section className="thesis section-band">
           <p>
-            Det svære er ikke at træne hårdt. Det svære er at vide, hvad der
-            skal ske næste gang.
+            En god træningsapp skal ikke føles som endnu en ting, du skal holde
+            styr på. Den skal tage rod fra dig.
           </p>
         </section>
 
-        <section className="day-system section-band dark" id="appen">
-          <div className="section-head">
-            <p className="eyebrow">Appen</p>
-            <h2>Før. Under. Efter.</h2>
-            <p>
-              Træningsmester er bygget rundt om selve træningsdagen, ikke rundt
-              om forklaringer.
-            </p>
-          </div>
-
-          <div className="moment-stack" id="hverdagen">
-            {appMoments.map((moment) => (
-              <article className="moment-row" key={moment.step}>
-                <div className="moment-number">{moment.step}</div>
-                <div className="moment-text">
-                  <p className="moment-kicker">{moment.kicker}</p>
-                  <h3>{moment.title}</h3>
-                  <p>{moment.text}</p>
-                </div>
-                <div className="phone-frame">
-                  <img src={moment.image} alt={moment.alt} />
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="audiences" id="for-hvem" aria-labelledby="audiences-title">
-          <div className="audiences-intro">
+        <section className="mode-section" id="for-hvem">
+          <div className="mode-intro section-band">
             <p className="eyebrow">For hvem</p>
-            <h2 id="audiences-title">Fire måder at bruge den på.</h2>
+            <h2>Fire brugere. Fire slags uro.</h2>
+            <p>
+              Nogle skal bare i gang. Nogle bygger selv. Nogle jagter tal.
+              Nogle styrer klienter.
+            </p>
           </div>
-          <div className="audience-wall">
-            {audiences.map((audience, index) => (
-              <article
-                className="audience-panel"
-                key={audience.name}
-                style={{ "--bg": `url(${audience.image})` } as React.CSSProperties}
+
+          <div className="mode-controls" aria-label="Vælg brugerprofil">
+            {modes.map((mode) => (
+              <button
+                aria-pressed={mode.id === selectedMode.id}
+                className={mode.id === selectedMode.id ? "is-active" : ""}
+                key={mode.id}
+                onClick={() => setActiveMode(mode.id)}
+                type="button"
               >
+                <span>{mode.name}</span>
+                <strong>{mode.mood}</strong>
+              </button>
+            ))}
+          </div>
+
+          <article
+            className="mode-stage"
+            style={{ "--mode-image": `url(${selectedMode.image})` } as React.CSSProperties}
+          >
+            <div className="mode-image" aria-hidden="true" />
+            <div className="mode-copy">
+              <p className="eyebrow">{selectedMode.name}</p>
+              <h2>{selectedMode.promise}</h2>
+              <div className="before-after">
+                <p>
+                  <span>Før</span>
+                  {selectedMode.before}
+                </p>
+                <p>
+                  <span>Efter</span>
+                  {selectedMode.after}
+                </p>
+              </div>
+              <div className="first-list" aria-label={`Første fokus for ${selectedMode.name}`}>
+                {selectedMode.first.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </div>
+            <div className="mode-phone">
+              <img src={selectedMode.screen} alt={selectedMode.screenAlt} />
+            </div>
+          </article>
+        </section>
+
+        <section className="flow section-band dark" id="flow">
+          <div className="section-head">
+            <p className="eyebrow">Flow</p>
+            <h2>Fra plan til næste valg.</h2>
+            <p>
+              Ikke en samling funktioner. En rytme, der følger træningen.
+            </p>
+          </div>
+          <div className="flow-grid">
+            {flow.map((item, index) => (
+              <article className="flow-item" key={item.label}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{audience.name}</h3>
-                <p>{audience.line}</p>
+                <p>{item.label}</p>
+                <h3>{item.title}</h3>
+                <small>{item.text}</small>
               </article>
             ))}
           </div>
+          <div className="screens-row" aria-label="Skærme fra appen">
+            <img src="/app/programs.jpg" alt="Programmer i Træningsmester" />
+            <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
+            <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
+            <img src="/app/coach.jpg" alt="Coach-overblik i Træningsmester" />
+          </div>
         </section>
 
-        <section className="evidence section-band dark" id="fakta">
-          <div className="section-head">
+        <section className="evidence section-band" id="fakta">
+          <div className="evidence-head">
             <p className="eyebrow">Fakta</p>
-            <h2>Tal skal kunne holde vægt.</h2>
-            <p>
-              Øvelser, import og kerneflader. Kun tal, der peger på brug i
-              hverdagen.
-            </p>
+            <h2>Tal uden pynt.</h2>
           </div>
-          <div className="evidence-table" aria-label="Fakta om Træningsmester">
+          <div className="evidence-grid" aria-label="Fakta om Træningsmester">
             {evidence.map((item) => (
               <div className="evidence-row" key={item.label}>
                 <strong>{item.value}</strong>
@@ -202,10 +273,10 @@ function App() {
           </div>
         </section>
 
-        <section className="principles section-band">
-          <div className="principles-copy">
+        <section className="principles section-band dark">
+          <div className="section-head">
             <p className="eyebrow">Retning</p>
-            <h2>Rolig i hånden. Skarp i brug.</h2>
+            <h2>Rolig nok til hverdag. Skarp nok til progression.</h2>
           </div>
           <div className="principle-list">
             {principles.map((principle, index) => (
@@ -217,19 +288,19 @@ function App() {
           </div>
         </section>
 
-        <section className="team section-band dark" id="team">
+        <section className="team section-band" id="team">
           <div className="team-photo" aria-hidden="true" />
           <div className="team-copy">
             <p className="eyebrow">Team</p>
             <h2>Bygget tæt på træningen.</h2>
             <p>
-              Vi bygger Træningsmester som et arbejdsredskab, ikke en kampagne.
-              Først skal kernen føles stabil i centret. Derefter kan resten
-              vokse.
+              Træningsmester bygges som et arbejdsredskab. Først skal kernen
+              være solid: programmet, passet, loggen, historikken og coachens
+              overblik.
             </p>
             <p>
-              Fokus er enkelt: programmer der kan bruges, en log der er hurtig,
-              og et overblik der holder.
+              Det vi viser, skal kunne mærkes i produktet. Det vi lover, skal
+              kunne bære en almindelig træningsuge.
             </p>
           </div>
         </section>
@@ -237,7 +308,7 @@ function App() {
 
       <footer>
         <img src="/brand/tm-logo.png" alt="" />
-        <p>Træningsmester · program, log, historik og coach.</p>
+        <p>Træningsmester · program, pas, log og coach.</p>
       </footer>
 
       <script
