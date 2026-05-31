@@ -22,7 +22,7 @@ const modes: Mode[] = [
     id: "begynder",
     name: "Begynder",
     mood: "Mindre usikkerhed",
-    promise: "Du skal kunne åbne appen og vide, hvad næste sæt er.",
+    promise: "Åbn appen, se dagens pas, start uden at forstå hele planen først.",
     before: "For mange valg gør træningen tung, før den overhovedet starter.",
     after: "Dagens pas står klart. Øvelserne er konkrete. Starten føles enkel.",
     first: ["Dagens træning", "Tydelige øvelser", "Færre valg ad gangen"],
@@ -35,10 +35,10 @@ const modes: Mode[] = [
     id: "selvoevet",
     name: "Selvøvet",
     mood: "Mere kontrol",
-    promise: "Du kan bygge, importere og justere uden at ødelægge planen.",
-    before: "Programmer, noter og center-varianter bliver hurtigt til rod.",
-    after: "Planen bliver ved med at hænge sammen, selv når du ændrer den.",
-    first: ["Programmer", "Import", "Skift og justering"],
+    promise: "Ret, flyt og importér uden at planen mister sin rytme.",
+    before: "Gamle noter, nye mål og forskellige centre bliver hurtigt til rod.",
+    after: "Planen hænger sammen, selv når hverdagen tvinger dig til at ændre den.",
+    first: ["Programmer", "Import", "Skift uden rod"],
     image:
       "https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?auto=format&fit=crop&w=1500&q=82",
     screen: "/app/programs.jpg",
@@ -48,7 +48,7 @@ const modes: Mode[] = [
     id: "logger",
     name: "Logger",
     mood: "Mere præcision",
-    promise: "Tallene skal være hurtige at skrive og lette at stole på.",
+    promise: "Skriv vægt og reps hurtigt, og stol på dem næste gang.",
     before: "Hvis loggen tager for meget plads, ryger fokus væk fra løftet.",
     after: "Sæt, vægt, PR og historik ligger klar, når næste valg skal tages.",
     first: ["Sæt og vægt", "Seneste løft", "Historik og PR"],
@@ -61,7 +61,7 @@ const modes: Mode[] = [
     id: "traener",
     name: "Træner",
     mood: "Mere overblik",
-    promise: "Klienter, planer og opfølgning skal kunne styres uden støj.",
+    promise: "Klienter, planer og opfølgning samlet, så beskeder ikke bliver dit system.",
     before: "Trænerarbejde falder fra hinanden, når alt lever i beskeder.",
     after: "Du ser hvem der kræver opmærksomhed, og hvad der skal gøres.",
     first: ["Klienter", "Planer", "Opfølgning"],
@@ -75,49 +75,68 @@ const modes: Mode[] = [
 const flow = [
   {
     label: "Plan",
-    title: "Vælg retning",
-    text: "Programmet ligger klar, men kan stadig ændres, når virkeligheden ændrer sig."
+    title: "Se planen",
+    text: "Du starter med det, der skal ske i dag, ikke med alt det appen kan."
   },
   {
     label: "Pas",
     title: "Træn uden jagt",
-    text: "Dagens øvelser, sæt og noter ligger samlet, så starten ikke kræver forklaring."
+    text: "Øvelser, sæt og noter ligger tæt på hinanden, mens du træner."
   },
   {
     label: "Log",
     title: "Skriv det vigtige",
-    text: "Vægt, reps og oplevelse gemmes tæt på selve træningen."
+    text: "Vægt, reps og oplevelse gemmes, uden at loggen overtager passet."
   },
   {
     label: "Fremgang",
-    title: "Se næste valg",
-    text: "Historikken hjælper dig med at vælge rigtigt næste gang."
+    title: "Vælg bedre",
+    text: "Når du kommer tilbage, ligger sidste løft og næste valg klar."
   }
 ];
 
 const evidence = [
   {
     value: "389",
-    label: "øvelser i kataloget",
-    note: "Aktuelt katalogtal, 1. juni 2026"
+    label: "øvelser at bygge fra",
+    note: "Fra Træningsmesters øvelseskatalog, 1. juni 2026"
   },
   {
     value: "50.000",
-    label: "tegn til programimport",
-    note: "Plads til lange planer og gamle noter"
+    label: "tegn i én import",
+    note: "Plads til lange programmer og gamle træningsnoter"
   },
   {
     value: "4",
-    label: "måder at bruge appen på",
-    note: "Start, byg, log og coach"
+    label: "startpunkter",
+    note: "Begynder, selvøvet, logger og træner"
+  }
+];
+
+const openingQuestions = [
+  {
+    question: "Hvad skal jeg lave i dag?",
+    answer: "Dagens pas ligger øverst."
+  },
+  {
+    question: "Hvad løftede jeg sidst?",
+    answer: "Seneste vægt følger øvelsen."
+  },
+  {
+    question: "Kan jeg ændre planen?",
+    answer: "Ja, uden at starte forfra."
+  },
+  {
+    question: "Hvem skal jeg følge op på?",
+    answer: "Klienterne samles i ét overblik."
   }
 ];
 
 const principles = [
-  "Første skærm skal give retning.",
-  "Loggen må ikke stjæle træningen.",
-  "Tal skal gøre næste valg lettere.",
-  "Coach-delen skal spare opmærksomhed."
+  "Dagens pas skal være det første, du ser.",
+  "Loggen skal tage sekunder, ikke opmærksomhed.",
+  "Historikken skal hjælpe næste løft.",
+  "Træneren skal se det, der kalder på handling."
 ];
 
 function App() {
@@ -135,9 +154,9 @@ function App() {
           <span>Træningsmester</span>
         </a>
         <nav>
-          <a href="#for-hvem">For hvem</a>
-          <a href="#flow">Flow</a>
-          <a href="#fakta">Fakta</a>
+          <a href="#for-hvem">Hvem</a>
+          <a href="#flow">I appen</a>
+          <a href="#fakta">Tal</a>
           <a href="#team">Team</a>
         </nav>
       </header>
@@ -149,8 +168,8 @@ function App() {
             <p className="eyebrow">Træningsmester</p>
             <h1 id="hero-title">Næste træning. Ingen tvivl.</h1>
             <p>
-              Program, log, historik og coacharbejde samlet, så beslutningerne
-              ligger klar før passet starter.
+              Se dagens pas. Træn. Log det vigtige. Kom tilbage uden at samle
+              trådene op igen.
             </p>
           </div>
           <div className="hero-product" aria-label="Appen i brug">
@@ -162,27 +181,48 @@ function App() {
             </div>
           </div>
           <div className="hero-line" aria-hidden="true">
-            <span>Plan</span>
-            <span>Pas</span>
-            <span>Log</span>
-            <span>Coach</span>
+            <span>
+              <strong>Begynder</strong>
+              <small>Hvad skal jeg lave?</small>
+            </span>
+            <span>
+              <strong>Selvøvet</strong>
+              <small>Kan planen ændres?</small>
+            </span>
+            <span>
+              <strong>Logger</strong>
+              <small>Hvad løftede jeg sidst?</small>
+            </span>
+            <span>
+              <strong>Træner</strong>
+              <small>Hvem mangler svar?</small>
+            </span>
           </div>
         </section>
 
-        <section className="thesis section-band">
-          <p>
-            Når du åbner appen, skal kroppen falde ned: færre valg, tydeligere
-            pas og mere sikkerhed i næste løft.
-          </p>
+        <section className="tension-section" aria-labelledby="tension-title">
+          <div className="tension-lead">
+            <p className="eyebrow">Før første sæt</p>
+            <h2 id="tension-title">Appen skal svare, før du begynder at lede.</h2>
+          </div>
+          <div className="tension-lines">
+            {openingQuestions.map((item, index) => (
+              <p key={item.question}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.question}</strong>
+                <em>{item.answer}</em>
+              </p>
+            ))}
+          </div>
         </section>
 
         <section className="mode-section" id="for-hvem">
           <div className="mode-intro section-band">
-            <p className="eyebrow">For hvem</p>
-            <h2>Fire slags træning. Samme behov for klarhed.</h2>
+            <p className="eyebrow">Hvem</p>
+            <h2>Bygget til fire helt almindelige situationer.</h2>
             <p>
-              Nogle skal bare i gang. Nogle bygger selv. Nogle jagter tal.
-              Nogle styrer klienter.
+              Ny i centeret. Fast i et gammelt program. Optaget af tallene.
+              Ansvarlig for klienter.
             </p>
           </div>
 
@@ -233,10 +273,11 @@ function App() {
 
         <section className="flow section-band dark" id="flow">
           <div className="section-head">
-            <p className="eyebrow">Flow</p>
-            <h2>Fra plan til næste valg.</h2>
+            <p className="eyebrow">I appen</p>
+            <h2>Det samme mønster hver gang.</h2>
             <p>
-              Ikke en samling funktioner. En rytme, der følger træningen.
+              Se hvad der skal ske. Gør det. Gem det vigtige. Vælg bedre næste
+              gang.
             </p>
           </div>
           <div className="flow-grid">
@@ -259,7 +300,7 @@ function App() {
 
         <section className="evidence section-band" id="fakta">
           <div className="evidence-head">
-            <p className="eyebrow">Fakta</p>
+            <p className="eyebrow">Tal</p>
             <h2>Tal uden pynt.</h2>
           </div>
           <div className="evidence-grid" aria-label="Fakta om Træningsmester">
@@ -275,8 +316,8 @@ function App() {
 
         <section className="principles section-band dark">
           <div className="section-head">
-            <p className="eyebrow">Retning</p>
-            <h2>Rolig nok til hverdag. Skarp nok til progression.</h2>
+            <p className="eyebrow">I brug</p>
+            <h2>Mindre jagt. Mere træning.</h2>
           </div>
           <div className="principle-list">
             {principles.map((principle, index) => (
@@ -294,13 +335,13 @@ function App() {
             <p className="eyebrow">Team</p>
             <h2>Bygget tæt på træningen.</h2>
             <p>
-              Træningsmester bygges som et arbejdsredskab. Først skal kernen
-              være solid: programmet, passet, loggen, historikken og coachens
-              overblik.
+              Træningsmester er lavet til en almindelig uge med skiftende
+              energi, fyldte centre, gamle noter og nye mål.
             </p>
             <p>
-              Det vi viser, skal kunne mærkes i produktet. Det vi lover, skal
-              kunne bære en almindelig træningsuge.
+              Derfor handler produktet først om det nære: dagens pas, seneste
+              løft, planen der kan ændres, og overblikket en træner faktisk kan
+              bruge.
             </p>
           </div>
         </section>
@@ -308,7 +349,7 @@ function App() {
 
       <footer>
         <img src="/brand/tm-logo.png" alt="" />
-        <p>Træningsmester · program, pas, log og coach.</p>
+        <p>Træningsmester · næste træning uden tvivl.</p>
       </footer>
 
       <script

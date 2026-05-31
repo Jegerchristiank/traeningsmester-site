@@ -248,9 +248,26 @@ h3 {
   border-top: 1px solid rgba(243, 246, 252, 0.2);
   padding-top: 16px;
   color: rgba(243, 246, 252, 0.72);
+}
+
+.hero-line span {
+  display: grid;
+  gap: 6px;
+}
+
+.hero-line strong {
+  color: var(--light);
   font-size: 0.78rem;
-  font-weight: 840;
+  font-weight: 880;
+  line-height: 1.1;
   text-transform: uppercase;
+}
+
+.hero-line small {
+  color: rgba(243, 246, 252, 0.66);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .section-band {
@@ -262,17 +279,52 @@ h3 {
   color: var(--light);
 }
 
-.thesis {
+.tension-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 0.85fr);
+  gap: 82px;
+  align-items: start;
+  padding: 112px 72px 104px;
   background: var(--paper);
 }
 
-.thesis p {
-  max-width: 1160px;
+.tension-lead h2 {
+  max-width: 760px;
   margin: 0;
-  font-size: 4.3rem;
+}
+
+.tension-lines {
+  border-top: 1px solid var(--line);
+}
+
+.tension-lines p {
+  display: grid;
+  grid-template-columns: 52px minmax(220px, 0.92fr) minmax(260px, 1fr);
+  gap: 22px;
+  align-items: baseline;
+  margin: 0;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  line-height: 1.16;
+}
+
+.tension-lines span {
+  color: var(--red);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.tension-lines strong {
+  font-size: 1.42rem;
   font-weight: 820;
-  line-height: 1.03;
-  letter-spacing: 0;
+}
+
+.tension-lines em {
+  color: var(--ink-soft);
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 660;
 }
 
 .mode-section {
@@ -664,7 +716,11 @@ footer p {
     opacity: 0.38;
   }
 
-  .thesis p {
+  .tension-section {
+    grid-template-columns: 1fr;
+  }
+
+  .tension-lead h2 {
     font-size: 3.25rem;
   }
 
@@ -718,11 +774,28 @@ footer p {
   }
 
   .hero {
-    min-height: 88svh;
-    padding: 116px 20px 86px;
+    min-height: 90svh;
+    padding: 108px 20px 108px;
   }
 
   .hero-product {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    z-index: 0;
+    min-height: 238px;
+    justify-content: flex-start;
+    opacity: 1;
+    margin-top: 22px;
+  }
+
+  .hero-product img {
+    width: 148px;
+    border-radius: 22px;
+    transform: rotate(-2deg);
+  }
+
+  .hero-product div {
     display: none;
   }
 
@@ -758,9 +831,31 @@ footer p {
     padding: 76px 20px;
   }
 
-  .thesis p {
-    font-size: 2.24rem;
-    line-height: 1.05;
+  .tension-section {
+    gap: 34px;
+    padding: 76px 20px;
+  }
+
+  .tension-lead h2 {
+    font-size: 2.48rem;
+  }
+
+  .tension-lines p {
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+  }
+
+  .tension-lines strong,
+  .tension-lines em {
+    grid-column: 2;
+  }
+
+  .tension-lines strong {
+    font-size: 1.18rem;
+  }
+
+  .tension-lines em {
+    font-size: 1rem;
   }
 
   .mode-controls {
