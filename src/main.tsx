@@ -20,6 +20,22 @@ type Mode = {
 type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
 type CookieChoice = "necessary";
 
+const legalHashIds: Record<LegalPanelId, string> = {
+  terms: "handelsbetingelser",
+  privacy: "privatliv",
+  cookies: "cookies",
+  accessibility: "tilgaengelighed"
+};
+
+const legalPanelByHash: Record<string, LegalPanelId> = {
+  handelsbetingelser: "terms",
+  privatliv: "privacy",
+  cookies: "cookies",
+  tilgaengelighed: "accessibility"
+};
+
+const cookieSettingsHash = "cookieindstillinger";
+
 const company = {
   legalName: "KRISTENSON",
   cvr: "40679456",
@@ -428,13 +444,73 @@ function App() {
   );
   const activeLegal = activeLegalPanel ? legalPanels[activeLegalPanel] : null;
 
+  const cleanHash = () => decodeURIComponent(window.location.hash.slice(1));
+
+  const setAddressHash = (hash: string | null, method: "push" | "replace" = "push") => {
+    const nextUrl = hash
+      ? `${window.location.pathname}${window.location.search}#${hash}`
+      : `${window.location.pathname}${window.location.search}`;
+    if (method === "replace") {
+      window.history.replaceState(null, "", nextUrl);
+      return;
+    }
+
+    window.history.pushState(null, "", nextUrl);
+  };
+
+  const openLegalPanel = (panel: LegalPanelId) => {
+    setCookieSettingsOpen(false);
+    setActiveLegalPanel(panel);
+    setAddressHash(legalHashIds[panel]);
+  };
+
+  const closeLegalPanel = () => {
+    setActiveLegalPanel(null);
+    if (legalPanelByHash[cleanHash()]) {
+      setAddressHash(null, "replace");
+    }
+  };
+
+  const openCookieSettings = () => {
+    setActiveLegalPanel(null);
+    setCookieSettingsOpen(true);
+    setAddressHash(cookieSettingsHash);
+  };
+
+  const closeCookieSettings = () => {
+    setCookieSettingsOpen(false);
+    if (cleanHash() === cookieSettingsHash) {
+      setAddressHash(null, "replace");
+    }
+  };
+
   useEffect(() => {
-    const scrollToHash = () => {
-      const hash = window.location.hash.slice(1);
-      if (!hash) return;
+    const handleLocationHash = () => {
+      const hash = cleanHash();
+      if (!hash) {
+        setActiveLegalPanel(null);
+        setCookieSettingsOpen(false);
+        return;
+      }
+
+      const legalPanel = legalPanelByHash[hash];
+      if (legalPanel) {
+        setCookieSettingsOpen(false);
+        setActiveLegalPanel(legalPanel);
+        return;
+      }
+
+      if (hash === cookieSettingsHash) {
+        setActiveLegalPanel(null);
+        setCookieSettingsOpen(true);
+        return;
+      }
+
+      setActiveLegalPanel(null);
+      setCookieSettingsOpen(false);
 
       const scrollToTarget = () => {
-        const target = document.getElementById(decodeURIComponent(hash));
+        const target = document.getElementById(hash);
         if (!target) return;
 
         const html = document.documentElement;
@@ -450,9 +526,13 @@ function App() {
       window.setTimeout(scrollToTarget, 420);
     };
 
-    scrollToHash();
-    window.addEventListener("hashchange", scrollToHash);
-    return () => window.removeEventListener("hashchange", scrollToHash);
+    handleLocationHash();
+    window.addEventListener("hashchange", handleLocationHash);
+    window.addEventListener("popstate", handleLocationHash);
+    return () => {
+      window.removeEventListener("hashchange", handleLocationHash);
+      window.removeEventListener("popstate", handleLocationHash);
+    };
   }, []);
 
   useEffect(() => {
@@ -468,11 +548,11 @@ function App() {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (activeLegalPanel) {
-          setActiveLegalPanel(null);
+          closeLegalPanel();
           return;
         }
 
-        setCookieSettingsOpen(false);
+        closeCookieSettings();
       }
     };
 
@@ -483,7 +563,7 @@ function App() {
   const saveCookieChoice = () => {
     storeCookieChoice("necessary");
     setCookieChoice("necessary");
-    setCookieSettingsOpen(false);
+    closeCookieSettings();
   };
 
   return (
@@ -701,7 +781,11 @@ function App() {
                   </div>
                   <p>{row.text}</p>
                   <small>{row.status}</small>
-                  <button type="button" onClick={() => setActiveLegalPanel(row.id)}>
+                  <button
+                    aria-label={`Åbn ${row.title}`}
+                    type="button"
+                    onClick={() => openLegalPanel(row.id)}
+                  >
                     Åbn
                   </button>
                 </article>
@@ -715,16 +799,16 @@ function App() {
               <h3>Vilkår, privatliv, cookies og tilgængelighed samlet ét sted.</h3>
             </div>
             <div className="legal-actions">
-              <button type="button" onClick={() => setActiveLegalPanel("terms")}>
+              <button type="button" onClick={() => openLegalPanel("terms")}>
                 Handelsbetingelser
               </button>
-              <button type="button" onClick={() => setActiveLegalPanel("privacy")}>
+              <button type="button" onClick={() => openLegalPanel("privacy")}>
                 Privatliv
               </button>
-              <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
+              <button type="button" onClick={() => openLegalPanel("cookies")}>
                 Cookies
               </button>
-              <button type="button" onClick={() => setActiveLegalPanel("accessibility")}>
+              <button type="button" onClick={() => openLegalPanel("accessibility")}>
                 Tilgængelighed
               </button>
             </div>
@@ -783,19 +867,19 @@ function App() {
           <small>Opdateret 1. juni 2026</small>
         </div>
         <div className="footer-links" aria-label="Juridiske links">
-          <button type="button" onClick={() => setActiveLegalPanel("terms")}>
+          <button type="button" onClick={() => openLegalPanel("terms")}>
             Handelsbetingelser
           </button>
-          <button type="button" onClick={() => setActiveLegalPanel("privacy")}>
+          <button type="button" onClick={() => openLegalPanel("privacy")}>
             Privatliv
           </button>
-          <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
+          <button type="button" onClick={() => openLegalPanel("cookies")}>
             Cookies
           </button>
-          <button type="button" onClick={() => setActiveLegalPanel("accessibility")}>
+          <button type="button" onClick={() => openLegalPanel("accessibility")}>
             Tilgængelighed
           </button>
-          <button type="button" onClick={() => setCookieSettingsOpen(true)}>
+          <button type="button" onClick={openCookieSettings}>
             Cookieindstillinger
           </button>
         </div>
@@ -809,9 +893,9 @@ function App() {
           role="dialog"
         >
           <button
-            aria-label="Luk"
+            aria-label="Luk dokumentvisning"
             className="overlay-backdrop"
-            onClick={() => setActiveLegalPanel(null)}
+            onClick={closeLegalPanel}
             type="button"
           />
           <section className="legal-panel">
@@ -821,9 +905,9 @@ function App() {
                 <h2 id="legal-title">{activeLegal.title}</h2>
               </div>
               <button
-                aria-label="Luk"
+                aria-label="Luk dokument"
                 className="close-button"
-                onClick={() => setActiveLegalPanel(null)}
+                onClick={closeLegalPanel}
                 type="button"
               >
                 ×
@@ -850,9 +934,9 @@ function App() {
           role="dialog"
         >
           <button
-            aria-label="Luk cookieindstillinger"
+            aria-label="Luk cookiepanel"
             className="overlay-backdrop"
-            onClick={() => setCookieSettingsOpen(false)}
+            onClick={closeCookieSettings}
             type="button"
           />
           <section className="cookie-panel">
@@ -862,9 +946,9 @@ function App() {
                 <h2 id="cookie-title">Kun det nødvendige.</h2>
               </div>
               <button
-                aria-label="Luk"
+                aria-label="Luk cookieindstillinger"
                 className="close-button"
-                onClick={() => setCookieSettingsOpen(false)}
+                onClick={closeCookieSettings}
                 type="button"
               >
                 ×
@@ -888,10 +972,7 @@ function App() {
             <div className="cookie-panel-actions">
               <button
                 type="button"
-                onClick={() => {
-                  setCookieSettingsOpen(false);
-                  setActiveLegalPanel("cookies");
-                }}
+                onClick={() => openLegalPanel("cookies")}
               >
                 Se cookiepolitik
               </button>
@@ -913,7 +994,7 @@ function App() {
             </p>
           </div>
           <div className="cookie-actions">
-            <button type="button" onClick={() => setCookieSettingsOpen(true)}>
+            <button type="button" onClick={openCookieSettings}>
               Indstillinger
             </button>
             <button type="button" onClick={saveCookieChoice}>
