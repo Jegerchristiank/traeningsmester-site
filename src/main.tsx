@@ -123,18 +123,18 @@ const flow = [
 const evidence = [
   {
     value: "389",
-    label: "øvelser at bygge fra",
-    note: "Fra Træningsmesters øvelseskatalog, 1. juni 2026"
-  },
-  {
-    value: "50.000",
-    label: "tegn i én import",
-    note: "Plads til lange programmer og gamle træningsnoter"
+    label: "øvelser i kataloget",
+    note: "Et konkret udgangspunkt, når programmet skal bygges eller ændres."
   },
   {
     value: "4",
-    label: "startpunkter",
-    note: "Begynder, selvøvet, logger og træner"
+    label: "måder at bruge appen på",
+    note: "Begynder, selvøvet, logger og træner har forskellige behov."
+  },
+  {
+    value: "1",
+    label: "samlet træningsflow",
+    note: "Plan, pas, log og historik skal hænge sammen."
   }
 ];
 
@@ -164,97 +164,35 @@ const principles = [
   "Træneren skal se det, der kalder på handling."
 ];
 
-const trustSignals = [
-  {
-    label: "Dansk produkt",
-    text: "Sprog, flows og træningslogik er skrevet til danske brugere."
-  },
-  {
-    label: "Køb og adgang",
-    text: "Siden informerer. Køb og abonnementer håndteres ikke på websitet."
-  },
-  {
-    label: "Cookiekontrol",
-    text: "Ingen marketingcookies, skjult statistik eller tredjepartsmedier."
-  },
-  {
-    label: "Support",
-    text: "Hjælp håndteres via appens konto- og indstillingsflader."
-  }
-];
-
 const documentRows: {
   id: LegalPanelId;
   title: string;
   text: string;
   scope: string;
-  status: string;
 }[] = [
   {
     id: "terms",
     title: "Handelsbetingelser",
-    text: "Ramme for køb, adgang, fortrydelse, opsigelse og reklamation.",
-    scope: "Køb og adgang",
-    status: "Gældende"
+    text: "Køb, adgang, fortrydelse, opsigelse og reklamation.",
+    scope: "Køb og adgang"
   },
   {
     id: "privacy",
     title: "Privatliv",
-    text: "Hvad websitet gør, og hvad appen kan kræve for at fungere.",
-    scope: "Data og konto",
-    status: "Gældende"
+    text: "Hvad siden gør, og hvad appen kan kræve for at fungere.",
+    scope: "Data"
   },
   {
     id: "cookies",
-    title: "Cookies",
-    text: "Nødvendig lagring, mediestatus og marketingstatus.",
-    scope: "Website",
-    status: "Gældende"
+    title: "Cookiepolitik",
+    text: "Den korte forklaring på nødvendig lagring i browseren.",
+    scope: "Website"
   },
   {
     id: "accessibility",
     title: "Tilgængelighed",
-    text: "Tastatur, kontrast, bevægelse og læsbarhed på websitet.",
-    scope: "Brugbarhed",
-    status: "Gældende"
-  }
-];
-
-const supportRoutes = [
-  {
-    label: "Konto",
-    text: "Login, profil og sletning håndteres i appens kontoindstillinger."
-  },
-  {
-    label: "Abonnement",
-    text: "Pris, fornyelse og opsigelse vises i det købsflow, hvor købet sker."
-  },
-  {
-    label: "Data",
-    text: "Privatliv, cookies og adgang til appdata ligger samlet under dokumenterne."
-  }
-];
-
-const faqs = [
-  {
-    question: "Kan jeg købe Træningsmester på denne side?",
-    answer:
-      "Nej. Denne side er lavet til at forklare produktet og de praktiske rammer. Køb og abonnementer håndteres ikke direkte på websitet."
-  },
-  {
-    question: "Hvorfor er der et cookiepanel, hvis siden ikke tracker?",
-    answer:
-      "Fordi valget stadig skal være tydeligt. Siden bruger kun nødvendig lokal lagring til at huske, at banneret er lukket, og billederne serveres fra samme site."
-  },
-  {
-    question: "Hvor finder jeg hjælp til konto eller abonnement?",
-    answer:
-      "Konto-, data- og abonnementsrelateret hjælp hører til appens konto- og indstillingsflader, hvor konteksten er rigtig."
-  },
-  {
-    question: "Er tallene på siden pynt?",
-    answer:
-      "Nej. Tallene er begrænset til konkrete produktforhold, som øvelseskatalog, importgrænse og de fire brugssituationer."
+    text: "Tastatur, kontrast, reduceret bevægelse og læsbarhed.",
+    scope: "Brugbarhed"
   }
 ];
 
@@ -327,30 +265,20 @@ const legalPanels: Record<
     ]
   },
   cookies: {
-    title: "Cookies",
-    kicker: "Samtykke",
+    title: "Cookiepolitik",
+    kicker: "Website",
     summary:
-      "Vi bruger ikke marketingcookies på denne side. Dit valg gemmes lokalt, så banneret ikke vises igen. Cookieindstillinger kan åbnes igen nederst på siden.",
+      "Siden bruger kun nødvendig lokal lagring til at huske dit valg i denne browser.",
     sections: [
       {
-        heading: "Nødvendig lagring",
+        heading: "Hvad gemmes",
         body:
-          "Cookievalget gemmes i browserens lokale lager. Det er nødvendigt for at huske, om banneret er lukket."
+          "Dit cookievalg gemmes lokalt, så banneret ikke vises igen efter accept."
       },
       {
-        heading: "Medier",
+        heading: "Hvad bruges ikke",
         body:
-          "Primære billeder, app-screenshots, logo og ikon serveres fra samme site og kræver ikke tredjepartsmedier."
-      },
-      {
-        heading: "Statistik",
-        body:
-          "Der er ingen aktiv statistik på websitet."
-      },
-      {
-        heading: "Marketing",
-        body:
-          "Der er ingen aktive marketingcookies, pixels eller annonceringsværktøjer på websitet."
+          "Der er ingen aktive marketingcookies, annoncepixels eller statistikværktøjer på websitet."
       }
     ]
   },
@@ -388,29 +316,6 @@ const legalPanels: Record<
     ]
   }
 };
-
-const cookieCategories = [
-  {
-    label: "Nødvendig",
-    status: "Altid aktiv",
-    text: "Husker dit cookievalg i denne browser."
-  },
-  {
-    label: "Statistik",
-    status: "Ikke aktiv",
-    text: "Ingen skjult analyse eller besøgsstatistik."
-  },
-  {
-    label: "Marketing",
-    status: "Ikke aktiv",
-    text: "Ingen annonceringscookies, pixels eller remarketing."
-  },
-  {
-    label: "Medier",
-    status: "Egen host",
-    text: "Billeder, app-skærme, logo og ikon serveres fra samme site."
-  }
-];
 
 const readStoredCookieChoice = (): CookieChoice | null => {
   try {
@@ -576,7 +481,7 @@ function App() {
         <nav>
           <a href="#for-hvem">Hvem</a>
           <a href="#flow">I appen</a>
-          <a href="#fakta">Tal</a>
+          <a href="#fakta">Fakta</a>
           <a href="#praktisk">Praktisk</a>
           <a href="#team">Team</a>
         </nav>
@@ -597,8 +502,8 @@ function App() {
             <img src="/app/home-training.jpg" alt="Dagens træning i appen" />
             <div>
               <span>Dagens pas</span>
-              <strong>Full Body A</strong>
-              <p>sidst trænet for 4 dage siden</p>
+              <strong>Plan, sæt og log</strong>
+              <p>samlet i samme træningsflow</p>
             </div>
           </div>
           <div className="hero-line" aria-hidden="true">
@@ -721,8 +626,8 @@ function App() {
 
         <section className="evidence section-band" id="fakta">
           <div className="evidence-head">
-            <p className="eyebrow">Tal</p>
-            <h2>Tal uden pynt.</h2>
+            <p className="eyebrow">Fakta</p>
+            <h2>Det appen samler.</h2>
           </div>
           <div className="evidence-grid" aria-label="Fakta om Træningsmester">
             {evidence.map((item) => (
@@ -738,7 +643,7 @@ function App() {
         <section className="principles section-band dark">
           <div className="section-head">
             <p className="eyebrow">I brug</p>
-            <h2>Mindre jagt. Mere træning.</h2>
+            <h2>Mindre rod. Mere træning.</h2>
           </div>
           <div className="principle-list">
             {principles.map((principle, index) => (
@@ -753,22 +658,14 @@ function App() {
         <section className="official section-band" id="praktisk">
           <div className="official-head">
             <p className="eyebrow">Praktisk</p>
-            <h2>Vilkår, cookies og de praktiske rammer.</h2>
-          </div>
-          <div className="trust-grid" aria-label="Praktisk status">
-            {trustSignals.map((signal) => (
-              <article className="trust-card" key={signal.label}>
-                <span>{signal.label}</span>
-                <p>{signal.text}</p>
-              </article>
-            ))}
+            <h2>Det formelle skal være nemt at finde. Ikke fylde det hele.</h2>
           </div>
 
           <div className="document-desk" aria-label="Dokumenter">
             <div className="document-desk-head">
               <div>
                 <p className="eyebrow">Dokumenter</p>
-                <h3>Det, der skal være nemt at finde.</h3>
+                <h3>Vilkår, privatliv og ansvar.</h3>
               </div>
               <span>Opdateret 1. juni 2026</span>
             </div>
@@ -780,63 +677,21 @@ function App() {
                     <h4>{row.title}</h4>
                   </div>
                   <p>{row.text}</p>
-                  <small>{row.status}</small>
                   <button
-                    aria-label={`Åbn ${row.title}`}
+                    aria-label={`Læs ${row.title}`}
                     type="button"
                     onClick={() => openLegalPanel(row.id)}
                   >
-                    Åbn
+                    Læs
                   </button>
                 </article>
               ))}
             </div>
           </div>
 
-          <div className="legal-console" aria-label="Juridiske oplysninger">
-            <div>
-              <p className="eyebrow">Officielt</p>
-              <h3>Vilkår, privatliv, cookies og tilgængelighed samlet ét sted.</h3>
-            </div>
-            <div className="legal-actions">
-              <button type="button" onClick={() => openLegalPanel("terms")}>
-                Handelsbetingelser
-              </button>
-              <button type="button" onClick={() => openLegalPanel("privacy")}>
-                Privatliv
-              </button>
-              <button type="button" onClick={() => openLegalPanel("cookies")}>
-                Cookies
-              </button>
-              <button type="button" onClick={() => openLegalPanel("accessibility")}>
-                Tilgængelighed
-              </button>
-            </div>
-          </div>
-
-          <div className="support-routes" aria-label="Supportveje">
-            {supportRoutes.map((route) => (
-              <article key={route.label}>
-                <span>{route.label}</span>
-                <p>{route.text}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="faq-block" aria-label="Hurtige svar">
-            <div className="faq-head">
-              <p className="eyebrow">Svar</p>
-              <h3>Spørgsmål der ikke skal gemmes væk.</h3>
-            </div>
-            <div className="faq-list">
-              {faqs.map((item) => (
-                <details key={item.question}>
-                  <summary>{item.question}</summary>
-                  <p>{item.answer}</p>
-                </details>
-              ))}
-            </div>
-          </div>
+          <p className="official-note">
+            Konto, køb og support håndteres i appen, hvor konteksten er rigtig.
+          </p>
         </section>
 
         <section className="team section-band" id="team">
@@ -874,7 +729,7 @@ function App() {
             Privatliv
           </button>
           <button type="button" onClick={() => openLegalPanel("cookies")}>
-            Cookies
+            Cookiepolitik
           </button>
           <button type="button" onClick={() => openLegalPanel("accessibility")}>
             Tilgængelighed
@@ -943,7 +798,7 @@ function App() {
             <div className="cookie-panel-head">
               <div>
                 <p className="eyebrow">Cookieindstillinger</p>
-                <h2 id="cookie-title">Kun det nødvendige.</h2>
+                <h2 id="cookie-title">Cookievalg</h2>
               </div>
               <button
                 aria-label="Luk cookieindstillinger"
@@ -955,19 +810,11 @@ function App() {
               </button>
             </div>
             <p className="cookie-panel-summary">
-              Siden bruger nødvendig lokal lagring til at huske dit valg. Statistik og
-              marketing er ikke aktive.
+              Vi gemmer kun dit valg i denne browser. Ingen statistik. Ingen marketing.
             </p>
-            <div className="cookie-preference-list">
-              {cookieCategories.map((category) => (
-                <article key={category.label}>
-                  <div>
-                    <span>{category.label}</span>
-                    <p>{category.text}</p>
-                  </div>
-                  <strong>{category.status}</strong>
-                </article>
-              ))}
+            <div className="cookie-minimal">
+              <span>Nødvendig lagring</span>
+              <strong>Altid aktiv</strong>
             </div>
             <div className="cookie-panel-actions">
               <button
@@ -989,13 +836,12 @@ function App() {
           <div>
             <strong>Cookies</strong>
             <p>
-              Vi bruger kun nødvendig lokal lagring til at huske dit valg. Ingen
-              marketingcookies. Ingen skjult statistik.
+              Kun nødvendig lagring til at huske dit valg.
             </p>
           </div>
           <div className="cookie-actions">
             <button type="button" onClick={openCookieSettings}>
-              Indstillinger
+              Læs
             </button>
             <button type="button" onClick={saveCookieChoice}>
               OK
