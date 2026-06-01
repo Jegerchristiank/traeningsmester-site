@@ -1,102 +1,108 @@
 import Phaser from "phaser";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type CircuitMode = "daily" | "practice";
-type CircuitObjectType = "plate" | "protein" | "hazard" | "gate";
+type SessionMode = "daily" | "free";
 
-type CircuitHud = {
+type SessionHud = {
   score: number;
   best: number;
-  combo: number;
-  form: number;
-  power: number;
+  setsDone: number;
+  totalSets: number;
+  focus: number;
   timeLeft: number;
-  lane: number;
   status: string;
+  currentExercise: string;
+  currentPrescription: string;
   running: boolean;
   finished: boolean;
 };
 
-type CircuitResult = {
+type SessionResult = {
   score: number;
-  combo: number;
-  power: number;
-  form: number;
+  setsDone: number;
+  focus: number;
   seed: string;
-  mode: CircuitMode;
+  mode: SessionMode;
   date: string;
 };
 
-type CircuitRun = CircuitResult & {
+type SessionRun = SessionResult & {
   id: string;
 };
 
-type CircuitObject = {
-  body: Phaser.GameObjects.Container;
-  type: CircuitObjectType;
-  lane: number;
-  x: number;
-  width: number;
-  hit: boolean;
-  missed: boolean;
+type WorkoutSet = {
+  exercise: string;
+  reps: string;
+  weight: string;
 };
 
-const gameDurationSeconds = 45;
+type PrecisionResult = "perfect" | "good" | "miss";
+
 const worldWidth = 960;
 const worldHeight = 540;
-const playerX = 168;
-const laneYs = [156, 270, 384];
-const runHistoryKey = "tm-iron-circuit-runs-v2";
+const gameDurationSeconds = 55;
+const totalSets = 6;
+const markerMinX = 312;
+const markerMaxX = 812;
+const markerY = 298;
+const perfectCenterX = 562;
+const perfectWidth = 154;
+const goodWidth = 310;
+const runHistoryKey = "tm-dagens-pas-runs-v3";
 
-const defaultHud: CircuitHud = {
+const defaultHud: SessionHud = {
   score: 0,
   best: 0,
-  combo: 0,
-  form: 100,
-  power: 0,
+  setsDone: 0,
+  totalSets,
+  focus: 100,
   timeLeft: gameDurationSeconds,
-  lane: 1,
   status: "Klar",
+  currentExercise: "Benpres",
+  currentPrescription: "8 reps · 80 kg",
   running: false,
   finished: false
 };
 
 type SceneOptions = {
-  mode: CircuitMode;
+  mode: SessionMode;
   seed: string;
   sceneKey: string;
+  workout: WorkoutSet[];
   best: number;
-  onHud: (hud: CircuitHud) => void;
-  onFinish: (result: CircuitResult) => void;
+  onHud: (hud: SessionHud) => void;
+  onFinish: (result: SessionResult) => void;
 };
 
 export function IronCircuitGame() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const [mode, setMode] = useState<CircuitMode>("daily");
+  const [mode, setMode] = useState<SessionMode>("daily");
   const [runKey, setRunKey] = useState(0);
-  const [hud, setHud] = useState<CircuitHud>(defaultHud);
-  const [runs, setRuns] = useState<CircuitRun[]>(() => readRuns());
+  const [hud, setHud] = useState<SessionHud>(defaultHud);
+  const [runs, setRuns] = useState<SessionRun[]>(() => readRuns());
   const todaySeed = useMemo(() => getDailySeed(), []);
   const seed = useMemo(
-    () => (mode === "daily" ? todaySeed : `practice-${runKey}-${Date.now()}`),
+    () => (mode === "daily" ? todaySeed : `fri-${runKey}-${Date.now()}`),
     [mode, runKey, todaySeed]
   );
-  const sceneKey = `iron-circuit-${seed}`;
+  const workout = useMemo(() => createWorkout(seed), [seed]);
+  const sceneKey = `dagens-pas-${seed}`;
   const publicSeed = todaySeed.replace("daily-", "");
   const best = getBestForSeed(runs, todaySeed);
   const topRuns = runs.filter((run) => run.seed === todaySeed).slice(0, 5);
   const scoreCode = hud.finished
-    ? `TM-${publicSeed}-${hud.score}-${hud.combo}`
+    ? `TM-${publicSeed}-${hud.score}-${hud.setsDone}`
     : `TM-${publicSeed}`;
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
 
-    const scene = new CircuitScene({
+    const scene = new DagensPasScene({
       mode,
       seed,
       sceneKey,
+      workout,
       best,
       onHud: setHud,
       onFinish: (result) => {
@@ -127,7 +133,7 @@ export function IronCircuitGame() {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [mode, runKey, sceneKey, seed]);
+  }, [best, mode, runKey, sceneKey, seed, workout]);
 
   const restart = (nextMode = mode) => {
     setMode(nextMode);
@@ -135,33 +141,32 @@ export function IronCircuitGame() {
     setRunKey((current) => current + 1);
   };
 
-  const useScene = (action: (scene: CircuitScene) => void) => {
+  const useScene = (action: (scene: DagensPasScene) => void) => {
     const scene = gameRef.current?.scene.getScene(sceneKey);
-    if (scene instanceof CircuitScene) {
+    if (scene instanceof DagensPasScene) {
       action(scene);
     }
   };
 
   const startGame = () => useScene((scene) => scene.startFromUi());
-  const moveLane = (direction: -1 | 1) => useScene((scene) => scene.moveFromUi(direction));
-  const hitRep = () => useScene((scene) => scene.repFromUi());
+  const logSet = () => useScene((scene) => scene.logFromUi());
 
   const copyScore = async () => {
     try {
       await navigator.clipboard.writeText(scoreCode);
     } catch {
-      // Clipboard can be blocked in some browsers. The score code remains visible.
+      // The score code is still visible if clipboard access is blocked.
     }
   };
 
   return (
     <section className="iron-section section-band dark" id="spil" aria-labelledby="game-title">
       <div className="iron-copy">
-        <p className="eyebrow">Iron Circuit</p>
-        <h2 id="game-title">45 sekunder. Én bane. Ingen undskyldninger.</h2>
+        <p className="eyebrow">Dagens pas</p>
+        <h2 id="game-title">Log seks sæt uden at miste rytmen.</h2>
         <p>
-          Skift bane, saml plader, ram rep-gates og undgå dårlig form. Dagens
-          bane er ens for alle, så scoren kan sammenlignes.
+          Det er træningsflowet som spil: se næste sæt, ram det grønne felt,
+          log hurtigt og gå videre.
         </p>
       </div>
 
@@ -173,14 +178,14 @@ export function IronCircuitGame() {
               onClick={() => restart("daily")}
               type="button"
             >
-              Dagens bane
+              Dagens pas
             </button>
             <button
-              className={mode === "practice" ? "is-active" : ""}
-              onClick={() => restart("practice")}
+              className={mode === "free" ? "is-active" : ""}
+              onClick={() => restart("free")}
               type="button"
             >
-              Træningssal
+              Fri runde
             </button>
           </div>
           <button type="button" onClick={() => restart(mode)}>
@@ -200,12 +205,14 @@ export function IronCircuitGame() {
               <strong>{hud.timeLeft}s</strong>
             </p>
             <p>
-              <span>Combo</span>
-              <strong>x{Math.max(1, hud.combo)}</strong>
+              <span>Sæt</span>
+              <strong>
+                {hud.setsDone}/{hud.totalSets}
+              </strong>
             </p>
             <p>
-              <span>Form</span>
-              <strong>{Math.round(hud.form)}%</strong>
+              <span>Fokus</span>
+              <strong>{Math.round(hud.focus)}%</strong>
             </p>
           </div>
         </div>
@@ -213,27 +220,24 @@ export function IronCircuitGame() {
         <div className="iron-bottom">
           <div className="iron-status">
             <strong>{hud.status}</strong>
-            <span>W/S eller piletaster skifter bane. Space rammer REP.</span>
+            <span>
+              Næste: {hud.currentExercise} · {hud.currentPrescription}
+            </span>
+            <span>Tryk LOG SÆT når markøren rammer det grønne felt.</span>
           </div>
 
-          <div className="iron-actions" aria-label="Spilstyring">
+          <div className="iron-actions two-actions" aria-label="Spilstyring">
             <button type="button" onClick={startGame}>
               Start
             </button>
-            <button type="button" onClick={() => moveLane(-1)}>
-              Op
-            </button>
-            <button type="button" onClick={() => moveLane(1)}>
-              Ned
-            </button>
-            <button className="is-primary" type="button" onClick={hitRep}>
-              REP
+            <button className="is-primary" type="button" onClick={logSet}>
+              Log sæt
             </button>
           </div>
 
           <div className="iron-board" aria-label="Dagens score">
             <div>
-              <span>Dagens bane</span>
+              <span>Dagens pas</span>
               <strong>{publicSeed}</strong>
             </div>
             <div>
@@ -255,7 +259,7 @@ export function IronCircuitGame() {
                 <p key={run.id}>
                   <span>{index + 1}</span>
                   <strong>{run.score}</strong>
-                  <em>x{Math.max(1, run.combo)}</em>
+                  <em>{run.setsDone}/{totalSets} sæt</em>
                 </p>
               ))
             ) : (
@@ -272,83 +276,54 @@ export function IronCircuitGame() {
   );
 }
 
-class CircuitScene extends Phaser.Scene {
+class DagensPasScene extends Phaser.Scene {
   private readonly options: SceneOptions;
-  private rng: () => number;
-  private player!: Phaser.GameObjects.Container;
-  private playerAura!: Phaser.GameObjects.Arc;
-  private objects: CircuitObject[] = [];
-  private lane = 1;
+  private marker!: Phaser.GameObjects.Rectangle;
+  private workoutRows: Phaser.GameObjects.Container[] = [];
+  private setDots: Phaser.GameObjects.Arc[] = [];
+  private statusText!: Phaser.GameObjects.Text;
+  private exerciseText!: Phaser.GameObjects.Text;
+  private prescriptionText!: Phaser.GameObjects.Text;
   private score = 0;
-  private combo = 0;
-  private form = 100;
-  private power = 0;
+  private focus = 100;
+  private setsDone = 0;
   private elapsed = 0;
-  private spawnAt = 0;
+  private markerProgress = 0;
+  private markerDirection = 1;
+  private speed = 0.43;
   private running = false;
   private finished = false;
   private lastHudAt = 0;
-  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  private keys?: Record<string, Phaser.Input.Keyboard.Key>;
-  private swipeStartY: number | null = null;
-  private status = "Klar";
+  private spaceKey?: Phaser.Input.Keyboard.Key;
 
   constructor(options: SceneOptions) {
     super(options.sceneKey);
     this.options = options;
-    this.rng = mulberry32(hashSeed(options.seed));
   }
 
   create() {
     this.drawWorld();
-    this.player = this.createPlayer();
-    this.playerAura = this.add.circle(playerX, laneYs[this.lane], 38, 0xe31836, 0.1);
-    this.playerAura.setStrokeStyle(2, 0xe31836, 0.45);
-    this.player.setDepth(3);
-    this.playerAura.setDepth(2);
-
-    this.cursors = this.input.keyboard?.createCursorKeys();
-    this.keys = this.input.keyboard?.addKeys("W,S,SPACE") as Record<string, Phaser.Input.Keyboard.Key>;
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      this.startRun();
-      this.swipeStartY = pointer.y;
-      if (pointer.x > worldWidth * 0.74) {
-        this.tryRepGate();
+    this.spaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.input.on("pointerdown", () => {
+      if (!this.running) {
+        this.startRun();
         return;
       }
-
-      this.moveToNearestLane(pointer.y);
+      this.tryLogSet();
     });
-    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
-      if (this.swipeStartY === null) return;
-
-      const delta = pointer.y - this.swipeStartY;
-      if (Math.abs(delta) > 42) {
-        this.moveLane(delta > 0 ? 1 : -1);
-      }
-      this.swipeStartY = null;
-    });
-
     this.emitHud();
-  }
-
-  public startFromUi() {
-    this.startRun();
-  }
-
-  public moveFromUi(direction: -1 | 1) {
-    this.startRun();
-    this.moveLane(direction);
-  }
-
-  public repFromUi() {
-    this.startRun();
-    this.tryRepGate();
   }
 
   update(_: number, delta: number) {
     const deltaSeconds = Math.min(delta / 1000, 0.05);
-    this.handleKeyboard();
+
+    if (this.spaceKey && Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+      if (!this.running) {
+        this.startRun();
+      } else {
+        this.tryLogSet();
+      }
+    }
 
     if (!this.running || this.finished) {
       this.emitHud();
@@ -356,26 +331,20 @@ class CircuitScene extends Phaser.Scene {
     }
 
     this.elapsed += deltaSeconds;
-    this.spawnAt -= deltaSeconds;
-    if (this.spawnAt <= 0) {
-      this.spawnObject();
-      this.spawnAt = Math.max(0.42, 0.92 - this.elapsed / 92 + this.rng() * 0.28);
+    this.markerProgress += deltaSeconds * this.speed * this.markerDirection;
+    if (this.markerProgress >= 1) {
+      this.markerProgress = 1;
+      this.markerDirection = -1;
+      this.missSet("For sent");
+    } else if (this.markerProgress <= 0) {
+      this.markerProgress = 0;
+      this.markerDirection = 1;
     }
 
-    const speed = 258 + this.elapsed * 6 + this.combo * 2.2;
-    this.objects.forEach((object) => {
-      object.x -= speed * deltaSeconds;
-      object.body.setX(object.x);
-      this.resolveObject(object);
-    });
-    this.objects = this.objects.filter((object) => {
-      if (object.x > -120 && !object.hit) return true;
-      object.body.destroy();
-      return false;
-    });
+    const markerX = Phaser.Math.Linear(markerMinX, markerMaxX, this.markerProgress);
+    this.marker.setX(markerX);
 
-    this.power = clamp(this.power - deltaSeconds * 1.6, 0, 100);
-    if (this.elapsed >= gameDurationSeconds || this.form <= 0) {
+    if (this.elapsed >= gameDurationSeconds || this.focus <= 0) {
       this.finishRun();
     }
 
@@ -384,238 +353,219 @@ class CircuitScene extends Phaser.Scene {
     }
   }
 
+  public startFromUi() {
+    this.startRun();
+  }
+
+  public logFromUi() {
+    if (!this.running) {
+      this.startRun();
+      return;
+    }
+    this.tryLogSet();
+  }
+
   private drawWorld() {
     this.add.rectangle(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, 0x091016);
-    for (let i = 0; i < 13; i += 1) {
-      this.add.line(0, 0, i * 80, 0, i * 80 - 190, worldHeight, 0x1a2431, 0.45).setOrigin(0);
+    this.add.rectangle(206, worldHeight / 2, 286, worldHeight - 74, 0x0d131b, 0.94);
+    this.add.rectangle(606, worldHeight / 2, 644, worldHeight - 74, 0x111923, 0.88);
+
+    for (let i = 0; i < 9; i += 1) {
+      this.add.line(0, 0, 286 + i * 84, 72, 244 + i * 84, 468, 0xf3f6fc, 0.045).setOrigin(0);
     }
 
-    laneYs.forEach((laneY) => {
-      this.add.rectangle(worldWidth / 2, laneY, worldWidth, 78, 0x101821, 0.72);
-      this.add.line(0, 0, 0, laneY + 40, worldWidth, laneY + 40, 0xf3f6fc, 0.08).setOrigin(0);
+    this.add.text(72, 56, "DAGENS PAS", textStyle(18, "#e31836", 900));
+    this.add.text(72, 88, "Seks sæt. Samme pas for alle.", textStyle(14, "#ccd6e7", 650));
+
+    this.options.workout.forEach((set, index) => {
+      const row = this.add.container(70, 140 + index * 56);
+      const box = this.add.rectangle(106, 0, 212, 42, index === 0 ? 0x202938 : 0x131c27, 0.9);
+      box.setStrokeStyle(1, index === 0 ? 0xe31836 : 0xf3f6fc, index === 0 ? 0.7 : 0.12);
+      const dot = this.add.circle(10, 0, 11, 0x0b0f14).setStrokeStyle(2, 0xf3f6fc, 0.3);
+      const exercise = this.add.text(30, -14, set.exercise, textStyle(15, "#f3f6fc", 850));
+      const meta = this.add.text(30, 4, `${set.reps} · ${set.weight}`, textStyle(12, "#ccd6e7", 650));
+      row.add([box, dot, exercise, meta]);
+      this.workoutRows.push(row);
+      this.setDots.push(dot);
     });
 
-    this.add.rectangle(72, worldHeight / 2, 6, worldHeight - 92, 0xe31836, 0.65);
-    this.add.text(34, 34, "IRON CIRCUIT", {
-      color: "#e31836",
-      fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "18px",
-      fontStyle: "900"
-    });
-  }
+    this.add.rectangle(612, 112, 538, 72, 0x0b0f14, 0.72).setStrokeStyle(1, 0xf3f6fc, 0.12);
+    this.add.text(360, 82, "Næste sæt", textStyle(13, "#ccd6e7", 800));
+    this.exerciseText = this.add.text(360, 106, "", textStyle(30, "#f3f6fc", 900));
+    this.prescriptionText = this.add.text(360, 144, "", textStyle(16, "#ccd6e7", 720));
 
-  private createPlayer() {
-    const body = this.add.container(playerX, laneYs[this.lane]);
-    const shadow = this.add.ellipse(0, 40, 92, 20, 0x000000, 0.36);
-    const legs = this.add.rectangle(0, 22, 54, 56, 0x10203a).setStrokeStyle(2, 0x315c9f, 0.7);
-    const torso = this.add.rectangle(0, -14, 72, 68, 0x141a24).setStrokeStyle(3, 0xe31836, 0.8);
-    const neck = this.add.rectangle(0, -47, 18, 18, 0x9b6842);
-    const head = this.add.circle(0, -72, 24, 0xb97852).setStrokeStyle(3, 0xe0a36c, 0.55);
-    const hair = this.add.rectangle(0, -94, 38, 11, 0x111319);
-    const brow = this.add.rectangle(0, -78, 32, 5, 0x111319, 0.72);
-    const shoulders = this.add.rectangle(0, -36, 86, 16, 0x202938).setStrokeStyle(2, 0xf3f6fc, 0.16);
-    const bar = this.add.rectangle(0, -16, 116, 8, 0xf3f6fc);
-    const leftPlate = this.add.rectangle(-68, -16, 24, 42, 0x05070a).setStrokeStyle(2, 0xf3f6fc, 0.24);
-    const rightPlate = this.add.rectangle(68, -16, 24, 42, 0x05070a).setStrokeStyle(2, 0xf3f6fc, 0.24);
+    this.add.text(360, 214, "Tryk når markøren rammer KLAR", textStyle(17, "#f3f6fc", 850));
+    this.add.rectangle(562, markerY, goodWidth, 78, 0x243244, 0.84);
+    this.add.rectangle(562, markerY, perfectWidth, 78, 0x4f6257, 0.96);
+    this.add.rectangle(392, markerY, 160, 78, 0x2a1720, 0.8);
+    this.add.rectangle(732, markerY, 160, 78, 0x2a2117, 0.8);
+    this.add.text(338, markerY - 11, "FOR TIDLIGT", textStyle(12, "#ccd6e7", 850));
+    this.add.text(532, markerY - 13, "KLAR", textStyle(18, "#f3f6fc", 950));
+    this.add.text(694, markerY - 11, "FOR SENT", textStyle(12, "#ccd6e7", 850));
 
-    body.add([shadow, legs, torso, neck, shoulders, head, hair, brow, bar, leftPlate, rightPlate]);
-    return body;
-  }
+    this.add.rectangle(562, markerY, markerMaxX - markerMinX, 3, 0xf3f6fc, 0.34);
+    this.marker = this.add.rectangle(markerMinX, markerY, 12, 116, 0xe31836, 0.96);
+    this.marker.setStrokeStyle(2, 0xf3f6fc, 0.44);
 
-  private handleKeyboard() {
-    if (!this.cursors || !this.keys) return;
+    this.statusText = this.add.text(360, 382, "Start når du er klar.", textStyle(24, "#f3f6fc", 900));
+    this.add.text(360, 424, "Space eller klik i spillet virker også.", textStyle(15, "#ccd6e7", 680));
 
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.up!) || Phaser.Input.Keyboard.JustDown(this.keys.W)) {
-      this.startRun();
-      this.moveLane(-1);
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.down!) || Phaser.Input.Keyboard.JustDown(this.keys.S)) {
-      this.startRun();
-      this.moveLane(1);
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.space!) || Phaser.Input.Keyboard.JustDown(this.keys.SPACE)) {
-      this.startRun();
-      this.tryRepGate();
-    }
+    this.updateActiveSet();
   }
 
   private startRun() {
     if (this.running || this.finished) return;
     this.running = true;
-    this.status = "I gang";
-    this.emitHud();
-  }
-
-  private moveLane(direction: number) {
-    this.lane = clamp(this.lane + direction, 0, laneYs.length - 1);
-    this.tweens.killTweensOf(this.player);
-    this.tweens.killTweensOf(this.playerAura);
-    this.tweens.add({
-      targets: [this.player, this.playerAura],
-      y: laneYs[this.lane],
-      duration: 115,
-      ease: "Sine.easeOut"
+    this.statusText.setText("Find rytmen.");
+    this.options.onHud({
+      ...defaultHud,
+      best: this.options.best,
+      currentExercise: this.options.workout[0].exercise,
+      currentPrescription: `${this.options.workout[0].reps} · ${this.options.workout[0].weight}`,
+      running: true,
+      status: "Find rytmen"
     });
   }
 
-  private moveToNearestLane(y: number) {
-    const nearestLane = laneYs.reduce((best, laneY, index) => {
-      return Math.abs(laneY - y) < Math.abs(laneYs[best] - y) ? index : best;
-    }, this.lane);
-    this.moveLane(nearestLane - this.lane);
-  }
+  private tryLogSet() {
+    if (this.finished || this.setsDone >= totalSets) return;
 
-  private spawnObject() {
-    const lane = Math.floor(this.rng() * laneYs.length);
-    const roll = this.rng();
-    const type: CircuitObjectType =
-      roll > 0.78 ? "gate" : roll > 0.58 ? "hazard" : roll > 0.34 ? "protein" : "plate";
-    const object = this.createObject(type, lane);
-    this.objects.push(object);
-  }
+    const x = Phaser.Math.Linear(markerMinX, markerMaxX, this.markerProgress);
+    const distance = Math.abs(x - perfectCenterX);
+    const precision: PrecisionResult =
+      distance <= perfectWidth / 2 ? "perfect" : distance <= goodWidth / 2 ? "good" : "miss";
 
-  private createObject(type: CircuitObjectType, lane: number): CircuitObject {
-    const body = this.add.container(worldWidth + 90, laneYs[lane]);
-    body.setDepth(type === "gate" ? 1 : 2);
-
-    if (type === "plate") {
-      body.add(this.add.circle(0, 0, 24, 0x0047ab).setStrokeStyle(5, 0xf3f6fc, 0.35));
-      body.add(this.add.circle(0, 0, 8, 0x091016));
-    } else if (type === "protein") {
-      body.add(this.add.rectangle(0, 0, 42, 54, 0x4f6257).setStrokeStyle(3, 0xf3f6fc, 0.3));
-      body.add(this.add.text(-12, -11, "+", { color: "#f3f6fc", fontSize: "24px", fontStyle: "900" }));
-    } else if (type === "hazard") {
-      body.add(this.add.triangle(0, 4, 0, -30, 34, 30, -34, 30, 0xe31836, 0.86));
-      body.add(this.add.text(-6, -10, "!", { color: "#f3f6fc", fontSize: "24px", fontStyle: "900" }));
-    } else {
-      body.add(this.add.rectangle(0, 0, 34, 102, 0xf3f6fc, 0.16));
-      body.add(this.add.rectangle(0, 0, 92, 32, 0xf3f6fc, 0.82));
-      body.add(this.add.text(-22, -8, "REP", { color: "#101319", fontSize: "14px", fontStyle: "900" }));
-    }
-
-    return {
-      body,
-      type,
-      lane,
-      x: worldWidth + 90,
-      width: type === "gate" ? 98 : 56,
-      hit: false,
-      missed: false
-    };
-  }
-
-  private resolveObject(object: CircuitObject) {
-    if (object.lane !== this.lane || object.hit) {
-      if (object.type === "gate" && !object.missed && object.x < playerX - 70) {
-        object.missed = true;
-        this.combo = 0;
-        this.form = clamp(this.form - 6, 0, 100);
-        this.status = "REP missede";
-      }
+    if (precision === "miss") {
+      this.missSet(x < perfectCenterX ? "For tidligt" : "For sent");
       return;
     }
 
-    const distance = Math.abs(object.x - playerX);
-    if (object.type === "gate") return;
-    if (distance > object.width) return;
-
-    object.hit = true;
-    if (object.type === "plate") {
-      this.combo += 1;
-      this.power = clamp(this.power + 8, 0, 100);
-      this.score += this.scoreValue(170);
-      this.status = "Plade samlet";
-      this.bumpPlayer(0x0047ab);
-    } else if (object.type === "protein") {
-      this.combo += 1;
-      this.form = clamp(this.form + 10, 0, 100);
-      this.score += this.scoreValue(110);
-      this.status = "Form op";
-      this.bumpPlayer(0x4f6257);
-    } else {
-      this.combo = 0;
-      this.form = clamp(this.form - 18, 0, 100);
-      this.score = Math.max(0, this.score - 120);
-      this.status = "Dårlig form";
-      this.cameras.main.shake(95, 0.007);
-      this.bumpPlayer(0xe31836);
-    }
+    const base = precision === "perfect" ? 860 : 520;
+    const streakBonus = this.setsDone * (precision === "perfect" ? 70 : 38);
+    const focusBonus = Math.round(this.focus * 1.8);
+    this.score += base + streakBonus + focusBonus;
+    this.focus = clamp(this.focus + (precision === "perfect" ? 3 : 1), 0, 100);
+    this.statusText.setText(precision === "perfect" ? "Rent logget." : "Godkendt.");
+    this.flashMarker(precision === "perfect" ? 0x4f6257 : 0x0047ab);
+    this.completeSet();
   }
 
-  private tryRepGate() {
-    if (this.finished) return;
+  private missSet(reason: string) {
+    if (this.finished || this.setsDone >= totalSets) return;
+    this.focus = clamp(this.focus - 14, 0, 100);
+    this.score = Math.max(0, this.score - 110);
+    this.statusText.setText(reason);
+    this.flashMarker(0xe31836);
+    this.resetMarker();
+    if (this.focus <= 0) {
+      this.finishRun();
+    }
+    this.emitHud();
+  }
 
-    const gate = this.objects
-      .filter((object) => object.type === "gate" && object.lane === this.lane && !object.hit)
-      .sort((a, b) => Math.abs(a.x - playerX) - Math.abs(b.x - playerX))[0];
+  private completeSet() {
+    this.setDots[this.setsDone]?.setFillStyle(0xe31836, 1);
+    this.setDots[this.setsDone]?.setStrokeStyle(2, 0xf3f6fc, 0.44);
+    this.workoutRows[this.setsDone]?.setAlpha(0.72);
+    this.setsDone += 1;
+    this.speed = Math.min(0.86, this.speed + 0.055);
+    this.resetMarker();
 
-    if (!gate || Math.abs(gate.x - playerX) > 92) {
-      this.combo = Math.max(0, this.combo - 1);
-      this.status = "For tidligt";
+    if (this.setsDone >= totalSets) {
+      this.score += Math.max(0, Math.round((gameDurationSeconds - this.elapsed) * 42));
+      this.finishRun();
       return;
     }
 
-    const distance = Math.abs(gate.x - playerX);
-    gate.hit = true;
-    this.combo += distance < 34 ? 3 : 1;
-    this.power = clamp(this.power + (distance < 34 ? 18 : 10), 0, 100);
-    this.form = clamp(this.form + 4, 0, 100);
-    this.score += this.scoreValue(distance < 34 ? 620 : 360);
-    this.status = distance < 34 ? "Perfekt REP" : "REP";
-    this.bumpPlayer(0xf3f6fc);
+    this.updateActiveSet();
+    this.emitHud();
   }
 
-  private scoreValue(base: number) {
-    return Math.round(base * Math.min(3.2, 1 + this.combo * 0.11));
+  private updateActiveSet() {
+    const activeSet = this.options.workout[this.setsDone] ?? this.options.workout[totalSets - 1];
+    this.exerciseText.setText(activeSet.exercise);
+    this.prescriptionText.setText(`${activeSet.reps} · ${activeSet.weight}`);
+
+    this.workoutRows.forEach((row, index) => {
+      const box = row.list[0] as Phaser.GameObjects.Rectangle;
+      const isActive = index === this.setsDone;
+      box.setFillStyle(isActive ? 0x202938 : 0x131c27, isActive ? 0.95 : 0.78);
+      box.setStrokeStyle(1, isActive ? 0xe31836 : 0xf3f6fc, isActive ? 0.75 : 0.1);
+      row.setAlpha(index < this.setsDone ? 0.7 : 1);
+    });
   }
 
-  private bumpPlayer(color: number) {
-    this.playerAura.setFillStyle(color, 0.22);
+  private resetMarker() {
+    this.markerProgress = 0;
+    this.markerDirection = 1;
+    this.marker.setX(markerMinX);
+  }
+
+  private flashMarker(color: number) {
+    this.marker.setFillStyle(color, 1);
     this.tweens.add({
-      targets: this.playerAura,
-      alpha: 0.05,
-      scale: 1.28,
-      duration: 120,
+      targets: this.marker,
+      scaleY: 1.14,
+      duration: 90,
       yoyo: true,
-      ease: "Sine.easeOut"
+      onComplete: () => this.marker.setFillStyle(0xe31836, 0.96)
     });
   }
 
   private finishRun() {
     if (this.finished) return;
-
     this.finished = true;
     this.running = false;
-    this.status = this.form <= 0 ? "Formen røg" : "Tid slut";
+    const status = this.setsDone >= totalSets ? "Pas gennemført" : "Rytmen røg";
+    this.statusText.setText(status);
     this.options.onFinish({
       score: this.score,
-      combo: this.combo,
-      power: Math.round(this.power),
-      form: Math.round(this.form),
+      setsDone: this.setsDone,
+      focus: Math.round(this.focus),
       seed: this.options.seed,
       mode: this.options.mode,
       date: getTodayStamp()
     });
-    this.emitHud();
+    this.emitHud(status);
   }
 
-  private emitHud() {
+  private emitHud(status = this.statusText?.text ?? "Klar") {
     this.lastHudAt = this.time.now;
+    const activeSet = this.options.workout[this.setsDone] ?? this.options.workout[totalSets - 1];
     this.options.onHud({
       score: this.score,
       best: this.options.best,
-      combo: this.combo,
-      form: this.form,
-      power: this.power,
+      setsDone: this.setsDone,
+      totalSets,
+      focus: this.focus,
       timeLeft: Math.max(0, Math.ceil(gameDurationSeconds - this.elapsed)),
-      lane: this.lane,
-      status: this.status,
+      status,
+      currentExercise: activeSet.exercise,
+      currentPrescription: `${activeSet.reps} · ${activeSet.weight}`,
       running: this.running,
       finished: this.finished
     });
   }
+}
+
+function createWorkout(seed: string): WorkoutSet[] {
+  const rng = mulberry32(hashSeed(seed));
+  const exercises = [
+    ["Benpres", "8 reps", "80 kg"],
+    ["Roning", "10 reps", "45 kg"],
+    ["Brystpres", "8 reps", "50 kg"],
+    ["Skulderpres", "10 reps", "24 kg"],
+    ["Split squat", "8 reps", "18 kg"],
+    ["Pulldown", "10 reps", "55 kg"],
+    ["Hip thrust", "8 reps", "90 kg"],
+    ["Cable row", "10 reps", "42 kg"]
+  ];
+
+  const shuffled = [...exercises].sort(() => rng() - 0.5).slice(0, 3);
+  return shuffled.flatMap(([exercise, reps, weight]) => [
+    { exercise, reps, weight },
+    { exercise, reps, weight }
+  ]);
 }
 
 function readRuns() {
@@ -623,7 +573,7 @@ function readRuns() {
     const parsed = JSON.parse(window.localStorage.getItem(runHistoryKey) ?? "[]");
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .filter((run): run is CircuitRun => typeof run?.score === "number" && typeof run?.seed === "string")
+      .filter((run): run is SessionRun => typeof run?.score === "number" && typeof run?.seed === "string")
       .sort((a, b) => b.score - a.score)
       .slice(0, 20);
   } catch {
@@ -631,7 +581,7 @@ function readRuns() {
   }
 }
 
-function saveRun(result: CircuitResult) {
+function saveRun(result: SessionResult) {
   const runs = readRuns();
   const nextRuns = [
     {
@@ -646,12 +596,12 @@ function saveRun(result: CircuitResult) {
   try {
     window.localStorage.setItem(runHistoryKey, JSON.stringify(nextRuns));
   } catch {
-    // Local leaderboard is optional.
+    // Local competition is optional. The game still runs without storage.
   }
   return nextRuns;
 }
 
-function getBestForSeed(runs: CircuitRun[], seed: string) {
+function getBestForSeed(runs: SessionRun[], seed: string) {
   const bestRun = runs.find((run) => run.seed === seed);
   return bestRun?.score ?? 0;
 }
@@ -679,6 +629,15 @@ function mulberry32(seed: number) {
     value = Math.imul(value ^ (value >>> 15), value | 1);
     value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
     return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function textStyle(size: number, color: string, weight: number) {
+  return {
+    color,
+    fontFamily: "Inter, Arial, sans-serif",
+    fontSize: `${size}px`,
+    fontStyle: weight >= 850 ? "900" : "normal"
   };
 }
 
