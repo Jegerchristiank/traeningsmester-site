@@ -20,6 +20,14 @@ type Mode = {
 type LegalPanelId = "terms" | "privacy" | "cookies";
 type CookieChoice = "necessary";
 
+const company = {
+  legalName: "KRISTENSON",
+  cvr: "40679456",
+  form: "Personligt ejet Mindre Virksomhed",
+  address: "Blomstergården 13, 4700 Næstved",
+  source: "CVR/Virk via Proff"
+};
+
 const modes: Mode[] = [
   {
     id: "begynder",
@@ -29,8 +37,7 @@ const modes: Mode[] = [
     before: "For mange valg gør træningen tung, før den overhovedet starter.",
     after: "Dagens pas står klart. Øvelserne er konkrete. Starten føles enkel.",
     first: ["Dagens træning", "Tydelige øvelser", "Færre valg ad gangen"],
-    image:
-      "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=1500&q=82",
+    image: "/photos/beginner-training.jpg",
     screen: "/app/home-training.jpg",
     screenAlt: "Dagens træning i Træningsmester"
   },
@@ -42,8 +49,7 @@ const modes: Mode[] = [
     before: "Gamle noter, nye mål og forskellige centre bliver hurtigt til rod.",
     after: "Planen hænger sammen, selv når hverdagen tvinger dig til at ændre den.",
     first: ["Programmer", "Import", "Skift uden rod"],
-    image:
-      "https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?auto=format&fit=crop&w=1500&q=82",
+    image: "/photos/program-training.jpg",
     screen: "/app/programs.jpg",
     screenAlt: "Programmer i Træningsmester"
   },
@@ -55,8 +61,7 @@ const modes: Mode[] = [
     before: "Hvis loggen tager for meget plads, ryger fokus væk fra løftet.",
     after: "Sæt, vægt, PR og historik ligger klar, når næste valg skal tages.",
     first: ["Sæt og vægt", "Seneste løft", "Historik og PR"],
-    image:
-      "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1500&q=82",
+    image: "/photos/logger-training.jpg",
     screen: "/app/exercises.jpg",
     screenAlt: "Øvelseskatalog i Træningsmester"
   },
@@ -68,8 +73,7 @@ const modes: Mode[] = [
     before: "Trænerarbejde falder fra hinanden, når alt lever i beskeder.",
     after: "Du ser hvem der kræver opmærksomhed, og hvad der skal gøres.",
     first: ["Klienter", "Planer", "Opfølgning"],
-    image:
-      "https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?auto=format&fit=crop&w=1500&q=82",
+    image: "/photos/coach-training.jpg",
     screen: "/app/coach.jpg",
     screenAlt: "Coach-overblik i Træningsmester"
   }
@@ -153,34 +157,11 @@ const trustSignals = [
   },
   {
     label: "Cookiekontrol",
-    text: "Ingen marketingcookies eller skjult statistik på denne side."
+    text: "Ingen marketingcookies, skjult statistik eller tredjepartsmedier."
   },
   {
     label: "Support",
     text: "Hjælp håndteres via appens konto- og indstillingsflader."
-  }
-];
-
-const statusRows = [
-  {
-    label: "Website",
-    value: "Informationsside",
-    note: "Ingen konto, betaling eller træningsdata på websitet."
-  },
-  {
-    label: "Cookies",
-    value: "Kun nødvendigt valg",
-    note: "Valget gemmes lokalt. Ingen marketingcookies."
-  },
-  {
-    label: "Køb",
-    value: "Ikke på web",
-    note: "Pris og abonnement vises først i det konkrete købsflow."
-  },
-  {
-    label: "Support",
-    value: "Via appen",
-    note: "Konto-, data- og abonnementsrelateret hjælp håndteres dér."
   }
 ];
 
@@ -205,7 +186,7 @@ const documentCards: {
   {
     id: "cookies",
     title: "Cookies",
-    text: "Nødvendig lagring, statistikstatus og marketingstatus.",
+    text: "Nødvendig lagring, mediestatus og marketingstatus.",
     meta: "Samtykke"
   }
 ];
@@ -219,7 +200,7 @@ const faqs = [
   {
     question: "Hvorfor er der et cookiepanel, hvis siden ikke tracker?",
     answer:
-      "Fordi valget stadig skal være tydeligt. Siden bruger kun nødvendig lokal lagring til at huske, at banneret er lukket."
+      "Fordi valget stadig skal være tydeligt. Siden bruger kun nødvendig lokal lagring til at huske, at banneret er lukket, og billederne serveres fra samme site."
   },
   {
     question: "Hvor finder jeg hjælp til konto eller abonnement?",
@@ -249,6 +230,10 @@ const legalPanels: Record<
       "Denne side sælger ikke abonnementer direkte. Betingelserne forklarer rammen for Træningsmester, når køb åbnes i appen eller gennem en app-butik.",
     sections: [
       {
+        heading: "Virksomhed",
+        body: `${company.legalName}, CVR ${company.cvr}, ${company.address}. Selskabsform: ${company.form}.`
+      },
+      {
         heading: "Køb og betaling",
         body:
           "Eventuelle køb vises altid i det betalingsflow, hvor købet gennemføres. Pris, periode, fornyelse og opsigelse skal fremgå før betaling."
@@ -277,9 +262,13 @@ const legalPanels: Record<
       "Hjemmesiden er en informationsside. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
     sections: [
       {
+        heading: "Ansvarlig virksomhed",
+        body: `${company.legalName}, CVR ${company.cvr}, er den offentligt registrerede virksomhed bag siden. Kilde: ${company.source}.`
+      },
+      {
         heading: "På websitet",
         body:
-          "Denne version bruger kun lokal lagring til at huske cookievalget. Der er ingen aktive marketing- eller statistikværktøjer."
+          "Denne version bruger kun lokal lagring til at huske cookievalget. Primære billeder og screenshots serveres fra samme site. Der er ingen aktive marketing- eller statistikværktøjer."
       },
       {
         heading: "I appen",
@@ -303,6 +292,11 @@ const legalPanels: Record<
         heading: "Nødvendig lagring",
         body:
           "Cookievalget gemmes i browserens lokale lager. Det er nødvendigt for at huske, om banneret er lukket."
+      },
+      {
+        heading: "Medier",
+        body:
+          "Primære billeder, app-screenshots, logo og ikon serveres fra samme site og kræver ikke tredjepartsmedier."
       },
       {
         heading: "Statistik",
@@ -349,6 +343,33 @@ function App() {
     [activeMode]
   );
   const activeLegal = activeLegalPanel ? legalPanels[activeLegalPanel] : null;
+
+  useEffect(() => {
+    const scrollToHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+
+      const scrollToTarget = () => {
+        const target = document.getElementById(decodeURIComponent(hash));
+        if (!target) return;
+
+        const html = document.documentElement;
+        const previousScrollBehavior = html.style.scrollBehavior;
+        html.style.scrollBehavior = "auto";
+        target.scrollIntoView({ block: "start" });
+        window.requestAnimationFrame(() => {
+          html.style.scrollBehavior = previousScrollBehavior;
+        });
+      };
+
+      window.setTimeout(scrollToTarget, 80);
+      window.setTimeout(scrollToTarget, 420);
+    };
+
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    return () => window.removeEventListener("hashchange", scrollToHash);
+  }, []);
 
   useEffect(() => {
     const savedChoice = readStoredCookieChoice();
@@ -563,23 +584,13 @@ function App() {
         <section className="official section-band" id="praktisk">
           <div className="official-head">
             <p className="eyebrow">Praktisk</p>
-            <h2>Vilkår, cookies og praktisk status.</h2>
+            <h2>Vilkår, cookies og de praktiske rammer.</h2>
           </div>
           <div className="trust-grid" aria-label="Praktisk status">
             {trustSignals.map((signal) => (
               <article className="trust-card" key={signal.label}>
                 <span>{signal.label}</span>
                 <p>{signal.text}</p>
-              </article>
-            ))}
-          </div>
-
-          <div className="status-ledger" aria-label="Aktuel status">
-            {statusRows.map((row) => (
-              <article key={row.label}>
-                <span>{row.label}</span>
-                <strong>{row.value}</strong>
-                <p>{row.note}</p>
               </article>
             ))}
           </div>
@@ -653,6 +664,9 @@ function App() {
         <div>
           <img src="/brand/tm-logo.png" alt="" />
           <p>Træningsmester · næste træning uden tvivl.</p>
+          <small>
+            {company.legalName} · CVR {company.cvr}
+          </small>
           <small>Opdateret 1. juni 2026</small>
         </div>
         <div className="footer-links" aria-label="Juridiske links">

@@ -27,6 +27,10 @@ html {
   scroll-behavior: smooth;
 }
 
+[id] {
+  scroll-margin-top: 92px;
+}
+
 body {
   margin: 0;
   background: var(--paper);
@@ -124,8 +128,7 @@ img {
   background:
     linear-gradient(90deg, rgba(11, 15, 20, 0.94) 0 42%, rgba(11, 15, 20, 0.52) 72%, rgba(11, 15, 20, 0.78)),
     linear-gradient(180deg, rgba(11, 15, 20, 0.04), rgba(11, 15, 20, 0.94)),
-    url("https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?auto=format&fit=crop&w=2400&q=82")
-      center / cover;
+    url("/photos/hero-training.jpg") center / cover;
   filter: saturate(0.74) contrast(1.07);
 }
 
@@ -703,30 +706,6 @@ h3 {
   line-height: 1.16;
 }
 
-.status-ledger {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: 54px;
-  color: var(--light);
-  background: var(--dark);
-  border: 1px solid var(--dark-line);
-  border-radius: 8px;
-}
-
-.status-ledger article {
-  min-height: 180px;
-  display: grid;
-  align-content: space-between;
-  gap: 18px;
-  padding: 24px;
-  border-right: 1px solid var(--dark-line);
-}
-
-.status-ledger article:last-child {
-  border-right: 0;
-}
-
-.status-ledger span,
 .document-stack span {
   color: var(--red);
   font-size: 0.76rem;
@@ -734,23 +713,11 @@ h3 {
   text-transform: uppercase;
 }
 
-.status-ledger strong {
-  font-size: 1.42rem;
-  line-height: 1.08;
-}
-
-.status-ledger p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.96rem;
-  line-height: 1.42;
-}
-
 .document-stack {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-top: 16px;
+  margin-top: 54px;
 }
 
 .document-stack article {
@@ -920,8 +887,7 @@ h3 {
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(11, 15, 20, 0), rgba(11, 15, 20, 0.16)),
-    url("https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1600&q=82")
-      center / cover;
+    url("/photos/team-training.jpg") center / cover;
 }
 
 .team-copy {
@@ -1024,9 +990,14 @@ footer small {
   border-bottom: 1px solid var(--line);
 }
 
+.legal-panel-head > div {
+  min-width: 0;
+}
+
 .legal-panel h2 {
   margin-bottom: 0;
   font-size: 3.4rem;
+  overflow-wrap: anywhere;
 }
 
 .close-button {
@@ -1189,22 +1160,19 @@ footer small {
   .flow-grid,
   .screens-row,
   .principle-list,
-  .trust-grid,
-  .status-ledger {
+  .trust-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .flow-item:nth-child(2),
   .principle-list p:nth-child(2),
-  .trust-card:nth-child(2),
-  .status-ledger article:nth-child(2) {
+  .trust-card:nth-child(2) {
     border-right: 0;
   }
 
   .flow-item:nth-child(-n + 2),
   .principle-list p:nth-child(-n + 2),
-  .trust-card:nth-child(-n + 2),
-  .status-ledger article:nth-child(-n + 2) {
+  .trust-card:nth-child(-n + 2) {
     border-bottom: 1px solid var(--dark-line);
   }
 
@@ -1224,6 +1192,10 @@ footer small {
 }
 
 @media (max-width: 760px) {
+  [id] {
+    scroll-margin-top: 76px;
+  }
+
   .site-header {
     align-items: flex-start;
     padding: 14px 18px;
@@ -1382,7 +1354,6 @@ footer small {
   .screens-row,
   .principle-list,
   .trust-grid,
-  .status-ledger,
   .document-stack {
     grid-template-columns: 1fr;
   }
@@ -1390,11 +1361,9 @@ footer small {
   .flow-item,
   .principle-list p,
   .trust-card,
-  .status-ledger article,
   .flow-item:nth-child(2),
   .principle-list p:nth-child(2),
-  .trust-card:nth-child(2),
-  .status-ledger article:nth-child(2) {
+  .trust-card:nth-child(2) {
     min-height: 230px;
     border-right: 0;
     border-bottom: 1px solid var(--dark-line);
@@ -1406,15 +1375,9 @@ footer small {
     border-bottom-color: var(--line);
   }
 
-  .status-ledger article,
-  .status-ledger article:nth-child(2) {
-    min-height: 170px;
-  }
-
   .flow-item:last-child,
   .principle-list p:last-child,
-  .trust-card:last-child,
-  .status-ledger article:last-child {
+  .trust-card:last-child {
     border-bottom: 0;
   }
 
@@ -1476,8 +1439,22 @@ footer small {
     padding: 26px 20px;
   }
 
+  .legal-panel-head {
+    position: relative;
+    display: block;
+    min-height: 120px;
+    padding-right: 0;
+  }
+
   .legal-panel h2 {
-    font-size: 2.38rem;
+    margin-top: 22px;
+    font-size: clamp(1.82rem, 7.4vw, 2rem);
+  }
+
+  .close-button {
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 
   .legal-section-list article {
