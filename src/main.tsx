@@ -120,6 +120,56 @@ const flow = [
   }
 ];
 
+const platformRows = [
+  {
+    label: "iPhone",
+    text: "Dagens pas, tracker, historik og programredigering."
+  },
+  {
+    label: "Android",
+    text: "Samme kerneflow: plan, træning, log og historik."
+  },
+  {
+    label: "Apple Watch",
+    text: "Træning tættere på håndleddet, når telefonen ligger væk."
+  },
+  {
+    label: "Træner",
+    text: "Klienter, programmer og opfølgning samlet omkring arbejdet."
+  }
+];
+
+const coreRows = [
+  {
+    label: "Programmer",
+    title: "Byg planen, og ret den, når hverdagen ændrer sig.",
+    text: "Træningsdage, øvelser, centre og gamle noter skal kunne samles uden at starte forfra.",
+    image: "/app/programs.jpg",
+    imageAlt: "Programmer i Træningsmester"
+  },
+  {
+    label: "Tracker",
+    title: "Log sæt uden at miste fokus på passet.",
+    text: "Vægt, reps, noter og seneste løft ligger tæt på øvelsen, så næste valg bliver lettere.",
+    image: "/app/home-training.jpg",
+    imageAlt: "Dagens træning i Træningsmester"
+  },
+  {
+    label: "Fremgang",
+    title: "Historikken skal hjælpe næste træning.",
+    text: "PR, øvelseshistorik og tidligere valg skal være synlige, når du står med vægten igen.",
+    image: "/app/exercises.jpg",
+    imageAlt: "Øvelseskatalog i Træningsmester"
+  },
+  {
+    label: "Træner",
+    title: "Klientarbejde skal leve samme sted som træningen.",
+    text: "Programmer, opfølgning og klientoverblik skal ligge tættere på arbejdet end en beskedtråd.",
+    image: "/app/coach.jpg",
+    imageAlt: "Coach-overblik i Træningsmester"
+  }
+];
+
 const evidence = [
   {
     value: "389",
@@ -481,6 +531,7 @@ function App() {
         <nav>
           <a href="#for-hvem">Hvem</a>
           <a href="#flow">I appen</a>
+          <a href="#kerne">Kerne</a>
           <a href="#fakta">Fakta</a>
           <a href="#praktisk">Praktisk</a>
           <a href="#team">Team</a>
@@ -524,6 +575,15 @@ function App() {
               <small>Hvem mangler svar?</small>
             </span>
           </div>
+        </section>
+
+        <section className="platform-strip" aria-label="Platforme">
+          {platformRows.map((item) => (
+            <p key={item.label}>
+              <strong>{item.label}</strong>
+              <span>{item.text}</span>
+            </p>
+          ))}
         </section>
 
         <section className="tension-section" aria-labelledby="tension-title">
@@ -621,6 +681,27 @@ function App() {
             <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
             <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
             <img src="/app/coach.jpg" alt="Coach-overblik i Træningsmester" />
+          </div>
+        </section>
+
+        <section className="core section-band" id="kerne">
+          <div className="core-head">
+            <p className="eyebrow">Kerne</p>
+            <h2>Det er her, en træningsapp bliver målt.</h2>
+          </div>
+          <div className="core-rows">
+            {coreRows.map((row, index) => (
+              <article className="core-row" key={row.label}>
+                <div className="core-row-copy">
+                  <span>{String(index + 1).padStart(2, "0")} · {row.label}</span>
+                  <h3>{row.title}</h3>
+                  <p>{row.text}</p>
+                </div>
+                <div className="core-row-media">
+                  <img src={row.image} alt={row.imageAlt} />
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 

@@ -3,6 +3,7 @@ dist
 .DS_Store
 .vercel
 qa
+output
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
