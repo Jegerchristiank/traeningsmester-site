@@ -305,7 +305,7 @@ const legalPanels: Record<
     title: "Cookies",
     kicker: "Samtykke",
     summary:
-      "Vi bruger ikke marketingcookies på denne side. Dit valg gemmes lokalt, så banneret ikke vises igen.",
+      "Vi bruger ikke marketingcookies på denne side. Dit valg gemmes lokalt, så banneret ikke vises igen. Cookieindstillinger kan åbnes igen nederst på siden.",
     sections: [
       {
         heading: "Nødvendig lagring",
@@ -330,6 +330,29 @@ const legalPanels: Record<
     ]
   }
 };
+
+const cookieCategories = [
+  {
+    label: "Nødvendig",
+    status: "Altid aktiv",
+    text: "Husker dit cookievalg i denne browser."
+  },
+  {
+    label: "Statistik",
+    status: "Ikke aktiv",
+    text: "Ingen skjult analyse eller besøgsstatistik."
+  },
+  {
+    label: "Marketing",
+    status: "Ikke aktiv",
+    text: "Ingen annonceringscookies, pixels eller remarketing."
+  },
+  {
+    label: "Medier",
+    status: "Egen host",
+    text: "Billeder, app-skærme, logo og ikon serveres fra samme site."
+  }
+];
 
 const readStoredCookieChoice = (): CookieChoice | null => {
   try {
@@ -398,17 +421,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!activeLegalPanel) return;
+    if (!activeLegalPanel && !cookieSettingsOpen) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setActiveLegalPanel(null);
+        if (activeLegalPanel) {
+          setActiveLegalPanel(null);
+          return;
+        }
+
+        setCookieSettingsOpen(false);
       }
     };
 
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [activeLegalPanel]);
+  }, [activeLegalPanel, cookieSettingsOpen]);
 
   const saveCookieChoice = () => {
     storeCookieChoice("necessary");
@@ -719,6 +747,9 @@ function App() {
           <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
             Cookies
           </button>
+          <button type="button" onClick={() => setCookieSettingsOpen(true)}>
+            Cookieindstillinger
+          </button>
         </div>
       </footer>
 
@@ -763,7 +794,68 @@ function App() {
         </div>
       ) : null}
 
-      {!cookieChoice || cookieSettingsOpen ? (
+      {cookieSettingsOpen ? (
+        <div
+          aria-labelledby="cookie-title"
+          aria-modal="true"
+          className="legal-overlay cookie-overlay"
+          role="dialog"
+        >
+          <button
+            aria-label="Luk cookieindstillinger"
+            className="overlay-backdrop"
+            onClick={() => setCookieSettingsOpen(false)}
+            type="button"
+          />
+          <section className="cookie-panel">
+            <div className="cookie-panel-head">
+              <div>
+                <p className="eyebrow">Cookieindstillinger</p>
+                <h2 id="cookie-title">Kun det nødvendige.</h2>
+              </div>
+              <button
+                aria-label="Luk"
+                className="close-button"
+                onClick={() => setCookieSettingsOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <p className="cookie-panel-summary">
+              Siden bruger nødvendig lokal lagring til at huske dit valg. Statistik og
+              marketing er ikke aktive.
+            </p>
+            <div className="cookie-preference-list">
+              {cookieCategories.map((category) => (
+                <article key={category.label}>
+                  <div>
+                    <span>{category.label}</span>
+                    <p>{category.text}</p>
+                  </div>
+                  <strong>{category.status}</strong>
+                </article>
+              ))}
+            </div>
+            <div className="cookie-panel-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setCookieSettingsOpen(false);
+                  setActiveLegalPanel("cookies");
+                }}
+              >
+                Se cookiepolitik
+              </button>
+              <button type="button" onClick={saveCookieChoice}>
+                Gem valg
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {!cookieChoice ? (
         <aside className="cookie-banner" aria-label="Cookieindstillinger">
           <div>
             <strong>Cookies</strong>
@@ -771,22 +863,6 @@ function App() {
               Vi bruger kun nødvendig lokal lagring til at huske dit valg. Ingen
               marketingcookies. Ingen skjult statistik.
             </p>
-            {cookieSettingsOpen ? (
-              <div className="cookie-settings">
-                <p>
-                  <span>Nødvendig</span>
-                  Altid aktiv
-                </p>
-                <p>
-                  <span>Statistik</span>
-                  Ikke aktiv
-                </p>
-                <p>
-                  <span>Marketing</span>
-                  Ikke aktiv
-                </p>
-              </div>
-            ) : null}
           </div>
           <div className="cookie-actions">
             <button type="button" onClick={() => setCookieSettingsOpen(true)}>
