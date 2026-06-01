@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -16,6 +16,9 @@ type Mode = {
   screen: string;
   screenAlt: string;
 };
+
+type LegalPanelId = "terms" | "privacy" | "cookies";
+type CookieChoice = "necessary";
 
 const modes: Mode[] = [
   {
@@ -139,12 +142,167 @@ const principles = [
   "Træneren skal se det, der kalder på handling."
 ];
 
+const trustSignals = [
+  {
+    label: "Dansk produkt",
+    text: "Sprog, flows og træningslogik er skrevet til danske brugere."
+  },
+  {
+    label: "Køb og adgang",
+    text: "Siden informerer. Køb og abonnementer håndteres ikke på websitet."
+  },
+  {
+    label: "Cookiekontrol",
+    text: "Ingen marketingcookies eller skjult statistik på denne side."
+  },
+  {
+    label: "Support",
+    text: "Hjælp håndteres via appens konto- og indstillingsflader."
+  }
+];
+
+const legalPanels: Record<
+  LegalPanelId,
+  {
+    title: string;
+    kicker: string;
+    summary: string;
+    sections: { heading: string; body: string }[];
+  }
+> = {
+  terms: {
+    title: "Handelsbetingelser",
+    kicker: "Det praktiske",
+    summary:
+      "Denne side sælger ikke abonnementer direkte. Betingelserne forklarer rammen for Træningsmester, når køb åbnes i appen eller gennem en app-butik.",
+    sections: [
+      {
+        heading: "Køb og betaling",
+        body:
+          "Eventuelle køb vises altid i det betalingsflow, hvor købet gennemføres. Pris, periode, fornyelse og opsigelse skal fremgå før betaling."
+      },
+      {
+        heading: "Adgang",
+        body:
+          "Digitale funktioner leveres i appen efter login og godkendt betaling, når funktionen kræver abonnement."
+      },
+      {
+        heading: "Fortrydelse og opsigelse",
+        body:
+          "Fortrydelse, opsigelse og refusion følger den konkrete betalingskanal og de oplysninger, der vises før købet."
+      },
+      {
+        heading: "Reklamation",
+        body:
+          "Hvis en betalt digital funktion ikke virker som forventet, skal fejlen kunne beskrives, så den kan undersøges og rettes."
+      }
+    ]
+  },
+  privacy: {
+    title: "Privatliv",
+    kicker: "Data",
+    summary:
+      "Hjemmesiden er en informationsside. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
+    sections: [
+      {
+        heading: "På websitet",
+        body:
+          "Denne version bruger kun lokal lagring til at huske cookievalget. Der er ingen aktive marketing- eller statistikværktøjer."
+      },
+      {
+        heading: "I appen",
+        body:
+          "Når appen bruges, kan kontooplysninger, træningsdata, historik og coachrelationer være nødvendige for funktionerne."
+      },
+      {
+        heading: "Adgang og kontrol",
+        body:
+          "Personlige appdata skal kunne håndteres gennem appens konto-, indstillings- og supportflader."
+      }
+    ]
+  },
+  cookies: {
+    title: "Cookies",
+    kicker: "Samtykke",
+    summary:
+      "Vi bruger ikke marketingcookies på denne side. Dit valg gemmes lokalt, så banneret ikke vises igen.",
+    sections: [
+      {
+        heading: "Nødvendig lagring",
+        body:
+          "Cookievalget gemmes i browserens lokale lager. Det er nødvendigt for at huske, om banneret er lukket."
+      },
+      {
+        heading: "Statistik",
+        body:
+          "Der er ingen aktiv statistik på websitet i denne version."
+      },
+      {
+        heading: "Marketing",
+        body:
+          "Der er ingen aktive marketingcookies, pixels eller annonceringsværktøjer på websitet."
+      }
+    ]
+  }
+};
+
+const readStoredCookieChoice = (): CookieChoice | null => {
+  try {
+    if (typeof window.localStorage === "undefined") return null;
+    return window.localStorage.getItem("tm-cookie-choice") === "necessary"
+      ? "necessary"
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const storeCookieChoice = (choice: CookieChoice) => {
+  try {
+    if (typeof window.localStorage !== "undefined") {
+      window.localStorage.setItem("tm-cookie-choice", choice);
+    }
+  } catch {
+    // Some embedded browsers block local storage. The in-memory choice still closes the banner.
+  }
+};
+
 function App() {
   const [activeMode, setActiveMode] = useState<ModeId>("begynder");
+  const [activeLegalPanel, setActiveLegalPanel] = useState<LegalPanelId | null>(null);
+  const [cookieChoice, setCookieChoice] = useState<CookieChoice | null>(null);
+  const [cookieSettingsOpen, setCookieSettingsOpen] = useState(false);
   const selectedMode = useMemo(
     () => modes.find((mode) => mode.id === activeMode) ?? modes[0],
     [activeMode]
   );
+  const activeLegal = activeLegalPanel ? legalPanels[activeLegalPanel] : null;
+
+  useEffect(() => {
+    const savedChoice = readStoredCookieChoice();
+    if (savedChoice === "necessary") {
+      setCookieChoice(savedChoice);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!activeLegalPanel) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveLegalPanel(null);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [activeLegalPanel]);
+
+  const saveCookieChoice = () => {
+    storeCookieChoice("necessary");
+    setCookieChoice("necessary");
+    setCookieSettingsOpen(false);
+  };
 
   return (
     <>
@@ -157,6 +315,7 @@ function App() {
           <a href="#for-hvem">Hvem</a>
           <a href="#flow">I appen</a>
           <a href="#fakta">Tal</a>
+          <a href="#praktisk">Praktisk</a>
           <a href="#team">Team</a>
         </nav>
       </header>
@@ -329,6 +488,38 @@ function App() {
           </div>
         </section>
 
+        <section className="official section-band" id="praktisk">
+          <div className="official-head">
+            <p className="eyebrow">Praktisk</p>
+            <h2>Vilkår, cookies og praktisk status.</h2>
+          </div>
+          <div className="trust-grid" aria-label="Praktisk status">
+            {trustSignals.map((signal) => (
+              <article className="trust-card" key={signal.label}>
+                <span>{signal.label}</span>
+                <p>{signal.text}</p>
+              </article>
+            ))}
+          </div>
+          <div className="legal-console" aria-label="Juridiske oplysninger">
+            <div>
+              <p className="eyebrow">Officielt</p>
+              <h3>Vilkår, privatliv og cookies samlet ét sted.</h3>
+            </div>
+            <div className="legal-actions">
+              <button type="button" onClick={() => setActiveLegalPanel("terms")}>
+                Handelsbetingelser
+              </button>
+              <button type="button" onClick={() => setActiveLegalPanel("privacy")}>
+                Privatliv
+              </button>
+              <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
+                Cookies
+              </button>
+            </div>
+          </div>
+        </section>
+
         <section className="team section-band" id="team">
           <div className="team-photo" aria-hidden="true" />
           <div className="team-copy">
@@ -348,9 +539,100 @@ function App() {
       </main>
 
       <footer>
-        <img src="/brand/tm-logo.png" alt="" />
-        <p>Træningsmester · næste træning uden tvivl.</p>
+        <div>
+          <img src="/brand/tm-logo.png" alt="" />
+          <p>Træningsmester · næste træning uden tvivl.</p>
+          <small>Opdateret 1. juni 2026</small>
+        </div>
+        <div className="footer-links" aria-label="Juridiske links">
+          <button type="button" onClick={() => setActiveLegalPanel("terms")}>
+            Handelsbetingelser
+          </button>
+          <button type="button" onClick={() => setActiveLegalPanel("privacy")}>
+            Privatliv
+          </button>
+          <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
+            Cookies
+          </button>
+        </div>
       </footer>
+
+      {activeLegal ? (
+        <div
+          aria-labelledby="legal-title"
+          aria-modal="true"
+          className="legal-overlay"
+          role="dialog"
+        >
+          <button
+            aria-label="Luk"
+            className="overlay-backdrop"
+            onClick={() => setActiveLegalPanel(null)}
+            type="button"
+          />
+          <section className="legal-panel">
+            <div className="legal-panel-head">
+              <div>
+                <p className="eyebrow">{activeLegal.kicker}</p>
+                <h2 id="legal-title">{activeLegal.title}</h2>
+              </div>
+              <button
+                aria-label="Luk"
+                className="close-button"
+                onClick={() => setActiveLegalPanel(null)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <p className="legal-summary">{activeLegal.summary}</p>
+            <div className="legal-section-list">
+              {activeLegal.sections.map((section) => (
+                <article key={section.heading}>
+                  <h3>{section.heading}</h3>
+                  <p>{section.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {!cookieChoice || cookieSettingsOpen ? (
+        <aside className="cookie-banner" aria-label="Cookieindstillinger">
+          <div>
+            <strong>Cookies</strong>
+            <p>
+              Vi bruger kun nødvendig lokal lagring til at huske dit valg. Ingen
+              marketingcookies. Ingen skjult statistik.
+            </p>
+            {cookieSettingsOpen ? (
+              <div className="cookie-settings">
+                <p>
+                  <span>Nødvendig</span>
+                  Altid aktiv
+                </p>
+                <p>
+                  <span>Statistik</span>
+                  Ikke aktiv
+                </p>
+                <p>
+                  <span>Marketing</span>
+                  Ikke aktiv
+                </p>
+              </div>
+            ) : null}
+          </div>
+          <div className="cookie-actions">
+            <button type="button" onClick={() => setCookieSettingsOpen(true)}>
+              Indstillinger
+            </button>
+            <button type="button" onClick={saveCookieChoice}>
+              OK
+            </button>
+          </div>
+        </aside>
+      ) : null}
 
       <script
         type="application/ld+json"
