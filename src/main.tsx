@@ -28,6 +28,8 @@ const company = {
   source: "CVR/Virk via Proff"
 };
 
+const siteUrl = "https://traeningsmester.dk/";
+
 const modes: Mode[] = [
   {
     id: "begynder",
@@ -880,12 +882,46 @@ function App() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "Træningsmester",
-            applicationCategory: "HealthApplication",
-            operatingSystem: "Mobile",
-            description:
-              "Dansk træningsapp til program, log, historik og coach-samarbejde."
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": `${siteUrl}#organization`,
+                name: "Træningsmester",
+                legalName: company.legalName,
+                taxID: company.cvr,
+                url: siteUrl,
+                address: {
+                  "@type": "PostalAddress",
+                  streetAddress: "Blomstergården 13",
+                  postalCode: "4700",
+                  addressLocality: "Næstved",
+                  addressCountry: "DK"
+                }
+              },
+              {
+                "@type": "WebSite",
+                "@id": `${siteUrl}#website`,
+                name: "Træningsmester",
+                url: siteUrl,
+                publisher: {
+                  "@id": `${siteUrl}#organization`
+                },
+                inLanguage: "da-DK"
+              },
+              {
+                "@type": "SoftwareApplication",
+                "@id": `${siteUrl}#app`,
+                name: "Træningsmester",
+                applicationCategory: "HealthApplication",
+                operatingSystem: "Mobile",
+                url: siteUrl,
+                description:
+                  "Dansk træningsapp til program, log, historik og coach-samarbejde.",
+                publisher: {
+                  "@id": `${siteUrl}#organization`
+                }
+              }
+            ]
           })
         }}
       />
