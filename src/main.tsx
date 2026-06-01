@@ -161,6 +161,78 @@ const trustSignals = [
   }
 ];
 
+const statusRows = [
+  {
+    label: "Website",
+    value: "Informationsside",
+    note: "Ingen konto, betaling eller træningsdata på websitet."
+  },
+  {
+    label: "Cookies",
+    value: "Kun nødvendigt valg",
+    note: "Valget gemmes lokalt. Ingen marketingcookies."
+  },
+  {
+    label: "Køb",
+    value: "Ikke på web",
+    note: "Pris og abonnement vises først i det konkrete købsflow."
+  },
+  {
+    label: "Support",
+    value: "Via appen",
+    note: "Konto-, data- og abonnementsrelateret hjælp håndteres dér."
+  }
+];
+
+const documentCards: {
+  id: LegalPanelId;
+  title: string;
+  text: string;
+  meta: string;
+}[] = [
+  {
+    id: "terms",
+    title: "Handelsbetingelser",
+    text: "Ramme for køb, adgang, fortrydelse, opsigelse og reklamation.",
+    meta: "Praktisk"
+  },
+  {
+    id: "privacy",
+    title: "Privatliv",
+    text: "Hvad websitet gør, og hvad appen kan kræve for at fungere.",
+    meta: "Data"
+  },
+  {
+    id: "cookies",
+    title: "Cookies",
+    text: "Nødvendig lagring, statistikstatus og marketingstatus.",
+    meta: "Samtykke"
+  }
+];
+
+const faqs = [
+  {
+    question: "Kan jeg købe Træningsmester på denne side?",
+    answer:
+      "Nej. Denne side er lavet til at forklare produktet og de praktiske rammer. Køb og abonnementer håndteres ikke direkte på websitet."
+  },
+  {
+    question: "Hvorfor er der et cookiepanel, hvis siden ikke tracker?",
+    answer:
+      "Fordi valget stadig skal være tydeligt. Siden bruger kun nødvendig lokal lagring til at huske, at banneret er lukket."
+  },
+  {
+    question: "Hvor finder jeg hjælp til konto eller abonnement?",
+    answer:
+      "Konto-, data- og abonnementsrelateret hjælp hører til appens konto- og indstillingsflader, hvor konteksten er rigtig."
+  },
+  {
+    question: "Er tallene på siden pynt?",
+    answer:
+      "Nej. Tallene er begrænset til konkrete produktforhold, som øvelseskatalog, importgrænse og de fire brugssituationer."
+  }
+];
+
 const legalPanels: Record<
   LegalPanelId,
   {
@@ -501,6 +573,30 @@ function App() {
               </article>
             ))}
           </div>
+
+          <div className="status-ledger" aria-label="Aktuel status">
+            {statusRows.map((row) => (
+              <article key={row.label}>
+                <span>{row.label}</span>
+                <strong>{row.value}</strong>
+                <p>{row.note}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="document-stack" aria-label="Dokumenter">
+            {documentCards.map((card) => (
+              <article key={card.id}>
+                <span>{card.meta}</span>
+                <h3>{card.title}</h3>
+                <p>{card.text}</p>
+                <button type="button" onClick={() => setActiveLegalPanel(card.id)}>
+                  Åbn
+                </button>
+              </article>
+            ))}
+          </div>
+
           <div className="legal-console" aria-label="Juridiske oplysninger">
             <div>
               <p className="eyebrow">Officielt</p>
@@ -516,6 +612,21 @@ function App() {
               <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
                 Cookies
               </button>
+            </div>
+          </div>
+
+          <div className="faq-block" aria-label="Hurtige svar">
+            <div className="faq-head">
+              <p className="eyebrow">Svar</p>
+              <h3>Spørgsmål der ikke skal gemmes væk.</h3>
+            </div>
+            <div className="faq-list">
+              {faqs.map((item) => (
+                <details key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
             </div>
           </div>
         </section>
