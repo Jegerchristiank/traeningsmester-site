@@ -36,6 +36,15 @@ const legalPanelByHash: Record<string, LegalPanelId> = {
 
 const cookieSettingsHash = "cookieindstillinger";
 
+const navItems = [
+  { href: "#for-hvem", label: "Hvem" },
+  { href: "#flow", label: "I appen" },
+  { href: "#kerne", label: "Kerne" },
+  { href: "#fakta", label: "Fakta" },
+  { href: "#praktisk", label: "Praktisk" },
+  { href: "#team", label: "Team" }
+];
+
 const company = {
   legalName: "KRISTENSON",
   cvr: "40679456",
@@ -144,6 +153,7 @@ const coreRows = [
     label: "Programmer",
     title: "Byg planen, og ret den, når hverdagen ændrer sig.",
     text: "Træningsdage, øvelser, centre og gamle noter skal kunne samles uden at starte forfra.",
+    points: ["Træningsdage", "Øvelser", "Centre", "Noter"],
     image: "/app/programs.jpg",
     imageAlt: "Programmer i Træningsmester"
   },
@@ -151,6 +161,7 @@ const coreRows = [
     label: "Tracker",
     title: "Log sæt uden at miste fokus på passet.",
     text: "Vægt, reps, noter og seneste løft ligger tæt på øvelsen, så næste valg bliver lettere.",
+    points: ["Vægt", "Reps", "Noter", "Seneste løft"],
     image: "/app/home-training.jpg",
     imageAlt: "Dagens træning i Træningsmester"
   },
@@ -158,6 +169,7 @@ const coreRows = [
     label: "Fremgang",
     title: "Historikken skal hjælpe næste træning.",
     text: "PR, øvelseshistorik og tidligere valg skal være synlige, når du står med vægten igen.",
+    points: ["PR", "Historik", "Valg", "Overblik"],
     image: "/app/exercises.jpg",
     imageAlt: "Øvelseskatalog i Træningsmester"
   },
@@ -165,6 +177,7 @@ const coreRows = [
     label: "Træner",
     title: "Klientarbejde skal leve samme sted som træningen.",
     text: "Programmer, opfølgning og klientoverblik skal ligge tættere på arbejdet end en beskedtråd.",
+    points: ["Klienter", "Planer", "Check-ins", "Opfølgning"],
     image: "/app/coach.jpg",
     imageAlt: "Coach-overblik i Træningsmester"
   }
@@ -393,6 +406,7 @@ function App() {
   const [activeLegalPanel, setActiveLegalPanel] = useState<LegalPanelId | null>(null);
   const [cookieChoice, setCookieChoice] = useState<CookieChoice | null>(null);
   const [cookieSettingsOpen, setCookieSettingsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const selectedMode = useMemo(
     () => modes.find((mode) => mode.id === activeMode) ?? modes[0],
     [activeMode]
@@ -414,6 +428,7 @@ function App() {
   };
 
   const openLegalPanel = (panel: LegalPanelId) => {
+    setMobileMenuOpen(false);
     setCookieSettingsOpen(false);
     setActiveLegalPanel(panel);
     setAddressHash(legalHashIds[panel]);
@@ -427,6 +442,7 @@ function App() {
   };
 
   const openCookieSettings = () => {
+    setMobileMenuOpen(false);
     setActiveLegalPanel(null);
     setCookieSettingsOpen(true);
     setAddressHash(cookieSettingsHash);
@@ -442,6 +458,7 @@ function App() {
   useEffect(() => {
     const handleLocationHash = () => {
       const hash = cleanHash();
+      setMobileMenuOpen(false);
       if (!hash) {
         setActiveLegalPanel(null);
         setCookieSettingsOpen(false);
@@ -502,6 +519,11 @@ function App() {
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          return;
+        }
+
         if (activeLegalPanel) {
           closeLegalPanel();
           return;
@@ -513,7 +535,7 @@ function App() {
 
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [activeLegalPanel, cookieSettingsOpen]);
+  }, [activeLegalPanel, cookieSettingsOpen, mobileMenuOpen]);
 
   const saveCookieChoice = () => {
     storeCookieChoice("necessary");
@@ -528,13 +550,21 @@ function App() {
           <img src="/brand/tm-logo.png" alt="" />
           <span>Træningsmester</span>
         </a>
-        <nav>
-          <a href="#for-hvem">Hvem</a>
-          <a href="#flow">I appen</a>
-          <a href="#kerne">Kerne</a>
-          <a href="#fakta">Fakta</a>
-          <a href="#praktisk">Praktisk</a>
-          <a href="#team">Team</a>
+        <button
+          aria-controls="site-nav"
+          aria-expanded={mobileMenuOpen}
+          className="menu-toggle"
+          onClick={() => setMobileMenuOpen((isOpen) => !isOpen)}
+          type="button"
+        >
+          Menu
+        </button>
+        <nav className={mobileMenuOpen ? "is-open" : ""} id="site-nav">
+          {navItems.map((item) => (
+            <a href={item.href} key={item.href} onClick={() => setMobileMenuOpen(false)}>
+              {item.label}
+            </a>
+          ))}
         </nav>
       </header>
 
@@ -657,30 +687,33 @@ function App() {
           </article>
         </section>
 
-        <section className="flow section-band dark" id="flow">
-          <div className="section-head">
+        <section className="experience section-band dark" id="flow">
+          <div className="experience-head">
             <p className="eyebrow">I appen</p>
-            <h2>Det samme mønster hver gang.</h2>
+            <h2>Fra første blik til næste beslutning.</h2>
             <p>
-              Se hvad der skal ske. Gør det. Gem det vigtige. Vælg bedre næste
-              gang.
+              Dagens pas, træning, log og næste valg ligger i samme rytme, så
+              du kan blive i passet.
             </p>
           </div>
-          <div className="flow-grid">
-            {flow.map((item, index) => (
-              <article className="flow-item" key={item.label}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <p>{item.label}</p>
-                <h3>{item.title}</h3>
-                <small>{item.text}</small>
-              </article>
-            ))}
-          </div>
-          <div className="screens-row" aria-label="Skærme fra appen">
-            <img src="/app/programs.jpg" alt="Programmer i Træningsmester" />
-            <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
-            <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
-            <img src="/app/coach.jpg" alt="Coach-overblik i Træningsmester" />
+          <div className="experience-stage">
+            <div className="experience-device-field" aria-label="Skærme fra appen">
+              <img src="/app/programs.jpg" alt="Programmer i Træningsmester" />
+              <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
+              <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
+            </div>
+            <div className="experience-steps">
+              {flow.map((item, index) => (
+                <article className="experience-step" key={item.label}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <p>{item.label}</p>
+                    <h3>{item.title}</h3>
+                    <small>{item.text}</small>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -696,6 +729,11 @@ function App() {
                   <span>{String(index + 1).padStart(2, "0")} · {row.label}</span>
                   <h3>{row.title}</h3>
                   <p>{row.text}</p>
+                  <ul className="core-row-points">
+                    {row.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
                 </div>
                 <div className="core-row-media">
                   <img src={row.image} alt={row.imageAlt} />
