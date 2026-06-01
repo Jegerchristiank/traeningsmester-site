@@ -17,7 +17,7 @@ type Mode = {
   screenAlt: string;
 };
 
-type LegalPanelId = "terms" | "privacy" | "cookies";
+type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
 type CookieChoice = "necessary";
 
 const company = {
@@ -194,6 +194,13 @@ const documentRows: {
     text: "Nødvendig lagring, mediestatus og marketingstatus.",
     scope: "Website",
     status: "Gældende"
+  },
+  {
+    id: "accessibility",
+    title: "Tilgængelighed",
+    text: "Tastatur, kontrast, bevægelse og læsbarhed på websitet.",
+    scope: "Brugbarhed",
+    status: "Gældende"
   }
 ];
 
@@ -328,6 +335,39 @@ const legalPanels: Record<
         heading: "Marketing",
         body:
           "Der er ingen aktive marketingcookies, pixels eller annonceringsværktøjer på websitet."
+      }
+    ]
+  },
+  accessibility: {
+    title: "Tilgængelighed",
+    kicker: "Brugbarhed",
+    summary:
+      "Websitet skal kunne bruges roligt med tastatur, tydelig kontrast, læsbare skærme og uden unødvendig bevægelse.",
+    sections: [
+      {
+        heading: "Tastatur",
+        body:
+          "Links, knapper, dokumenter, cookieindstillinger og modaler kan nås med tastatur og har synlig fokusmarkering."
+      },
+      {
+        heading: "Kontrast",
+        body:
+          "Siden bruger tydelige mørke og lyse flader med markante knapper, linjer og statusmarkeringer."
+      },
+      {
+        heading: "Bevægelse",
+        body:
+          "Siden respekterer reduceret bevægelse i browseren og bruger ikke animationer som er nødvendige for at forstå indholdet."
+      },
+      {
+        heading: "Billeder",
+        body:
+          "App-skærme og centrale billeder har tekstalternativer, mens rene dekorative billeder holdes uden læst tekst."
+      },
+      {
+        heading: "Begrænsninger",
+        body:
+          "Hvis noget er svært at bruge, skal det håndteres via appens konto-, indstillings- eller supportflader, hvor den konkrete kontekst findes."
       }
     ]
   }
@@ -672,7 +712,7 @@ function App() {
           <div className="legal-console" aria-label="Juridiske oplysninger">
             <div>
               <p className="eyebrow">Officielt</p>
-              <h3>Vilkår, privatliv og cookies samlet ét sted.</h3>
+              <h3>Vilkår, privatliv, cookies og tilgængelighed samlet ét sted.</h3>
             </div>
             <div className="legal-actions">
               <button type="button" onClick={() => setActiveLegalPanel("terms")}>
@@ -683,6 +723,9 @@ function App() {
               </button>
               <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
                 Cookies
+              </button>
+              <button type="button" onClick={() => setActiveLegalPanel("accessibility")}>
+                Tilgængelighed
               </button>
             </div>
           </div>
@@ -748,6 +791,9 @@ function App() {
           </button>
           <button type="button" onClick={() => setActiveLegalPanel("cookies")}>
             Cookies
+          </button>
+          <button type="button" onClick={() => setActiveLegalPanel("accessibility")}>
+            Tilgængelighed
           </button>
           <button type="button" onClick={() => setCookieSettingsOpen(true)}>
             Cookieindstillinger
@@ -906,7 +952,13 @@ function App() {
                 publisher: {
                   "@id": `${siteUrl}#organization`
                 },
-                inLanguage: "da-DK"
+                inLanguage: "da-DK",
+                accessibilityFeature: [
+                  "alternativeText",
+                  "highContrastDisplay",
+                  "keyboardNavigation",
+                  "reducedMotion"
+                ]
               },
               {
                 "@type": "SoftwareApplication",
