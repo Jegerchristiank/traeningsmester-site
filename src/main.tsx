@@ -165,29 +165,48 @@ const trustSignals = [
   }
 ];
 
-const documentCards: {
+const documentRows: {
   id: LegalPanelId;
   title: string;
   text: string;
-  meta: string;
+  scope: string;
+  status: string;
 }[] = [
   {
     id: "terms",
     title: "Handelsbetingelser",
     text: "Ramme for køb, adgang, fortrydelse, opsigelse og reklamation.",
-    meta: "Praktisk"
+    scope: "Køb og adgang",
+    status: "Gældende"
   },
   {
     id: "privacy",
     title: "Privatliv",
     text: "Hvad websitet gør, og hvad appen kan kræve for at fungere.",
-    meta: "Data"
+    scope: "Data og konto",
+    status: "Gældende"
   },
   {
     id: "cookies",
     title: "Cookies",
     text: "Nødvendig lagring, mediestatus og marketingstatus.",
-    meta: "Samtykke"
+    scope: "Website",
+    status: "Gældende"
+  }
+];
+
+const supportRoutes = [
+  {
+    label: "Konto",
+    text: "Login, profil og sletning håndteres i appens kontoindstillinger."
+  },
+  {
+    label: "Abonnement",
+    text: "Pris, fornyelse og opsigelse vises i det købsflow, hvor købet sker."
+  },
+  {
+    label: "Data",
+    text: "Privatliv, cookies og adgang til appdata ligger samlet under dokumenterne."
   }
 ];
 
@@ -268,7 +287,7 @@ const legalPanels: Record<
       {
         heading: "På websitet",
         body:
-          "Denne version bruger kun lokal lagring til at huske cookievalget. Primære billeder og screenshots serveres fra samme site. Der er ingen aktive marketing- eller statistikværktøjer."
+          "Websitet bruger kun lokal lagring til at huske cookievalget. Primære billeder og app-skærme serveres fra samme site. Der er ingen aktive marketing- eller statistikværktøjer."
       },
       {
         heading: "I appen",
@@ -301,7 +320,7 @@ const legalPanels: Record<
       {
         heading: "Statistik",
         body:
-          "Der er ingen aktiv statistik på websitet i denne version."
+          "Der er ingen aktiv statistik på websitet."
       },
       {
         heading: "Marketing",
@@ -595,17 +614,29 @@ function App() {
             ))}
           </div>
 
-          <div className="document-stack" aria-label="Dokumenter">
-            {documentCards.map((card) => (
-              <article key={card.id}>
-                <span>{card.meta}</span>
-                <h3>{card.title}</h3>
-                <p>{card.text}</p>
-                <button type="button" onClick={() => setActiveLegalPanel(card.id)}>
-                  Åbn
-                </button>
-              </article>
-            ))}
+          <div className="document-desk" aria-label="Dokumenter">
+            <div className="document-desk-head">
+              <div>
+                <p className="eyebrow">Dokumenter</p>
+                <h3>Det, der skal være nemt at finde.</h3>
+              </div>
+              <span>Opdateret 1. juni 2026</span>
+            </div>
+            <div className="document-list">
+              {documentRows.map((row) => (
+                <article key={row.id}>
+                  <div>
+                    <span>{row.scope}</span>
+                    <h4>{row.title}</h4>
+                  </div>
+                  <p>{row.text}</p>
+                  <small>{row.status}</small>
+                  <button type="button" onClick={() => setActiveLegalPanel(row.id)}>
+                    Åbn
+                  </button>
+                </article>
+              ))}
+            </div>
           </div>
 
           <div className="legal-console" aria-label="Juridiske oplysninger">
@@ -624,6 +655,15 @@ function App() {
                 Cookies
               </button>
             </div>
+          </div>
+
+          <div className="support-routes" aria-label="Supportveje">
+            {supportRoutes.map((route) => (
+              <article key={route.label}>
+                <span>{route.label}</span>
+                <p>{route.text}</p>
+              </article>
+            ))}
           </div>
 
           <div className="faq-block" aria-label="Hurtige svar">
