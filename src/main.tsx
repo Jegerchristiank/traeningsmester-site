@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -19,6 +19,28 @@ type Mode = {
 
 type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
 type CookieChoice = "necessary";
+type BearGamePhase = "ready" | "running" | "finished";
+type BearGameMode = "solo" | "duel";
+type BearFeedbackTone = "clean" | "ok" | "miss";
+type BearPlayerId = "bear" | "coach";
+
+type BearPlayer = {
+  id: BearPlayerId;
+  name: string;
+  lift: number;
+  target: number;
+  hold: number;
+  reps: number;
+  form: number;
+  power: number;
+  streak: number;
+  status: string;
+  tone: BearFeedbackTone;
+};
+
+const bearGameDurationMs = 30_000;
+const bearTargetBand = 24;
+const bearBestScoreKey = "tm-bear-rush-best-score";
 
 const legalHashIds: Record<LegalPanelId, string> = {
   terms: "handelsbetingelser",
@@ -40,6 +62,7 @@ const navItems = [
   { href: "#for-hvem", label: "Hvem" },
   { href: "#flow", label: "I appen" },
   { href: "#kerne", label: "Kerne" },
+  { href: "#spil", label: "Rep-test" },
   { href: "#fakta", label: "Fakta" },
   { href: "#praktisk", label: "Praktisk" },
   { href: "#team", label: "Team" }
@@ -401,6 +424,429 @@ const storeCookieChoice = (choice: CookieChoice) => {
   }
 };
 
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+function BearRushGame() {
+  const [mode, setMode] = useState<BearGameMode>("solo");
+  const [phase, setPhase] = useState<BearGamePhase>("ready");
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [tick, setTick] = useState(0);
+  const [players, setPlayers] = useState<BearPlayer[]>(() => createBearPlayers("solo"));
+  const [bestScore, setBestScore] = useState(0);
+  const lastFrameRef = useRef<number | null>(null);
+  const activePointerRef = useRef<Record<number, BearPlayerId>>({});
+
+  useEffect(() => {
+    setTick(performance.now());
+    try {
+      const storedScore = window.localStorage.getItem(bearBestScoreKey);
+      setBestScore(storedScore ? Number.parseInt(storedScore, 10) || 0 : 0);
+    } catch {
+      setBestScore(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "running") return undefined;
+
+    let frameId = 0;
+    const loop = (time: number) => {
+      const previousFrame = lastFrameRef.current ?? time;
+      const deltaSeconds = Math.min(0.05, (time - previousFrame) / 1000);
+      lastFrameRef.current = time;
+      setTick(time);
+      setPlayers((current) => current.map((player) => stepBearPlayer(player, deltaSeconds)));
+      frameId = window.requestAnimationFrame(loop);
+    };
+
+    frameId = window.requestAnimationFrame(loop);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [phase]);
+
+  const elapsed =
+    phase === "running" && startedAt
+      ? clamp(tick - startedAt, 0, bearGameDurationMs)
+      : phase === "finished"
+        ? bearGameDurationMs
+        : 0;
+  const timeLeft = Math.max(0, Math.ceil((bearGameDurationMs - elapsed) / 1000));
+  const timePercent = clamp(100 - (elapsed / bearGameDurationMs) * 100, 0, 100);
+  const leadingPlayer = [...players].sort((a, b) => scoreBearPlayer(b) - scoreBearPlayer(a))[0];
+  const soloScore = scoreBearPlayer(players[0]);
+  const headlineScore = mode === "solo" ? soloScore : scoreBearPlayer(leadingPlayer);
+  const statusText =
+    phase === "finished"
+      ? mode === "solo"
+        ? "Runden er slut."
+        : `${leadingPlayer.name} tager runden.`
+      : phase === "running"
+        ? "Hold vægten i den lyse zone."
+        : "Vælg solo eller duel. Træk vægten op i zonen.";
+
+  useEffect(() => {
+    if (phase === "running" && elapsed >= bearGameDurationMs) {
+      setPhase("finished");
+      setStartedAt(null);
+      lastFrameRef.current = null;
+    }
+  }, [elapsed, phase]);
+
+  useEffect(() => {
+    if (mode !== "solo" || phase !== "finished" || soloScore <= bestScore) return;
+
+    setBestScore(soloScore);
+    try {
+      window.localStorage.setItem(bearBestScoreKey, String(soloScore));
+    } catch {
+      // Best score is only local browser state. The game still works without it.
+    }
+  }, [bestScore, mode, phase, soloScore]);
+
+  const resetRound = (nextMode: BearGameMode = mode, shouldStart = false) => {
+    const now = performance.now();
+    setPlayers(createBearPlayers(nextMode));
+    setPhase(shouldStart ? "running" : "ready");
+    setStartedAt(shouldStart ? now : null);
+    setTick(now);
+    lastFrameRef.current = shouldStart ? now : null;
+    activePointerRef.current = {};
+  };
+
+  const startRound = () => {
+    resetRound(mode, true);
+  };
+
+  const changeMode = (nextMode: BearGameMode) => {
+    setMode(nextMode);
+    resetRound(nextMode, false);
+  };
+
+  const startIfNeeded = () => {
+    if (phase !== "running") {
+      resetRound(mode, true);
+    }
+  };
+
+  const movePlayer = (playerId: BearPlayerId, lift: number) => {
+    setPlayers((current) =>
+      current.map((player) =>
+        player.id === playerId ? { ...player, lift: clamp(lift, 0, 100) } : player
+      )
+    );
+  };
+
+  const liftFromEvent = (
+    event: React.PointerEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return clamp(((rect.bottom - event.clientY) / rect.height) * 100, 0, 100);
+  };
+
+  const handlePointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+    playerId: BearPlayerId
+  ) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    activePointerRef.current[event.pointerId] = playerId;
+    startIfNeeded();
+    movePlayer(playerId, liftFromEvent(event));
+  };
+
+  const handlePointerMove = (
+    event: React.PointerEvent<HTMLDivElement>,
+    playerId: BearPlayerId
+  ) => {
+    if (activePointerRef.current[event.pointerId] !== playerId) return;
+    movePlayer(playerId, liftFromEvent(event));
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    delete activePointerRef.current[event.pointerId];
+  };
+
+  const handleLaneClick = (
+    event: React.MouseEvent<HTMLDivElement>,
+    playerId: BearPlayerId
+  ) => {
+    startIfNeeded();
+    movePlayer(playerId, liftFromEvent(event));
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    const lowerKey = event.key.toLowerCase();
+
+    if (lowerKey === " " || lowerKey === "enter") {
+      event.preventDefault();
+      startRound();
+      return;
+    }
+
+    if (lowerKey === "r") {
+      event.preventDefault();
+      resetRound(mode, false);
+      return;
+    }
+
+    const keyAction: Record<string, { id: BearPlayerId; delta: number }> = {
+      w: { id: "bear", delta: 6 },
+      s: { id: "bear", delta: -6 },
+      arrowup: { id: mode === "duel" ? "coach" : "bear", delta: 6 },
+      arrowdown: { id: mode === "duel" ? "coach" : "bear", delta: -6 }
+    };
+    const action = keyAction[lowerKey];
+    if (!action) return;
+
+    event.preventDefault();
+    startIfNeeded();
+    setPlayers((current) =>
+      current.map((player) =>
+        player.id === action.id
+          ? { ...player, lift: clamp(player.lift + action.delta, 0, 100) }
+          : player
+      )
+    );
+  };
+
+  return (
+    <section className="game-section section-band dark" id="spil" aria-labelledby="game-title">
+      <div className="game-intro">
+        <p className="eyebrow">Rep Rush</p>
+        <h2 id="game-title">Hold vægten i zonen.</h2>
+        <p>
+          Træk med finger eller mus. Hold zonen længe nok til at låse en rep.
+          Skift til duel, når to skal spille på samme skærm.
+        </p>
+      </div>
+      <div
+        aria-label="Rep Rush. Træk vægten op og hold den i zonen."
+        className="bear-game rush-game"
+        onKeyDown={handleKeyDown}
+        style={{ "--time": `${timePercent}%` } as React.CSSProperties}
+        tabIndex={0}
+      >
+        <div className="game-bear-stage" aria-hidden="true">
+          <img src="/game/training-bear.png" alt="" />
+          <div className="game-stage-readout">
+            <span>Score</span>
+            <strong>{headlineScore}</strong>
+          </div>
+        </div>
+        <div className="game-panel">
+          <div className="game-mode-row" aria-label="Spiltype">
+            <button
+              className={mode === "solo" ? "is-active" : ""}
+              onClick={() => changeMode("solo")}
+              type="button"
+            >
+              Solo
+            </button>
+            <button
+              className={mode === "duel" ? "is-active" : ""}
+              onClick={() => changeMode("duel")}
+              type="button"
+            >
+              Duel
+            </button>
+          </div>
+
+          <div className="game-stat-row" aria-label="Spilstatus">
+            <p>
+              <span>Tid</span>
+              <strong>{timeLeft}s</strong>
+            </p>
+            <p>
+              <span>{mode === "solo" ? "Reps" : "Fører"}</span>
+              <strong>{mode === "solo" ? players[0].reps : leadingPlayer.name}</strong>
+            </p>
+            <p>
+              <span>Bedste</span>
+              <strong>{bestScore}</strong>
+            </p>
+          </div>
+
+          <div className={`rush-lanes ${mode}`}>
+            {players.map((player) => (
+              <article className={`rush-player ${player.tone}`} key={player.id}>
+                <div className="rush-player-head">
+                  <span>{player.name}</span>
+                  <strong>{player.reps}</strong>
+                </div>
+                <div
+                  aria-label={`${player.name} løftebane`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={Math.round(player.lift)}
+                  className="lift-lane"
+                  onClick={(event) => handleLaneClick(event, player.id)}
+                  onPointerCancel={handlePointerUp}
+                  onPointerDown={(event) => handlePointerDown(event, player.id)}
+                  onPointerMove={(event) => handlePointerMove(event, player.id)}
+                  onPointerUp={handlePointerUp}
+                  role="slider"
+                  style={
+                    {
+                      "--lift": `${player.lift}%`,
+                      "--target-bottom": `${clamp(player.target - bearTargetBand / 2, 0, 100 - bearTargetBand)}%`,
+                      "--target-height": `${bearTargetBand}%`,
+                      "--hold": `${player.hold}%`,
+                      "--form": `${player.form}%`,
+                      "--power": `${player.power}%`
+                    } as React.CSSProperties
+                  }
+                  tabIndex={-1}
+                >
+                  <div className="lift-zone">
+                    <i />
+                    <span>Rep</span>
+                  </div>
+                  <div className="lift-rail" />
+                  <div className="lift-grip">
+                    <span />
+                  </div>
+                </div>
+                <div className="player-meters">
+                  <p>
+                    <span>Form</span>
+                    <strong>{Math.round(player.form)}%</strong>
+                    <i className="form-meter" />
+                  </p>
+                  <p>
+                    <span>Kraft</span>
+                    <strong>{Math.round(player.power)}%</strong>
+                    <i className="power-meter" />
+                  </p>
+                </div>
+                <div className="rush-player-foot">
+                  <strong>{player.status}</strong>
+                  <span>{player.streak ? `${player.streak} i stime` : "Find zonen"}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="game-actions">
+            <button type="button" onClick={startRound}>
+              {phase === "running" ? "Ny runde" : "Start"}
+            </button>
+            <button type="button" onClick={() => resetRound(mode, false)}>
+              Reset
+            </button>
+          </div>
+
+          <div className="rush-status">
+            <p>{statusText}</p>
+            <span>
+              {mode === "duel"
+                ? "Venstre: W/S. Højre: piletaster."
+                : "W/S eller piletaster virker også."}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function createBearPlayers(mode: BearGameMode): BearPlayer[] {
+  const players: BearPlayer[] = [
+    {
+      id: "bear",
+      name: "Bjørn",
+      lift: 22,
+      target: 66,
+      hold: 0,
+      reps: 0,
+      form: 100,
+      power: 0,
+      streak: 0,
+      status: "Klar",
+      tone: "ok"
+    }
+  ];
+
+  if (mode === "duel") {
+    players.push({
+      id: "coach",
+      name: "Coach",
+      lift: 78,
+      target: 38,
+      hold: 0,
+      reps: 0,
+      form: 100,
+      power: 0,
+      streak: 0,
+      status: "Klar",
+      tone: "ok"
+    });
+  }
+
+  return players;
+}
+
+function nextBearTarget(currentTarget: number, streak: number) {
+  const targets = [22, 34, 46, 58, 70, 82];
+  const currentIndex = targets.findIndex((target) => target === currentTarget);
+  return targets[(currentIndex + 2 + streak) % targets.length];
+}
+
+function scoreBearPlayer(player: BearPlayer) {
+  return (
+    player.reps * 120 +
+    Math.round(player.power) +
+    Math.round(player.form) +
+    player.streak * 18
+  );
+}
+
+function stepBearPlayer(player: BearPlayer, deltaSeconds: number): BearPlayer {
+  if (player.form <= 0) {
+    return { ...player, hold: 0, power: 0, status: "Træt", tone: "miss" };
+  }
+
+  const distance = Math.abs(player.lift - player.target);
+  const inZone = distance <= 12;
+  let hold = clamp(
+    player.hold + deltaSeconds * (inZone ? 90 + Math.min(player.streak * 5, 32) : -100),
+    0,
+    100
+  );
+  let reps = player.reps;
+  let form = clamp(
+    player.form + (inZone ? 0.8 : distance > 22 ? -2.4 : -0.8) * deltaSeconds,
+    0,
+    100
+  );
+  let power = clamp(player.power + (inZone ? 9 : -4) * deltaSeconds, 0, 100);
+  let streak = inZone ? player.streak : hold <= 1 && distance > 18 ? 0 : player.streak;
+  let target = player.target;
+  let status = inZone ? "Hold" : player.lift < player.target ? "Op" : "Ned";
+  let tone: BearFeedbackTone = inZone ? "clean" : distance > 22 ? "miss" : "ok";
+
+  if (hold >= 100) {
+    reps += 1;
+    streak += 1;
+    power = clamp(power + 12, 0, 100);
+    form = clamp(form + 3, 0, 100);
+    target = nextBearTarget(target, streak);
+    hold = 0;
+    status = streak >= 4 ? "Stime" : "Rep låst";
+    tone = "clean";
+  }
+
+  return {
+    ...player,
+    hold,
+    reps,
+    form,
+    power,
+    streak,
+    target,
+    status,
+    tone
+  };
+}
+
 function App() {
   const [activeMode, setActiveMode] = useState<ModeId>("begynder");
   const [activeLegalPanel, setActiveLegalPanel] = useState<LegalPanelId | null>(null);
@@ -742,6 +1188,8 @@ function App() {
             ))}
           </div>
         </section>
+
+        <BearRushGame />
 
         <section className="evidence section-band" id="fakta">
           <div className="evidence-head">
