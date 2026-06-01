@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 type SessionMode = "daily" | "free";
+type DifficultyId = "rolig" | "skarp" | "ekstrem";
 
 type SessionHud = {
   score: number;
@@ -23,6 +24,23 @@ type WorkoutSet = {
 };
 
 type PrecisionResult = "perfect" | "good" | "miss";
+type DifficultyConfig = {
+  id: DifficultyId;
+  label: string;
+  description: string;
+  perfectWidth: number;
+  goodWidth: number;
+  minPerfectWidth: number;
+  minGoodWidth: number;
+  startSpeed: number;
+  speedGain: number;
+  maxSpeed: number;
+  focusPenalty: number;
+  scoreMultiplier: number;
+  shrinkPerSet: number;
+  wobble: number;
+  wobbleSpeed: number;
+};
 
 const worldWidth = 960;
 const worldHeight = 540;
@@ -32,8 +50,63 @@ const markerMinX = 312;
 const markerMaxX = 812;
 const markerY = 298;
 const perfectCenterX = 562;
-const perfectWidth = 154;
-const goodWidth = 310;
+const bestStorageKey = "tm-dagens-pas-best-v1";
+
+const difficultyConfigs: Record<DifficultyId, DifficultyConfig> = {
+  rolig: {
+    id: "rolig",
+    label: "Rolig",
+    description: "Lær rytmen",
+    perfectWidth: 166,
+    goodWidth: 330,
+    minPerfectWidth: 128,
+    minGoodWidth: 260,
+    startSpeed: 0.4,
+    speedGain: 0.045,
+    maxSpeed: 0.74,
+    focusPenalty: 10,
+    scoreMultiplier: 1,
+    shrinkPerSet: 5,
+    wobble: 0,
+    wobbleSpeed: 0
+  },
+  skarp: {
+    id: "skarp",
+    label: "Skarp",
+    description: "Jagt rekord",
+    perfectWidth: 122,
+    goodWidth: 240,
+    minPerfectWidth: 76,
+    minGoodWidth: 168,
+    startSpeed: 0.58,
+    speedGain: 0.08,
+    maxSpeed: 1.08,
+    focusPenalty: 16,
+    scoreMultiplier: 1.36,
+    shrinkPerSet: 8,
+    wobble: 8,
+    wobbleSpeed: 1.8
+  },
+  ekstrem: {
+    id: "ekstrem",
+    label: "Ekstrem",
+    description: "Næsten urimelig",
+    perfectWidth: 72,
+    goodWidth: 150,
+    minPerfectWidth: 38,
+    minGoodWidth: 82,
+    startSpeed: 0.82,
+    speedGain: 0.14,
+    maxSpeed: 1.66,
+    focusPenalty: 26,
+    scoreMultiplier: 2.14,
+    shrinkPerSet: 7,
+    wobble: 26,
+    wobbleSpeed: 3.2
+  }
+};
+
+const difficultyOrder: DifficultyId[] = ["rolig", "skarp", "ekstrem"];
 
 const defaultHud: SessionHud = {
   score: 0,
@@ -52,22 +125,31 @@ type SceneOptions = {
   seed: string;
   sceneKey: string;
   workout: WorkoutSet[];
+  difficulty: DifficultyConfig;
+  best: number;
   onHud: (hud: SessionHud) => void;
+  onFinish: (score: number) => void;
 };
 
 export function IronCircuitGame() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const [mode, setMode] = useState<SessionMode>("daily");
+  const [difficulty, setDifficulty] = useState<DifficultyId>("skarp");
   const [runKey, setRunKey] = useState(0);
   const [hud, setHud] = useState<SessionHud>(defaultHud);
+  const [bestScores, setBestScores] = useState<Record<string, number>>(() => readBestScores());
   const todaySeed = useMemo(() => getDailySeed(), []);
+  const difficultyConfig = difficultyConfigs[difficulty];
   const seed = useMemo(
     () => (mode === "daily" ? todaySeed : `fri-${runKey}-${Date.now()}`),
     [mode, runKey, todaySeed]
   );
   const workout = useMemo(() => createWorkout(seed), [seed]);
-  const sceneKey = `dagens-pas-${seed}`;
+  const bestScope = mode === "daily" ? todaySeed : "fri";
+  const bestKey = `${bestScope}-${difficulty}`;
+  const best = bestScores[bestKey] ?? 0;
+  const sceneKey = `dagens-pas-${difficulty}-${seed}`;
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
@@ -76,7 +158,19 @@ export function IronCircuitGame() {
       seed,
       sceneKey,
       workout,
-      onHud: setHud
+      difficulty: difficultyConfig,
+      best,
+      onHud: setHud,
+      onFinish: (score) => {
+        setBestScores((current) => {
+          const currentBest = current[bestKey] ?? 0;
+          if (score <= currentBest) return current;
+
+          const next = { ...current, [bestKey]: score };
+          saveBestScores(next);
+          return next;
+        });
+      }
     });
 
     const game = new Phaser.Game({
@@ -101,7 +195,7 @@ export function IronCircuitGame() {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [mode, runKey, sceneKey, seed, workout]);
+  }, [difficultyConfig, bestKey, mode, runKey, sceneKey, seed, workout]);
 
   const restart = (nextMode = mode) => {
     setMode(nextMode);
@@ -118,6 +212,11 @@ export function IronCircuitGame() {
 
   const startGame = () => useScene((scene) => scene.startFromUi());
   const logSet = () => useScene((scene) => scene.logFromUi());
+  const changeDifficulty = (nextDifficulty: DifficultyId) => {
+    setDifficulty(nextDifficulty);
+    setHud(defaultHud);
+    setRunKey((current) => current + 1);
+  };
 
   return (
     <section className="iron-section section-band dark" id="spil" aria-labelledby="game-title">
@@ -125,14 +224,14 @@ export function IronCircuitGame() {
         <p className="eyebrow">Dagens pas</p>
         <h2 id="game-title">Log seks sæt uden at miste rytmen.</h2>
         <p>
-          Det er træningsflowet som spil: se næste sæt, ram det grønne felt,
-          log hurtigt og gå videre.
+          Start roligt, jag rekorden, eller vælg ekstremt niveau hvor perfekt
+          timing næsten ikke findes.
         </p>
       </div>
 
       <div className="iron-shell">
         <div className="iron-toolbar" aria-label="Spilvalg">
-          <div>
+          <div className="iron-mode-row">
             <button
               className={mode === "daily" ? "is-active" : ""}
               onClick={() => restart("daily")}
@@ -148,6 +247,18 @@ export function IronCircuitGame() {
               Fri runde
             </button>
           </div>
+          <div className="iron-difficulty-row" aria-label="Niveau">
+            {difficultyOrder.map((difficultyId) => (
+              <button
+                className={difficulty === difficultyId ? "is-active" : ""}
+                key={difficultyId}
+                onClick={() => changeDifficulty(difficultyId)}
+                type="button"
+              >
+                {difficultyConfigs[difficultyId].label}
+              </button>
+            ))}
+          </div>
           <button type="button" onClick={() => restart(mode)}>
             Ny runde
           </button>
@@ -159,6 +270,10 @@ export function IronCircuitGame() {
             <p>
               <span>Score</span>
               <strong>{hud.score}</strong>
+            </p>
+            <p>
+              <span>Rekord</span>
+              <strong>{best}</strong>
             </p>
             <p>
               <span>Tid</span>
@@ -183,7 +298,9 @@ export function IronCircuitGame() {
             <span>
               Næste: {hud.currentExercise} · {hud.currentPrescription}
             </span>
-            <span>Tryk LOG SÆT når markøren rammer det grønne felt.</span>
+            <span>
+              {difficultyConfig.label}: {difficultyConfig.description}. Tryk LOG SÆT i det grønne felt.
+            </span>
           </div>
 
           <div className="iron-actions two-actions" aria-label="Spilstyring">
@@ -205,16 +322,22 @@ class DagensPasScene extends Phaser.Scene {
   private marker!: Phaser.GameObjects.Rectangle;
   private workoutRows: Phaser.GameObjects.Container[] = [];
   private setDots: Phaser.GameObjects.Arc[] = [];
+  private goodZone!: Phaser.GameObjects.Rectangle;
+  private perfectZone!: Phaser.GameObjects.Rectangle;
+  private readyText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private exerciseText!: Phaser.GameObjects.Text;
   private prescriptionText!: Phaser.GameObjects.Text;
+  private streak = 0;
   private score = 0;
   private focus = 100;
   private setsDone = 0;
   private elapsed = 0;
   private markerProgress = 0;
   private markerDirection = 1;
-  private speed = 0.43;
+  private speed = 0;
+  private currentPerfectWidth = 0;
+  private currentGoodWidth = 0;
   private running = false;
   private finished = false;
   private lastHudAt = 0;
@@ -223,6 +346,9 @@ class DagensPasScene extends Phaser.Scene {
   constructor(options: SceneOptions) {
     super(options.sceneKey);
     this.options = options;
+    this.speed = options.difficulty.startSpeed;
+    this.currentPerfectWidth = options.difficulty.perfectWidth;
+    this.currentGoodWidth = options.difficulty.goodWidth;
   }
 
   create() {
@@ -256,6 +382,7 @@ class DagensPasScene extends Phaser.Scene {
 
     this.elapsed += deltaSeconds;
     this.markerProgress += deltaSeconds * this.speed * this.markerDirection;
+    this.updatePrecisionZones();
     if (this.markerProgress >= 1) {
       this.markerProgress = 1;
       this.markerDirection = -1;
@@ -299,7 +426,12 @@ class DagensPasScene extends Phaser.Scene {
     }
 
     this.add.text(72, 56, "DAGENS PAS", textStyle(18, "#e31836", 900));
-    this.add.text(72, 88, "Seks sæt. Samme pas for alle.", textStyle(14, "#ccd6e7", 650));
+    this.add.text(
+      72,
+      88,
+      `${this.options.difficulty.label}. Rekord: ${this.options.best}`,
+      textStyle(14, "#ccd6e7", 650)
+    );
 
     this.options.workout.forEach((set, index) => {
       const row = this.add.container(70, 140 + index * 56);
@@ -319,12 +451,12 @@ class DagensPasScene extends Phaser.Scene {
     this.prescriptionText = this.add.text(360, 144, "", textStyle(16, "#ccd6e7", 720));
 
     this.add.text(360, 214, "Tryk når markøren rammer KLAR", textStyle(17, "#f3f6fc", 850));
-    this.add.rectangle(562, markerY, goodWidth, 78, 0x243244, 0.84);
-    this.add.rectangle(562, markerY, perfectWidth, 78, 0x4f6257, 0.96);
+    this.goodZone = this.add.rectangle(562, markerY, this.currentGoodWidth, 78, 0x243244, 0.84);
+    this.perfectZone = this.add.rectangle(562, markerY, this.currentPerfectWidth, 78, 0x4f6257, 0.96);
     this.add.rectangle(392, markerY, 160, 78, 0x2a1720, 0.8);
     this.add.rectangle(732, markerY, 160, 78, 0x2a2117, 0.8);
     this.add.text(338, markerY - 11, "FOR TIDLIGT", textStyle(12, "#ccd6e7", 850));
-    this.add.text(532, markerY - 13, "KLAR", textStyle(18, "#f3f6fc", 950));
+    this.readyText = this.add.text(532, markerY - 13, "KLAR", textStyle(18, "#f3f6fc", 950));
     this.add.text(694, markerY - 11, "FOR SENT", textStyle(12, "#ccd6e7", 850));
 
     this.add.rectangle(562, markerY, markerMaxX - markerMinX, 3, 0xf3f6fc, 0.34);
@@ -353,30 +485,38 @@ class DagensPasScene extends Phaser.Scene {
   private tryLogSet() {
     if (this.finished || this.setsDone >= totalSets) return;
 
+    this.updatePrecisionZones();
     const x = Phaser.Math.Linear(markerMinX, markerMaxX, this.markerProgress);
-    const distance = Math.abs(x - perfectCenterX);
+    const center = this.getTargetCenter();
+    const distance = Math.abs(x - center);
     const precision: PrecisionResult =
-      distance <= perfectWidth / 2 ? "perfect" : distance <= goodWidth / 2 ? "good" : "miss";
+      distance <= this.currentPerfectWidth / 2
+        ? "perfect"
+        : distance <= this.currentGoodWidth / 2
+          ? "good"
+          : "miss";
 
     if (precision === "miss") {
-      this.missSet(x < perfectCenterX ? "For tidligt" : "For sent");
+      this.missSet(x < center ? "For tidligt" : "For sent");
       return;
     }
 
-    const base = precision === "perfect" ? 860 : 520;
-    const streakBonus = this.setsDone * (precision === "perfect" ? 70 : 38);
-    const focusBonus = Math.round(this.focus * 1.8);
-    this.score += base + streakBonus + focusBonus;
+    this.streak = precision === "perfect" ? this.streak + 1 : 0;
+    const base = precision === "perfect" ? 860 : 420;
+    const streakBonus = this.streak * (precision === "perfect" ? 160 : 0);
+    const focusBonus = Math.round(this.focus * 1.35);
+    this.score += Math.round((base + streakBonus + focusBonus) * this.options.difficulty.scoreMultiplier);
     this.focus = clamp(this.focus + (precision === "perfect" ? 3 : 1), 0, 100);
-    this.statusText.setText(precision === "perfect" ? "Rent logget." : "Godkendt.");
+    this.statusText.setText(precision === "perfect" ? "Perfekt." : "Godkendt.");
     this.flashMarker(precision === "perfect" ? 0x4f6257 : 0x0047ab);
     this.completeSet();
   }
 
   private missSet(reason: string) {
     if (this.finished || this.setsDone >= totalSets) return;
-    this.focus = clamp(this.focus - 14, 0, 100);
-    this.score = Math.max(0, this.score - 110);
+    this.streak = 0;
+    this.focus = clamp(this.focus - this.options.difficulty.focusPenalty, 0, 100);
+    this.score = Math.max(0, this.score - Math.round(120 * this.options.difficulty.scoreMultiplier));
     this.statusText.setText(reason);
     this.flashMarker(0xe31836);
     this.resetMarker();
@@ -391,7 +531,7 @@ class DagensPasScene extends Phaser.Scene {
     this.setDots[this.setsDone]?.setStrokeStyle(2, 0xf3f6fc, 0.44);
     this.workoutRows[this.setsDone]?.setAlpha(0.72);
     this.setsDone += 1;
-    this.speed = Math.min(0.86, this.speed + 0.055);
+    this.speed = Math.min(this.options.difficulty.maxSpeed, this.speed + this.options.difficulty.speedGain);
     this.resetMarker();
 
     if (this.setsDone >= totalSets) {
@@ -416,6 +556,7 @@ class DagensPasScene extends Phaser.Scene {
       box.setStrokeStyle(1, isActive ? 0xe31836 : 0xf3f6fc, isActive ? 0.75 : 0.1);
       row.setAlpha(index < this.setsDone ? 0.7 : 1);
     });
+    this.updatePrecisionZones();
   }
 
   private resetMarker() {
@@ -440,8 +581,37 @@ class DagensPasScene extends Phaser.Scene {
     this.finished = true;
     this.running = false;
     const status = this.setsDone >= totalSets ? "Pas gennemført" : "Rytmen røg";
-    this.statusText.setText(status);
-    this.emitHud(status);
+    const finalStatus = this.score > this.options.best ? "Ny rekord." : status;
+    this.statusText.setText(finalStatus);
+    this.options.onFinish(this.score);
+    this.emitHud(finalStatus);
+  }
+
+  private updatePrecisionZones() {
+    const shrink = this.setsDone * this.options.difficulty.shrinkPerSet;
+    this.currentPerfectWidth = Math.max(
+      this.options.difficulty.minPerfectWidth,
+      this.options.difficulty.perfectWidth - shrink
+    );
+    this.currentGoodWidth = Math.max(
+      this.options.difficulty.minGoodWidth,
+      this.options.difficulty.goodWidth - shrink * 1.4
+    );
+
+    const center = this.getTargetCenter();
+    this.goodZone.setX(center);
+    this.goodZone.setDisplaySize(this.currentGoodWidth, 78);
+    this.perfectZone.setX(center);
+    this.perfectZone.setDisplaySize(this.currentPerfectWidth, 78);
+    this.readyText.setX(center - 30);
+  }
+
+  private getTargetCenter() {
+    if (!this.options.difficulty.wobble) return perfectCenterX;
+    return (
+      perfectCenterX +
+      Math.sin(this.elapsed * this.options.difficulty.wobbleSpeed) * this.options.difficulty.wobble
+    );
   }
 
   private emitHud(status = this.statusText?.text ?? "Klar") {
@@ -480,6 +650,29 @@ function createWorkout(seed: string): WorkoutSet[] {
     { exercise, reps, weight },
     { exercise, reps, weight }
   ]);
+}
+
+function readBestScores() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(bestStorageKey) ?? "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter((entry): entry is [string, number] => {
+        return typeof entry[0] === "string" && typeof entry[1] === "number";
+      })
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveBestScores(scores: Record<string, number>) {
+  try {
+    window.localStorage.setItem(bestStorageKey, JSON.stringify(scores));
+  } catch {
+    // Records are local only. The game still works without browser storage.
+  }
 }
 
 function getTodayStamp() {

@@ -846,22 +846,30 @@ h3 {
 }
 
 .iron-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(200px, 0.68fr) minmax(280px, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 14px;
   border-bottom: 1px solid rgba(243, 246, 252, 0.13);
 }
 
-.iron-toolbar > div {
+.iron-mode-row,
+.iron-difficulty-row {
   display: inline-grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: 6px;
   padding: 4px;
   background: rgba(243, 246, 252, 0.06);
   border: 1px solid rgba(243, 246, 252, 0.11);
   border-radius: 8px;
+}
+
+.iron-mode-row {
+  grid-template-columns: repeat(2, minmax(94px, 1fr));
+}
+
+.iron-difficulty-row {
+  grid-template-columns: repeat(3, minmax(74px, 1fr));
 }
 
 .iron-toolbar button {
@@ -876,7 +884,8 @@ h3 {
   font-weight: 860;
 }
 
-.iron-toolbar > div button {
+.iron-mode-row button,
+.iron-difficulty-row button {
   border-color: transparent;
   background: transparent;
 }
@@ -914,7 +923,7 @@ h3 {
   position: static;
   order: -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   padding: 14px;
   background: rgba(5, 7, 10, 0.48);
@@ -1937,12 +1946,12 @@ footer small {
     grid-template-columns: 1fr;
   }
 
-  .iron-toolbar {
-    display: grid;
+  .iron-mode-row {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .iron-toolbar > div {
-    grid-template-columns: 1fr 1fr;
+  .iron-difficulty-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .iron-canvas {
