@@ -5,7 +5,6 @@ type SessionMode = "daily" | "free";
 
 type SessionHud = {
   score: number;
-  best: number;
   setsDone: number;
   totalSets: number;
   focus: number;
@@ -15,19 +14,6 @@ type SessionHud = {
   currentPrescription: string;
   running: boolean;
   finished: boolean;
-};
-
-type SessionResult = {
-  score: number;
-  setsDone: number;
-  focus: number;
-  seed: string;
-  mode: SessionMode;
-  date: string;
-};
-
-type SessionRun = SessionResult & {
-  id: string;
 };
 
 type WorkoutSet = {
@@ -48,11 +34,9 @@ const markerY = 298;
 const perfectCenterX = 562;
 const perfectWidth = 154;
 const goodWidth = 310;
-const runHistoryKey = "tm-dagens-pas-runs-v3";
 
 const defaultHud: SessionHud = {
   score: 0,
-  best: 0,
   setsDone: 0,
   totalSets,
   focus: 100,
@@ -65,13 +49,10 @@ const defaultHud: SessionHud = {
 };
 
 type SceneOptions = {
-  mode: SessionMode;
   seed: string;
   sceneKey: string;
   workout: WorkoutSet[];
-  best: number;
   onHud: (hud: SessionHud) => void;
-  onFinish: (result: SessionResult) => void;
 };
 
 export function IronCircuitGame() {
@@ -80,7 +61,6 @@ export function IronCircuitGame() {
   const [mode, setMode] = useState<SessionMode>("daily");
   const [runKey, setRunKey] = useState(0);
   const [hud, setHud] = useState<SessionHud>(defaultHud);
-  const [runs, setRuns] = useState<SessionRun[]>(() => readRuns());
   const todaySeed = useMemo(() => getDailySeed(), []);
   const seed = useMemo(
     () => (mode === "daily" ? todaySeed : `fri-${runKey}-${Date.now()}`),
@@ -88,27 +68,15 @@ export function IronCircuitGame() {
   );
   const workout = useMemo(() => createWorkout(seed), [seed]);
   const sceneKey = `dagens-pas-${seed}`;
-  const publicSeed = todaySeed.replace("daily-", "");
-  const best = getBestForSeed(runs, todaySeed);
-  const topRuns = runs.filter((run) => run.seed === todaySeed).slice(0, 5);
-  const scoreCode = hud.finished
-    ? `TM-${publicSeed}-${hud.score}-${hud.setsDone}`
-    : `TM-${publicSeed}`;
 
   useEffect(() => {
     if (!containerRef.current) return undefined;
 
     const scene = new DagensPasScene({
-      mode,
       seed,
       sceneKey,
       workout,
-      best,
-      onHud: setHud,
-      onFinish: (result) => {
-        const nextRuns = saveRun(result);
-        setRuns(nextRuns);
-      }
+      onHud: setHud
     });
 
     const game = new Phaser.Game({
@@ -133,11 +101,11 @@ export function IronCircuitGame() {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [best, mode, runKey, sceneKey, seed, workout]);
+  }, [mode, runKey, sceneKey, seed, workout]);
 
   const restart = (nextMode = mode) => {
     setMode(nextMode);
-    setHud({ ...defaultHud, best: getBestForSeed(runs, todaySeed) });
+    setHud(defaultHud);
     setRunKey((current) => current + 1);
   };
 
@@ -150,14 +118,6 @@ export function IronCircuitGame() {
 
   const startGame = () => useScene((scene) => scene.startFromUi());
   const logSet = () => useScene((scene) => scene.logFromUi());
-
-  const copyScore = async () => {
-    try {
-      await navigator.clipboard.writeText(scoreCode);
-    } catch {
-      // The score code is still visible if clipboard access is blocked.
-    }
-  };
 
   return (
     <section className="iron-section section-band dark" id="spil" aria-labelledby="game-title">
@@ -233,42 +193,6 @@ export function IronCircuitGame() {
             <button className="is-primary" type="button" onClick={logSet}>
               Log sæt
             </button>
-          </div>
-
-          <div className="iron-board" aria-label="Dagens score">
-            <div>
-              <span>Dagens pas</span>
-              <strong>{publicSeed}</strong>
-            </div>
-            <div>
-              <span>Bedste her</span>
-              <strong>{best}</strong>
-            </div>
-            <div>
-              <span>Scorekode</span>
-              <strong>{scoreCode}</strong>
-            </div>
-            <button type="button" onClick={copyScore}>
-              Kopiér kode
-            </button>
-          </div>
-
-          <div className="iron-runs" aria-label="Lokale daglige resultater">
-            {topRuns.length ? (
-              topRuns.map((run, index) => (
-                <p key={run.id}>
-                  <span>{index + 1}</span>
-                  <strong>{run.score}</strong>
-                  <em>{run.setsDone}/{totalSets} sæt</em>
-                </p>
-              ))
-            ) : (
-              <p>
-                <span>1</span>
-                <strong>Ingen score endnu</strong>
-                <em>{scoreCode}</em>
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -419,7 +343,6 @@ class DagensPasScene extends Phaser.Scene {
     this.statusText.setText("Find rytmen.");
     this.options.onHud({
       ...defaultHud,
-      best: this.options.best,
       currentExercise: this.options.workout[0].exercise,
       currentPrescription: `${this.options.workout[0].reps} · ${this.options.workout[0].weight}`,
       running: true,
@@ -518,14 +441,6 @@ class DagensPasScene extends Phaser.Scene {
     this.running = false;
     const status = this.setsDone >= totalSets ? "Pas gennemført" : "Rytmen røg";
     this.statusText.setText(status);
-    this.options.onFinish({
-      score: this.score,
-      setsDone: this.setsDone,
-      focus: Math.round(this.focus),
-      seed: this.options.seed,
-      mode: this.options.mode,
-      date: getTodayStamp()
-    });
     this.emitHud(status);
   }
 
@@ -534,7 +449,6 @@ class DagensPasScene extends Phaser.Scene {
     const activeSet = this.options.workout[this.setsDone] ?? this.options.workout[totalSets - 1];
     this.options.onHud({
       score: this.score,
-      best: this.options.best,
       setsDone: this.setsDone,
       totalSets,
       focus: this.focus,
@@ -566,44 +480,6 @@ function createWorkout(seed: string): WorkoutSet[] {
     { exercise, reps, weight },
     { exercise, reps, weight }
   ]);
-}
-
-function readRuns() {
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(runHistoryKey) ?? "[]");
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((run): run is SessionRun => typeof run?.score === "number" && typeof run?.seed === "string")
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 20);
-  } catch {
-    return [];
-  }
-}
-
-function saveRun(result: SessionResult) {
-  const runs = readRuns();
-  const nextRuns = [
-    {
-      ...result,
-      id: `${result.seed}-${result.score}-${Date.now()}`
-    },
-    ...runs
-  ]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
-
-  try {
-    window.localStorage.setItem(runHistoryKey, JSON.stringify(nextRuns));
-  } catch {
-    // Local competition is optional. The game still runs without storage.
-  }
-  return nextRuns;
-}
-
-function getBestForSeed(runs: SessionRun[], seed: string) {
-  const bestRun = runs.find((run) => run.seed === seed);
-  return bestRun?.score ?? 0;
 }
 
 function getTodayStamp() {

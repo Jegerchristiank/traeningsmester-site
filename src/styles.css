@@ -864,8 +864,7 @@ h3 {
   border-radius: 8px;
 }
 
-.iron-toolbar button,
-.iron-board button {
+.iron-toolbar button {
   min-height: 42px;
   padding: 0 16px;
   color: var(--muted);
@@ -883,8 +882,7 @@ h3 {
 }
 
 .iron-toolbar button.is-active,
-.iron-toolbar button:hover,
-.iron-board button:hover {
+.iron-toolbar button:hover {
   color: var(--light);
   background: rgba(227, 24, 54, 0.88);
 }
@@ -925,9 +923,7 @@ h3 {
 }
 
 .iron-hud p,
-.iron-status,
-.iron-board,
-.iron-runs {
+.iron-status {
   margin: 0;
   color: var(--light);
   background: rgba(5, 7, 10, 0.68);
@@ -944,8 +940,6 @@ h3 {
 }
 
 .iron-hud span,
-.iron-board span,
-.iron-runs span,
 .iron-status span {
   color: var(--muted);
   font-size: 0.72rem;
@@ -961,7 +955,7 @@ h3 {
 
 .iron-bottom {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(300px, 0.82fr);
+  grid-template-columns: minmax(260px, 1fr) minmax(240px, 0.56fr);
   gap: 12px;
   padding: 14px;
   border-top: 1px solid rgba(243, 246, 252, 0.13);
@@ -1010,61 +1004,6 @@ h3 {
 .iron-actions button:focus-visible,
 .iron-actions button.is-primary {
   background: rgba(227, 24, 54, 0.9);
-}
-
-.iron-board {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: 1fr 1fr minmax(190px, 1.15fr) auto;
-  gap: 10px;
-  align-items: center;
-  min-height: 92px;
-  padding: 12px;
-}
-
-.iron-board div {
-  display: grid;
-  gap: 4px;
-}
-
-.iron-board strong {
-  font-size: 1.05rem;
-  overflow-wrap: anywhere;
-}
-
-.iron-runs {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  padding: 10px;
-}
-
-.iron-runs p {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 8px;
-  align-items: baseline;
-  min-height: 62px;
-  margin: 0;
-  padding: 11px 12px;
-  background: rgba(243, 246, 252, 0.055);
-  border: 1px solid rgba(243, 246, 252, 0.1);
-  border-radius: 6px;
-}
-
-.iron-runs strong {
-  color: var(--light);
-  font-size: 1.15rem;
-  line-height: 1;
-  overflow-wrap: anywhere;
-}
-
-.iron-runs em {
-  grid-column: 1 / -1;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-style: normal;
 }
 
 .evidence {
@@ -2027,19 +1966,11 @@ footer small {
     font-size: 1.28rem;
   }
 
-  .iron-board {
-    grid-template-columns: 1fr;
-  }
-
   .iron-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .iron-actions.two-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .iron-runs {
     grid-template-columns: 1fr;
   }
 
