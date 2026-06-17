@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://traeningsmester.dk/sitemap.xml
+Sitemap: https://www.traeningsmester.dk/sitemap.xml

@@ -1,25 +1,39 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { IronCircuitGame } from "./IronCircuitGame";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import "./styles.css";
 
-type ModeId = "begynder" | "selvoevet" | "logger" | "traener";
-
-type Mode = {
-  id: ModeId;
-  name: string;
-  mood: string;
-  promise: string;
-  before: string;
-  after: string;
-  first: string[];
-  image: string;
-  screen: string;
-  screenAlt: string;
-};
-
+type AudienceId = "begynder" | "selvtraenende" | "traener" | "nysgerrig";
 type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
 type CookieChoice = "necessary";
+
+type WaitlistState =
+  | { type: "idle" }
+  | { type: "submitting" }
+  | { type: "submitted"; message: string }
+  | { type: "mailFallback"; message: string }
+  | { type: "error"; message: string };
+
+type WaitlistFormState = {
+  email: string;
+  name: string;
+  audience: AudienceId;
+  note: string;
+  consent: boolean;
+};
+
+const siteUrl = "https://www.traeningsmester.dk/";
+const waitlistEndpoint = "/api/waitlist";
+const waitlistFallbackEmail =
+  (import.meta.env.VITE_WAITLIST_FALLBACK_EMAIL as string | undefined) ??
+  "kontakt@traeningsmester.dk";
+
+const company = {
+  legalName: "KRISTENSON",
+  cvr: "40679456",
+  form: "Personligt ejet Mindre Virksomhed",
+  address: "Blomstergården 13, 4700 Næstved",
+  source: "CVR/Virk via Proff"
+};
 
 const legalHashIds: Record<LegalPanelId, string> = {
   terms: "handelsbetingelser",
@@ -38,195 +52,105 @@ const legalPanelByHash: Record<string, LegalPanelId> = {
 const cookieSettingsHash = "cookieindstillinger";
 
 const navItems = [
-  { href: "#for-hvem", label: "Hvem" },
-  { href: "#flow", label: "I appen" },
-  { href: "#kerne", label: "Kerne" },
-  { href: "#spil", label: "Spil" },
-  { href: "#fakta", label: "Fakta" },
-  { href: "#praktisk", label: "Praktisk" },
-  { href: "#team", label: "Team" }
+  { href: "#venteliste", label: "Venteliste" },
+  { href: "#for-hvem", label: "For hvem" },
+  { href: "#appen", label: "Appen" },
+  { href: "#traener", label: "Trænere" },
+  { href: "#faq", label: "FAQ" }
 ];
 
-const company = {
-  legalName: "KRISTENSON",
-  cvr: "40679456",
-  form: "Personligt ejet Mindre Virksomhed",
-  address: "Blomstergården 13, 4700 Næstved",
-  source: "CVR/Virk via Proff"
-};
-
-const siteUrl = "https://traeningsmester.dk/";
-
-const modes: Mode[] = [
+const audienceOptions: {
+  id: AudienceId;
+  title: string;
+  label: string;
+  description: string;
+}[] = [
   {
     id: "begynder",
-    name: "Begynder",
-    mood: "Mindre usikkerhed",
-    promise: "Åbn appen, se dagens pas, start uden at forstå hele planen først.",
-    before: "For mange valg gør træningen tung, før den overhovedet starter.",
-    after: "Dagens pas står klart. Øvelserne er konkrete. Starten føles enkel.",
-    first: ["Dagens træning", "Tydelige øvelser", "Færre valg ad gangen"],
-    image: "/photos/beginner-training.jpg",
-    screen: "/app/home-training.jpg",
-    screenAlt: "Dagens træning i Træningsmester"
+    title: "Begynder",
+    label: "Jeg vil i gang",
+    description: "Dagens pas, færre valg og en rolig start i centeret."
   },
   {
-    id: "selvoevet",
-    name: "Selvøvet",
-    mood: "Mere kontrol",
-    promise: "Ret, flyt og importér uden at planen mister sin rytme.",
-    before: "Gamle noter, nye mål og forskellige centre bliver hurtigt til rod.",
-    after: "Planen hænger sammen, selv når hverdagen tvinger dig til at ændre den.",
-    first: ["Programmer", "Import", "Skift uden rod"],
-    image: "/photos/program-training.jpg",
-    screen: "/app/programs.jpg",
-    screenAlt: "Programmer i Træningsmester"
-  },
-  {
-    id: "logger",
-    name: "Logger",
-    mood: "Mere præcision",
-    promise: "Skriv vægt og reps hurtigt, og stol på dem næste gang.",
-    before: "Hvis loggen tager for meget plads, ryger fokus væk fra løftet.",
-    after: "Sæt, vægt, PR og historik ligger klar, når næste valg skal tages.",
-    first: ["Sæt og vægt", "Seneste løft", "Historik og PR"],
-    image: "/photos/logger-training.jpg",
-    screen: "/app/exercises.jpg",
-    screenAlt: "Øvelseskatalog i Træningsmester"
+    id: "selvtraenende",
+    title: "Selvtrænende",
+    label: "Jeg træner allerede",
+    description: "Program, log, historik og progression uden løse noter."
   },
   {
     id: "traener",
-    name: "Træner",
-    mood: "Mere overblik",
-    promise: "Klienter, planer og opfølgning samlet, så beskeder ikke bliver dit system.",
-    before: "Trænerarbejde falder fra hinanden, når alt lever i beskeder.",
-    after: "Du ser hvem der kræver opmærksomhed, og hvad der skal gøres.",
-    first: ["Klienter", "Planer", "Opfølgning"],
-    image: "/photos/coach-training.jpg",
-    screen: "/app/coach.jpg",
-    screenAlt: "Coach-overblik i Træningsmester"
+    title: "Træner",
+    label: "Jeg arbejder med klienter",
+    description: "Klienter, planer og opfølgning i et mere samlet flow."
+  },
+  {
+    id: "nysgerrig",
+    title: "Nysgerrig",
+    label: "Jeg vil bare høre mere",
+    description: "Få besked, når der er nyt om appen og åbningen."
   }
 ];
 
-const flow = [
+const productPillars = [
   {
-    label: "Plan",
-    title: "Se planen",
-    text: "Du starter med det, der skal ske i dag, ikke med alt det appen kan."
-  },
-  {
-    label: "Pas",
-    title: "Træn uden jagt",
-    text: "Øvelser, sæt og noter ligger tæt på hinanden, mens du træner."
-  },
-  {
-    label: "Log",
-    title: "Skriv det vigtige",
-    text: "Vægt, reps og oplevelse gemmes, uden at loggen overtager passet."
-  },
-  {
-    label: "Fremgang",
-    title: "Vælg bedre",
-    text: "Når du kommer tilbage, ligger sidste løft og næste valg klar."
-  }
-];
-
-const platformRows = [
-  {
-    label: "iPhone",
-    text: "Dagens pas, tracker, historik og programredigering."
-  },
-  {
-    label: "Android",
-    text: "Samme kerneflow: plan, træning, log og historik."
-  },
-  {
-    label: "Apple Watch",
-    text: "Træning tættere på håndleddet, når telefonen ligger væk."
-  },
-  {
-    label: "Træner",
-    text: "Klienter, programmer og opfølgning samlet omkring arbejdet."
-  }
-];
-
-const coreRows = [
-  {
-    label: "Programmer",
-    title: "Byg planen, og ret den, når hverdagen ændrer sig.",
-    text: "Træningsdage, øvelser, centre og gamle noter skal kunne samles uden at starte forfra.",
-    points: ["Træningsdage", "Øvelser", "Centre", "Noter"],
+    title: "Programmet før passet",
+    text: "Se dagens træning uden at lede gennem gamle noter, screenshots og halve planer.",
     image: "/app/programs.jpg",
     imageAlt: "Programmer i Træningsmester"
   },
   {
-    label: "Tracker",
-    title: "Log sæt uden at miste fokus på passet.",
-    text: "Vægt, reps, noter og seneste løft ligger tæt på øvelsen, så næste valg bliver lettere.",
-    points: ["Vægt", "Reps", "Noter", "Seneste løft"],
+    title: "Loggen undervejs",
+    text: "Sæt, reps, vægt og noter ligger tæt på øvelsen, så træningen ikke bliver til administration.",
     image: "/app/home-training.jpg",
     imageAlt: "Dagens træning i Træningsmester"
   },
   {
-    label: "Fremgang",
-    title: "Historikken skal hjælpe næste træning.",
-    text: "PR, øvelseshistorik og tidligere valg skal være synlige, når du står med vægten igen.",
-    points: ["PR", "Historik", "Valg", "Overblik"],
+    title: "Historikken bagefter",
+    text: "Når du kommer tilbage, skal sidste løft og næste beslutning være nemme at finde.",
     image: "/app/exercises.jpg",
     imageAlt: "Øvelseskatalog i Træningsmester"
-  },
-  {
-    label: "Træner",
-    title: "Klientarbejde skal leve samme sted som træningen.",
-    text: "Programmer, opfølgning og klientoverblik skal ligge tættere på arbejdet end en beskedtråd.",
-    points: ["Klienter", "Planer", "Check-ins", "Opfølgning"],
-    image: "/app/coach.jpg",
-    imageAlt: "Coach-overblik i Træningsmester"
   }
 ];
 
-const evidence = [
+const launchSteps = [
   {
-    value: "389",
-    label: "øvelser i kataloget",
-    note: "Et konkret udgangspunkt, når programmet skal bygges eller ændres."
+    label: "Nu",
+    title: "Pre-launch",
+    text: "Siden samler interesserede, så de rigtige brugere kan få besked først."
   },
   {
-    value: "4",
-    label: "måder at bruge appen på",
-    note: "Begynder, selvøvet, logger og træner har forskellige behov."
+    label: "Næste",
+    title: "Første adgang",
+    text: "Ventelisten bruges til at prioritere begyndere, selvtrænende og trænere med tydelige behov."
   },
   {
-    value: "1",
-    label: "samlet træningsflow",
-    note: "Plan, pas, log og historik skal hænge sammen."
+    label: "Efter åbning",
+    title: "Produktfeedback",
+    text: "De første brugere hjælper med at gøre program, logging og coach-flow skarpere."
   }
 ];
 
-const openingQuestions = [
+const faqRows = [
   {
-    question: "Hvad skal jeg lave i dag?",
-    answer: "Dagens pas ligger øverst."
+    question: "Hvornår kommer appen?",
+    answer:
+      "Der er ikke låst en offentlig dato endnu. Skriv dig op, så får du besked, når der åbnes for adgang eller nyt om lanceringen."
   },
   {
-    question: "Hvad løftede jeg sidst?",
-    answer: "Seneste vægt følger øvelsen."
+    question: "Er Træningsmester kun for øvede?",
+    answer:
+      "Nej. Siden er også lavet til begyndere, der vil have en rolig vej ind i træning uden at skulle forstå hele programteorien først."
   },
   {
-    question: "Kan jeg ændre planen?",
-    answer: "Ja, uden at starte forfra."
+    question: "Kan trænere bruge appen?",
+    answer:
+      "Ja, trænerdelen er tænkt som et arbejdsrum til klienter, programmer og opfølgning. Ventelisten hjælper med at finde de rigtige trænerbehov før åbning."
   },
   {
-    question: "Hvem skal jeg følge op på?",
-    answer: "Klienterne samles i ét overblik."
+    question: "Hvad sker der med min mail?",
+    answer:
+      "Mailen bruges til at kontakte dig om Træningsmester. Siden bruger ikke marketingcookies eller statistikværktøjer."
   }
-];
-
-const principles = [
-  "Dagens pas skal være det første, du ser.",
-  "Loggen skal tage sekunder, ikke opmærksomhed.",
-  "Historikken skal hjælpe næste løft.",
-  "Træneren skal se det, der kalder på handling."
 ];
 
 const documentRows: {
@@ -238,19 +162,19 @@ const documentRows: {
   {
     id: "terms",
     title: "Handelsbetingelser",
-    text: "Køb, adgang, fortrydelse, opsigelse og reklamation.",
+    text: "Rammen for appadgang, køb og digitale funktioner.",
     scope: "Køb og adgang"
   },
   {
     id: "privacy",
     title: "Privatliv",
-    text: "Hvad siden gør, og hvad appen kan kræve for at fungere.",
+    text: "Hvordan websitet, ventelisten og appens data adskilles.",
     scope: "Data"
   },
   {
     id: "cookies",
     title: "Cookiepolitik",
-    text: "Den korte forklaring på nødvendig lagring i browseren.",
+    text: "Kun nødvendig lagring til at huske dit cookievalg.",
     scope: "Website"
   },
   {
@@ -306,11 +230,16 @@ const legalPanels: Record<
     title: "Privatliv",
     kicker: "Data",
     summary:
-      "Hjemmesiden er en informationsside. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
+      "Hjemmesiden er en pre-launch side. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
     sections: [
       {
         heading: "Ansvarlig virksomhed",
         body: `${company.legalName}, CVR ${company.cvr}, er den offentligt registrerede virksomhed bag siden. Kilde: ${company.source}.`
+      },
+      {
+        heading: "Ventelisten",
+        body:
+          "Når du sender ventelisteformularen, kan email, navn, interessevalg og din korte besked blive sendt til den konfigurerede waitlist-modtager. Hvis serveropsamling ikke er konfigureret, åbner siden en mail i stedet, så du selv sender tilmeldingen."
       },
       {
         heading: "På websitet",
@@ -356,7 +285,7 @@ const legalPanels: Record<
       {
         heading: "Tastatur",
         body:
-          "Links, knapper, dokumenter, cookieindstillinger og modaler kan nås med tastatur og har synlig fokusmarkering."
+          "Links, knapper, dokumenter, cookieindstillinger, formular og modaler kan nås med tastatur og har synlig fokusmarkering."
       },
       {
         heading: "Kontrast",
@@ -366,21 +295,26 @@ const legalPanels: Record<
       {
         heading: "Bevægelse",
         body:
-          "Siden respekterer reduceret bevægelse i browseren og bruger ikke animationer som er nødvendige for at forstå indholdet."
+          "Siden respekterer reduceret bevægelse i browseren og bruger ikke animationer, som er nødvendige for at forstå indholdet."
       },
       {
         heading: "Billeder",
         body:
           "App-skærme og centrale billeder har tekstalternativer, mens rene dekorative billeder holdes uden læst tekst."
-      },
-      {
-        heading: "Begrænsninger",
-        body:
-          "Hvis noget er svært at bruge, skal det håndteres via appens konto-, indstillings- eller supportflader, hvor den konkrete kontekst findes."
       }
     ]
   }
 };
+
+const initialWaitlistForm: WaitlistFormState = {
+  email: "",
+  name: "",
+  audience: "begynder",
+  note: "",
+  consent: false
+};
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const readStoredCookieChoice = (): CookieChoice | null => {
   try {
@@ -403,17 +337,44 @@ const storeCookieChoice = (choice: CookieChoice) => {
   }
 };
 
+const audienceLabel = (audience: AudienceId) =>
+  audienceOptions.find((option) => option.id === audience)?.title ?? "Ikke valgt";
+
+const buildFallbackMailto = (payload: WaitlistFormState) => {
+  const subject = encodeURIComponent("Skriv mig op til Træningsmester");
+  const body = encodeURIComponent(
+    [
+      "Hej Træningsmester",
+      "",
+      "Jeg vil gerne skrives op til at få besked, når appen åbner.",
+      "",
+      `Email: ${payload.email.trim()}`,
+      `Navn: ${payload.name.trim() || "Ikke oplyst"}`,
+      `Interesse: ${audienceLabel(payload.audience)}`,
+      `Besked: ${payload.note.trim() || "Ingen"}`,
+      "",
+      "Jeg accepterer, at I må kontakte mig om Træningsmester."
+    ].join("\n")
+  );
+
+  return `mailto:${waitlistFallbackEmail}?subject=${subject}&body=${body}`;
+};
+
 function App() {
-  const [activeMode, setActiveMode] = useState<ModeId>("begynder");
   const [activeLegalPanel, setActiveLegalPanel] = useState<LegalPanelId | null>(null);
   const [cookieChoice, setCookieChoice] = useState<CookieChoice | null>(null);
   const [cookieSettingsOpen, setCookieSettingsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const selectedMode = useMemo(
-    () => modes.find((mode) => mode.id === activeMode) ?? modes[0],
-    [activeMode]
-  );
+  const [waitlistForm, setWaitlistForm] =
+    useState<WaitlistFormState>(initialWaitlistForm);
+  const [waitlistState, setWaitlistState] = useState<WaitlistState>({ type: "idle" });
   const activeLegal = activeLegalPanel ? legalPanels[activeLegalPanel] : null;
+  const selectedAudience = useMemo(
+    () =>
+      audienceOptions.find((option) => option.id === waitlistForm.audience) ??
+      audienceOptions[0],
+    [waitlistForm.audience]
+  );
 
   const cleanHash = () => decodeURIComponent(window.location.hash.slice(1));
 
@@ -517,7 +478,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!activeLegalPanel && !cookieSettingsOpen) return;
+    if (!activeLegalPanel && !cookieSettingsOpen && !mobileMenuOpen) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -543,6 +504,76 @@ function App() {
     storeCookieChoice("necessary");
     setCookieChoice("necessary");
     closeCookieSettings();
+  };
+
+  const updateWaitlistField = <Key extends keyof WaitlistFormState>(
+    key: Key,
+    value: WaitlistFormState[Key]
+  ) => {
+    setWaitlistForm((current) => ({ ...current, [key]: value }));
+    if (waitlistState.type !== "idle" && waitlistState.type !== "submitting") {
+      setWaitlistState({ type: "idle" });
+    }
+  };
+
+  const handleWaitlistSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const email = waitlistForm.email.trim().toLowerCase();
+    if (!emailPattern.test(email)) {
+      setWaitlistState({
+        type: "error",
+        message: "Skriv en gyldig emailadresse."
+      });
+      return;
+    }
+
+    if (!waitlistForm.consent) {
+      setWaitlistState({
+        type: "error",
+        message: "Accepter kontakt om Træningsmester for at skrive dig op."
+      });
+      return;
+    }
+
+    const payload = {
+      ...waitlistForm,
+      email,
+      name: waitlistForm.name.trim(),
+      note: waitlistForm.note.trim(),
+      audienceLabel: audienceLabel(waitlistForm.audience),
+      source: siteUrl,
+      submittedAt: new Date().toISOString()
+    };
+
+    setWaitlistState({ type: "submitting" });
+
+    try {
+      const response = await fetch(waitlistEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Waitlist endpoint returned ${response.status}`);
+      }
+
+      setWaitlistState({
+        type: "submitted",
+        message: "Tak. Du er skrevet op og får besked, når der er nyt."
+      });
+      setWaitlistForm(initialWaitlistForm);
+    } catch {
+      window.location.href = buildFallbackMailto({ ...waitlistForm, email });
+      setWaitlistState({
+        type: "mailFallback",
+        message:
+          "Vi åbnede en mail med dine oplysninger. Send mailen for at skrive dig op."
+      });
+    }
   };
 
   return (
@@ -574,263 +605,226 @@ function App() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-media" aria-hidden="true" />
           <div className="hero-copy">
-            <p className="eyebrow">Træningsmester</p>
-            <h1 id="hero-title">Næste træning. Ingen tvivl.</h1>
+            <img className="hero-logo" src="/brand/tm-logo.png" alt="" />
+            <h1 id="hero-title">Træningsmester kommer snart</h1>
             <p>
-              Se dagens pas. Træn. Log det vigtige. Kom tilbage uden at samle
-              trådene op igen.
+              En dansk træningsapp til program, logging, historik og coach-arbejde.
+              Skriv dig op og få besked, når appen åbner.
             </p>
-          </div>
-          <div className="hero-product" aria-label="Appen i brug">
-            <img src="/app/home-training.jpg" alt="Dagens træning i appen" />
-            <div>
-              <span>Dagens pas</span>
-              <strong>Plan, sæt og log</strong>
-              <p>samlet i samme træningsflow</p>
+            <div className="hero-actions">
+              <a className="button-primary" href="#venteliste">
+                Skriv mig op
+              </a>
+              <a className="button-secondary" href="#appen">
+                Se hvad der bygges
+              </a>
             </div>
           </div>
-          <div className="hero-line" aria-hidden="true">
-            <span>
-              <strong>Begynder</strong>
-              <small>Hvad skal jeg lave?</small>
-            </span>
-            <span>
-              <strong>Selvøvet</strong>
-              <small>Kan planen ændres?</small>
-            </span>
-            <span>
-              <strong>Logger</strong>
-              <small>Hvad løftede jeg sidst?</small>
-            </span>
-            <span>
-              <strong>Træner</strong>
-              <small>Hvem mangler svar?</small>
-            </span>
-          </div>
-        </section>
 
-        <section className="platform-strip" aria-label="Platforme">
-          {platformRows.map((item) => (
-            <p key={item.label}>
-              <strong>{item.label}</strong>
-              <span>{item.text}</span>
-            </p>
-          ))}
-        </section>
-
-        <section className="tension-section" aria-labelledby="tension-title">
-          <div className="tension-lead">
-            <p className="eyebrow">Før første sæt</p>
-            <h2 id="tension-title">Appen skal svare, før du begynder at lede.</h2>
-          </div>
-          <div className="tension-lines">
-            {openingQuestions.map((item, index) => (
-              <p key={item.question}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{item.question}</strong>
-                <em>{item.answer}</em>
+          <section className="signup-panel" id="venteliste" aria-labelledby="waitlist-title">
+            <div className="signup-head">
+              <span>Pre-launch liste</span>
+              <h2 id="waitlist-title">Få besked ved åbning.</h2>
+              <p>
+                Vælg hvad du er interesseret i, så de første beskeder bliver relevante.
               </p>
-            ))}
-          </div>
-        </section>
+            </div>
 
-        <section className="mode-section" id="for-hvem">
-          <div className="mode-intro section-band">
-            <p className="eyebrow">Hvem</p>
-            <h2>Bygget til fire helt almindelige situationer.</h2>
-            <p>
-              Ny i centeret. Fast i et gammelt program. Optaget af tallene.
-              Ansvarlig for klienter.
-            </p>
-          </div>
+            <form className="waitlist-form" onSubmit={handleWaitlistSubmit}>
+              <label>
+                Email
+                <input
+                  autoComplete="email"
+                  inputMode="email"
+                  name="email"
+                  onChange={(event) => updateWaitlistField("email", event.target.value)}
+                  placeholder="din@email.dk"
+                  required
+                  type="email"
+                  value={waitlistForm.email}
+                />
+              </label>
 
-          <div className="mode-controls" aria-label="Vælg brugerprofil">
-            {modes.map((mode) => (
+              <fieldset className="audience-choice">
+                <legend>Jeg er mest interesseret i</legend>
+                <div>
+                  {audienceOptions.map((option) => (
+                    <label
+                      className={
+                        option.id === waitlistForm.audience ? "is-selected" : undefined
+                      }
+                      key={option.id}
+                    >
+                      <input
+                        checked={option.id === waitlistForm.audience}
+                        name="audience"
+                        onChange={() => updateWaitlistField("audience", option.id)}
+                        type="radio"
+                        value={option.id}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <label className="consent-row">
+                <input
+                  checked={waitlistForm.consent}
+                  onChange={(event) =>
+                    updateWaitlistField("consent", event.target.checked)
+                  }
+                  type="checkbox"
+                />
+                <span>
+                  I må kontakte mig om Træningsmester. Jeg kan altid svare og bede om
+                  at blive fjernet.
+                </span>
+              </label>
+
               <button
-                aria-pressed={mode.id === selectedMode.id}
-                className={mode.id === selectedMode.id ? "is-active" : ""}
-                key={mode.id}
-                onClick={() => setActiveMode(mode.id)}
-                type="button"
+                className="button-primary form-submit"
+                disabled={waitlistState.type === "submitting"}
+                type="submit"
               >
-                <span>{mode.name}</span>
-                <strong>{mode.mood}</strong>
+                {waitlistState.type === "submitting" ? "Sender..." : "Skriv mig op"}
               </button>
-            ))}
-          </div>
 
-          <article
-            className="mode-stage"
-            style={{ "--mode-image": `url(${selectedMode.image})` } as React.CSSProperties}
-          >
-            <div className="mode-image" aria-hidden="true" />
-            <div className="mode-copy">
-              <p className="eyebrow">{selectedMode.name}</p>
-              <h2>{selectedMode.promise}</h2>
-              <div className="before-after">
-                <p>
-                  <span>Før</span>
-                  {selectedMode.before}
+              {waitlistState.type !== "idle" && waitlistState.type !== "submitting" ? (
+                <p className={`form-message ${waitlistState.type}`}>
+                  {waitlistState.message}
                 </p>
-                <p>
-                  <span>Efter</span>
-                  {selectedMode.after}
-                </p>
-              </div>
-              <div className="first-list" aria-label={`Første fokus for ${selectedMode.name}`}>
-                {selectedMode.first.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
-            </div>
-            <div className="mode-phone">
-              <img src={selectedMode.screen} alt={selectedMode.screenAlt} />
-            </div>
-          </article>
-        </section>
+              ) : null}
+            </form>
+          </section>
 
-        <section className="experience section-band dark" id="flow">
-          <div className="experience-head">
-            <p className="eyebrow">I appen</p>
-            <h2>Fra første blik til næste beslutning.</h2>
-            <p>
-              Dagens pas, træning, log og næste valg ligger i samme rytme, så
-              du kan blive i passet.
-            </p>
-          </div>
-          <div className="experience-stage">
-            <div className="experience-device-field" aria-label="Skærme fra appen">
-              <img src="/app/programs.jpg" alt="Programmer i Træningsmester" />
-              <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
-              <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
-            </div>
-            <div className="experience-steps">
-              {flow.map((item, index) => (
-                <article className="experience-step" key={item.label}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <p>{item.label}</p>
-                    <h3>{item.title}</h3>
-                    <small>{item.text}</small>
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div className="hero-device" aria-label="App-preview">
+            <img src="/app/home-training.jpg" alt="Dagens træning i appen" />
           </div>
         </section>
 
-        <section className="core section-band" id="kerne">
-          <div className="core-head">
-            <p className="eyebrow">Kerne</p>
-            <h2>Det er her, en træningsapp bliver målt.</h2>
+        <section className="audience-section section-band" id="for-hvem">
+          <div className="section-head compact">
+            <span>For hvem</span>
+            <h2>Træning ser forskellig ud, men behovet er det samme: næste handling skal være klar.</h2>
           </div>
-          <div className="core-rows">
-            {coreRows.map((row, index) => (
-              <article className="core-row" key={row.label}>
-                <div className="core-row-copy">
-                  <span>{String(index + 1).padStart(2, "0")} · {row.label}</span>
-                  <h3>{row.title}</h3>
-                  <p>{row.text}</p>
-                  <ul className="core-row-points">
-                    {row.points.map((point) => (
-                      <li key={point}>{point}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="core-row-media">
-                  <img src={row.image} alt={row.imageAlt} />
-                </div>
+          <div className="audience-grid">
+            {audienceOptions.map((option) => (
+              <article
+                className={option.id === selectedAudience.id ? "is-selected" : undefined}
+                key={option.id}
+              >
+                <span>{option.title}</span>
+                <h3>{option.label}</h3>
+                <p>{option.description}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <IronCircuitGame />
-
-        <section className="evidence section-band" id="fakta">
-          <div className="evidence-head">
-            <p className="eyebrow">Fakta</p>
-            <h2>Det appen samler.</h2>
+        <section className="preview-section section-band dark" id="appen">
+          <div className="preview-copy">
+            <span>Appen</span>
+            <h2>Bygget omkring det, der sker før, under og efter træningen.</h2>
+            <p>
+              Træningsmester skal samle programmet, træningspasset og historikken i en
+              rolig arbejdsgang, så appen hjælper uden at overtage fokus.
+            </p>
           </div>
-          <div className="evidence-grid" aria-label="Fakta om Træningsmester">
-            {evidence.map((item) => (
-              <div className="evidence-row" key={item.label}>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-                <p>{item.note}</p>
-              </div>
+          <div className="phone-stack" aria-label="Skærmbilleder fra Træningsmester">
+            <img src="/app/programs.jpg" alt="Programmer i Træningsmester" />
+            <img src="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
+            <img src="/app/exercises.jpg" alt="Øvelser i Træningsmester" />
+          </div>
+        </section>
+
+        <section className="pillar-section section-band">
+          <div className="pillar-list">
+            {productPillars.map((pillar, index) => (
+              <article key={pillar.title}>
+                <div>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{pillar.title}</h3>
+                  <p>{pillar.text}</p>
+                </div>
+                <img src={pillar.image} alt={pillar.imageAlt} />
+              </article>
             ))}
           </div>
         </section>
 
-        <section className="principles section-band dark">
+        <section className="coach-section section-band" id="traener">
+          <div className="coach-photo" aria-hidden="true" />
+          <div className="coach-copy">
+            <span>Trænere</span>
+            <h2>Coach-arbejdet skal være et arbejdsrum, ikke endnu en beskedtråd.</h2>
+            <p>
+              Træningsmester er også rettet mod trænere, der vil samle klienter,
+              programmer og opfølgning tættere på selve træningen.
+            </p>
+            <a className="button-secondary dark-button" href="#venteliste">
+              Skriv dig op som træner
+            </a>
+          </div>
+          <div className="coach-device">
+            <img src="/app/coach.jpg" alt="Coach-overblik i Træningsmester" />
+          </div>
+        </section>
+
+        <section className="launch-section section-band dark">
           <div className="section-head">
-            <p className="eyebrow">I brug</p>
-            <h2>Mindre rod. Mere træning.</h2>
+            <span>Pre-launch</span>
+            <h2>Ventelisten hjælper med at åbne appen i den rigtige rækkefølge.</h2>
           </div>
-          <div className="principle-list">
-            {principles.map((principle, index) => (
-              <p key={principle}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                {principle}
-              </p>
+          <div className="launch-steps">
+            {launchSteps.map((step) => (
+              <article key={step.label}>
+                <span>{step.label}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
             ))}
           </div>
         </section>
 
-        <section className="official section-band" id="praktisk">
-          <div className="official-head">
-            <p className="eyebrow">Praktisk</p>
-            <h2>Det formelle skal være nemt at finde. Ikke fylde det hele.</h2>
+        <section className="faq-section section-band" id="faq">
+          <div className="section-head">
+            <span>FAQ</span>
+            <h2>Kort om lancering, målgruppe og kontakt.</h2>
           </div>
-
-          <div className="document-desk" aria-label="Dokumenter">
-            <div className="document-desk-head">
-              <div>
-                <p className="eyebrow">Dokumenter</p>
-                <h3>Vilkår, privatliv og ansvar.</h3>
-              </div>
-              <span>Opdateret 1. juni 2026</span>
-            </div>
-            <div className="document-list">
-              {documentRows.map((row) => (
-                <article key={row.id}>
-                  <div>
-                    <span>{row.scope}</span>
-                    <h4>{row.title}</h4>
-                  </div>
-                  <p>{row.text}</p>
-                  <button
-                    aria-label={`Læs ${row.title}`}
-                    type="button"
-                    onClick={() => openLegalPanel(row.id)}
-                  >
-                    Læs
-                  </button>
-                </article>
-              ))}
-            </div>
+          <div className="faq-list">
+            {faqRows.map((row) => (
+              <article key={row.question}>
+                <h3>{row.question}</h3>
+                <p>{row.answer}</p>
+              </article>
+            ))}
           </div>
-
-          <p className="official-note">
-            Konto, køb og support håndteres i appen, hvor konteksten er rigtig.
-          </p>
         </section>
 
-        <section className="team section-band" id="team">
-          <div className="team-photo" aria-hidden="true" />
-          <div className="team-copy">
-            <p className="eyebrow">Team</p>
-            <h2>Bygget tæt på træningen.</h2>
-            <p>
-              Træningsmester er lavet til en almindelig uge med skiftende
-              energi, fyldte centre, gamle noter og nye mål.
-            </p>
-            <p>
-              Derfor handler produktet først om det nære: dagens pas, seneste
-              løft, planen der kan ændres, og overblikket en træner faktisk kan
-              bruge.
-            </p>
+        <section className="official section-band">
+          <div className="official-head">
+            <span>Praktisk</span>
+            <h2>Vilkår, privatliv og cookies ligger samlet her.</h2>
+          </div>
+
+          <div className="document-list" aria-label="Dokumenter">
+            {documentRows.map((row) => (
+              <article key={row.id}>
+                <div>
+                  <span>{row.scope}</span>
+                  <h3>{row.title}</h3>
+                </div>
+                <p>{row.text}</p>
+                <button
+                  aria-label={`Læs ${row.title}`}
+                  type="button"
+                  onClick={() => openLegalPanel(row.id)}
+                >
+                  Læs
+                </button>
+              </article>
+            ))}
           </div>
         </section>
       </main>
@@ -838,11 +832,10 @@ function App() {
       <footer>
         <div>
           <img src="/brand/tm-logo.png" alt="" />
-          <p>Træningsmester · næste træning uden tvivl.</p>
+          <p>Træningsmester · pre-launch venteliste.</p>
           <small>
             {company.legalName} · CVR {company.cvr}
           </small>
-          <small>Opdateret 1. juni 2026</small>
         </div>
         <div className="footer-links" aria-label="Juridiske links">
           <button type="button" onClick={() => openLegalPanel("terms")}>
@@ -879,7 +872,7 @@ function App() {
           <section className="legal-panel">
             <div className="legal-panel-head">
               <div>
-                <p className="eyebrow">{activeLegal.kicker}</p>
+                <p>{activeLegal.kicker}</p>
                 <h2 id="legal-title">{activeLegal.title}</h2>
               </div>
               <button
@@ -920,7 +913,7 @@ function App() {
           <section className="cookie-panel">
             <div className="cookie-panel-head">
               <div>
-                <p className="eyebrow">Cookieindstillinger</p>
+                <p>Cookieindstillinger</p>
                 <h2 id="cookie-title">Cookievalg</h2>
               </div>
               <button
@@ -940,10 +933,7 @@ function App() {
               <strong>Altid aktiv</strong>
             </div>
             <div className="cookie-panel-actions">
-              <button
-                type="button"
-                onClick={() => openLegalPanel("cookies")}
-              >
+              <button type="button" onClick={() => openLegalPanel("cookies")}>
                 Se cookiepolitik
               </button>
               <button type="button" onClick={saveCookieChoice}>
@@ -958,9 +948,7 @@ function App() {
         <aside className="cookie-banner" aria-label="Cookieindstillinger">
           <div>
             <strong>Cookies</strong>
-            <p>
-              Kun nødvendig lagring til at huske dit valg.
-            </p>
+            <p>Kun nødvendig lagring til at huske dit valg.</p>
           </div>
           <div className="cookie-actions">
             <button type="button" onClick={openCookieSettings}>
@@ -1015,10 +1003,11 @@ function App() {
                 "@id": `${siteUrl}#app`,
                 name: "Træningsmester",
                 applicationCategory: "HealthApplication",
-                operatingSystem: "Mobile",
+                operatingSystem: "iOS, Android, watchOS",
                 url: siteUrl,
                 description:
-                  "Dansk træningsapp til program, log, historik og coach-samarbejde.",
+                  "Dansk træningsapp på vej til program, log, historik og coach-samarbejde.",
+                applicationSubCategory: "FitnessApplication",
                 publisher: {
                   "@id": `${siteUrl}#organization`
                 }
@@ -1031,4 +1020,8 @@ function App() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root")!;
+const windowWithRoot = window as Window & { __traeningsmesterRoot?: Root };
+const root = windowWithRoot.__traeningsmesterRoot ?? createRoot(rootElement);
+windowWithRoot.__traeningsmesterRoot = root;
+root.render(<App />);

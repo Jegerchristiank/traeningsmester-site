@@ -1,7 +1,7 @@
 {
   "name": "Træningsmester",
   "short_name": "Træningsmester",
-  "description": "Dansk træningsapp til program, log, historik og coach-samarbejde.",
+  "description": "Pre-launch side for den danske træningsapp Træningsmester.",
   "lang": "da-DK",
   "start_url": "/",
   "scope": "/",
