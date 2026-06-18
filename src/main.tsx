@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import "./styles.css";
 
@@ -10,22 +10,26 @@ type WaitlistState =
   | { type: "idle" }
   | { type: "submitting" }
   | { type: "submitted"; message: string }
-  | { type: "mailFallback"; message: string }
   | { type: "error"; message: string };
 
 type WaitlistFormState = {
   email: string;
-  name: string;
-  audience: AudienceId;
-  note: string;
   consent: boolean;
 };
 
 const siteUrl = "https://www.traeningsmester.dk/";
-const waitlistEndpoint = "/api/waitlist";
-const waitlistFallbackEmail =
-  (import.meta.env.VITE_WAITLIST_FALLBACK_EMAIL as string | undefined) ??
-  "kontakt@traeningsmester.dk";
+const defaultSupabaseUrl = "https://rbplnybmjwcoigiwtkuh.supabase.co";
+const defaultSupabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicGxueWJtandjb2lnaXd0a3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTUzNDQyNDUsImV4cCI6MjAzMDkyMDI0NX0.12xSasN9rsx8JzJLN_BImCvYu_7oFP_sXHdGWrnN5CM";
+const supabaseUrl =
+  ((import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? defaultSupabaseUrl).replace(
+    /\/+$/,
+    ""
+  );
+const supabaseAnonKey =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ??
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
+  defaultSupabaseAnonKey;
 
 const company = {
   legalName: "KRISTENSON",
@@ -239,7 +243,7 @@ const legalPanels: Record<
       {
         heading: "Ventelisten",
         body:
-          "Når du sender ventelisteformularen, kan email, navn, interessevalg og din korte besked blive sendt til den konfigurerede waitlist-modtager. Hvis serveropsamling ikke er konfigureret, åbner siden en mail i stedet, så du selv sender tilmeldingen."
+          "Når du sender ventelisteformularen, gemmes din email i Træningsmesters Supabase-database, så du kan få besked, når appen åbner. Siden sender ikke bekræftelsesmail og åbner ikke din mailklient."
       },
       {
         heading: "På websitet",
@@ -308,9 +312,6 @@ const legalPanels: Record<
 
 const initialWaitlistForm: WaitlistFormState = {
   email: "",
-  name: "",
-  audience: "begynder",
-  note: "",
   consent: false
 };
 
@@ -337,27 +338,34 @@ const storeCookieChoice = (choice: CookieChoice) => {
   }
 };
 
-const audienceLabel = (audience: AudienceId) =>
-  audienceOptions.find((option) => option.id === audience)?.title ?? "Ikke valgt";
+const saveWaitlistSignup = async (email: string) => {
+  const response = await fetch(`${supabaseUrl}/rest/v1/prelaunch_waitlist_signups`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      email,
+      audience: "nysgerrig",
+      audience_label: "Pre-launch signup",
+      source: siteUrl,
+      consent: true,
+      submitted_at: new Date().toISOString(),
+      metadata: {
+        capture: "prelaunch-site"
+      }
+    })
+  });
 
-const buildFallbackMailto = (payload: WaitlistFormState) => {
-  const subject = encodeURIComponent("Skriv mig op til Træningsmester");
-  const body = encodeURIComponent(
-    [
-      "Hej Træningsmester",
-      "",
-      "Jeg vil gerne skrives op til at få besked, når appen åbner.",
-      "",
-      `Email: ${payload.email.trim()}`,
-      `Navn: ${payload.name.trim() || "Ikke oplyst"}`,
-      `Interesse: ${audienceLabel(payload.audience)}`,
-      `Besked: ${payload.note.trim() || "Ingen"}`,
-      "",
-      "Jeg accepterer, at I må kontakte mig om Træningsmester."
-    ].join("\n")
-  );
+  if (response.ok) return;
 
-  return `mailto:${waitlistFallbackEmail}?subject=${subject}&body=${body}`;
+  const responseText = await response.text().catch(() => "");
+  if (response.status === 409 && responseText.includes("23505")) return;
+
+  throw new Error(`Waitlist insert failed: ${response.status}`);
 };
 
 function App() {
@@ -369,12 +377,6 @@ function App() {
     useState<WaitlistFormState>(initialWaitlistForm);
   const [waitlistState, setWaitlistState] = useState<WaitlistState>({ type: "idle" });
   const activeLegal = activeLegalPanel ? legalPanels[activeLegalPanel] : null;
-  const selectedAudience = useMemo(
-    () =>
-      audienceOptions.find((option) => option.id === waitlistForm.audience) ??
-      audienceOptions[0],
-    [waitlistForm.audience]
-  );
 
   const cleanHash = () => decodeURIComponent(window.location.hash.slice(1));
 
@@ -536,42 +538,19 @@ function App() {
       return;
     }
 
-    const payload = {
-      ...waitlistForm,
-      email,
-      name: waitlistForm.name.trim(),
-      note: waitlistForm.note.trim(),
-      audienceLabel: audienceLabel(waitlistForm.audience),
-      source: siteUrl,
-      submittedAt: new Date().toISOString()
-    };
-
     setWaitlistState({ type: "submitting" });
 
     try {
-      const response = await fetch(waitlistEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Waitlist endpoint returned ${response.status}`);
-      }
-
+      await saveWaitlistSignup(email);
       setWaitlistState({
         type: "submitted",
-        message: "Tak. Du er skrevet op og får besked, når der er nyt."
+        message: "Tak. Din email er skrevet op."
       });
       setWaitlistForm(initialWaitlistForm);
     } catch {
-      window.location.href = buildFallbackMailto({ ...waitlistForm, email });
       setWaitlistState({
-        type: "mailFallback",
-        message:
-          "Vi åbnede en mail med dine oplysninger. Send mailen for at skrive dig op."
+        type: "error",
+        message: "Kunne ikke skrive dig op lige nu. Prøv igen om lidt."
       });
     }
   };
@@ -626,7 +605,7 @@ function App() {
               <span>Pre-launch liste</span>
               <h2 id="waitlist-title">Få besked ved åbning.</h2>
               <p>
-                Vælg hvad du er interesseret i, så de første beskeder bliver relevante.
+                Skriv din email op, så får du besked, når Træningsmester åbner.
               </p>
             </div>
 
@@ -644,29 +623,6 @@ function App() {
                   value={waitlistForm.email}
                 />
               </label>
-
-              <fieldset className="audience-choice">
-                <legend>Jeg er mest interesseret i</legend>
-                <div>
-                  {audienceOptions.map((option) => (
-                    <label
-                      className={
-                        option.id === waitlistForm.audience ? "is-selected" : undefined
-                      }
-                      key={option.id}
-                    >
-                      <input
-                        checked={option.id === waitlistForm.audience}
-                        name="audience"
-                        onChange={() => updateWaitlistField("audience", option.id)}
-                        type="radio"
-                        value={option.id}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
 
               <label className="consent-row">
                 <input
@@ -710,10 +666,7 @@ function App() {
           </div>
           <div className="audience-grid">
             {audienceOptions.map((option) => (
-              <article
-                className={option.id === selectedAudience.id ? "is-selected" : undefined}
-                key={option.id}
-              >
+              <article key={option.id}>
                 <span>{option.title}</span>
                 <h3>{option.label}</h3>
                 <p>{option.description}</p>

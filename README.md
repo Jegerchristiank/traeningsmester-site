@@ -19,26 +19,17 @@ The site is static and Vercel-ready. No private runtime credentials are shipped 
 
 ## Waitlist
 
-The signup form posts to `/api/waitlist` on Vercel. Configure these environment
-variables in Vercel to persist signups in the Træningsmester Supabase database:
+The signup form writes email signups directly to the Træningsmester Supabase
+table `public.prelaunch_waitlist_signups`.
 
-- `SUPABASE_URL`: the Træningsmester Supabase project URL.
-- `SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_ANON_KEY`: low-privilege key used by
-  the server route to insert into `public.prelaunch_waitlist_signups`.
-- `VITE_WAITLIST_FALLBACK_EMAIL`: optional public fallback email used when the
-  database endpoint is not configured or unavailable. Defaults to
-  `kontakt@traeningsmester.dk`.
+The site does not send confirmation emails and does not open a mail client. The
+browser submits directly to Supabase REST using the public anon key; RLS only
+allows inserts for public roles.
 
-The Supabase table is insert-only for `anon`/`authenticated` roles through RLS,
-so the public signup flow can save a row but cannot read the mailing list.
+Optional environment overrides:
 
-Optional fallback variables:
-
-- `WAITLIST_WEBHOOK_URL`: used only if Supabase env vars are not configured.
-- `WAITLIST_WEBHOOK_SECRET`: optional shared secret sent as `X-Waitlist-Secret`.
-
-If neither Supabase nor webhook capture is configured, the frontend opens a
-prefilled email instead of showing a fake success state.
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`
 
 ## Domains
 

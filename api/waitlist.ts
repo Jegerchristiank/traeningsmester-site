@@ -14,10 +14,8 @@ type ApiResponse = {
 
 type WaitlistPayload = {
   email?: unknown;
-  name?: unknown;
   audience?: unknown;
   audienceLabel?: unknown;
-  note?: unknown;
   consent?: unknown;
   source?: unknown;
   submittedAt?: unknown;
@@ -40,6 +38,9 @@ type WaitlistRecord = {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const allowedAudiences = new Set(["begynder", "selvtraenende", "traener", "nysgerrig"]);
+const defaultSupabaseUrl = "https://rbplnybmjwcoigiwtkuh.supabase.co";
+const defaultSupabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicGxueWJtandjb2lnaXd0a3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTUzNDQyNDUsImV4cCI6MjAzMDkyMDI0NX0.12xSasN9rsx8JzJLN_BImCvYu_7oFP_sXHdGWrnN5CM";
 
 const parseBody = (body: unknown): WaitlistPayload | null => {
   if (!body) return null;
@@ -75,7 +76,9 @@ const firstHeader = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
 
 const supabaseBaseUrl = () =>
-  (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "").trim().replace(/\/+$/, "");
+  (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? defaultSupabaseUrl)
+    .trim()
+    .replace(/\/+$/, "");
 
 const supabaseApiKey = () =>
   (
@@ -83,7 +86,7 @@ const supabaseApiKey = () =>
     process.env.SUPABASE_ANON_KEY ??
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
     process.env.VITE_SUPABASE_ANON_KEY ??
-    ""
+    defaultSupabaseAnonKey
   ).trim();
 
 const saveToSupabase = async (record: WaitlistRecord) => {
@@ -134,10 +137,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   const email = textValue(body.email, 180).toLowerCase();
-  const name = textValue(body.name, 120);
-  const note = textValue(body.note, 1000);
-  const audience = textValue(body.audience, 40);
-  const audienceLabel = textValue(body.audienceLabel, 80);
+  const audience = textValue(body.audience, 40) || "nysgerrig";
+  const audienceLabel = textValue(body.audienceLabel, 80) || "Pre-launch signup";
   const source = textValue(body.source, 220);
   const submittedAt = isoDateValue(body.submittedAt);
 
@@ -159,9 +160,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const record: WaitlistRecord = {
     email,
     audience,
-    audience_label: audienceLabel || null,
-    name: optionalTextValue(body.name, 120),
-    note: optionalTextValue(body.note, 1000),
+    audience_label: audienceLabel,
+    name: null,
+    note: null,
     source: source || "prelaunch-site",
     referrer: optionalTextValue(firstHeader(req.headers.referer), 500),
     consent: true,
@@ -173,55 +174,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   try {
     const result = await saveToSupabase(record);
-    if (result) {
-      res.status(200).json({ ok: true, stored: "supabase", duplicate: result === "duplicate" });
-      return;
-    }
+    res.status(200).json({ ok: true, stored: "supabase", duplicate: result === "duplicate" });
+    return;
   } catch {
     res.status(502).json({ ok: false, code: "DATABASE_REJECTED" });
     return;
-  }
-
-  const webhookUrl = process.env.WAITLIST_WEBHOOK_URL;
-  if (!webhookUrl) {
-    res.status(503).json({ ok: false, code: "WAITLIST_NOT_CONFIGURED" });
-    return;
-  }
-
-  const payload = {
-    email,
-    name,
-    audience,
-    audienceLabel,
-    note,
-    source,
-    submittedAt,
-    receivedAt: new Date().toISOString(),
-    referrer: firstHeader(req.headers.referer) ?? ""
-  };
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json"
-  };
-
-  if (process.env.WAITLIST_WEBHOOK_SECRET) {
-    headers["X-Waitlist-Secret"] = process.env.WAITLIST_WEBHOOK_SECRET;
-  }
-
-  try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      res.status(502).json({ ok: false, code: "WEBHOOK_REJECTED" });
-      return;
-    }
-
-    res.status(200).json({ ok: true });
-  } catch {
-    res.status(502).json({ ok: false, code: "WEBHOOK_UNAVAILABLE" });
   }
 }
