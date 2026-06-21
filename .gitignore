@@ -8,3 +8,5 @@ output
 vite.config.js
 vite.config.d.ts
 *.log
+/frontend
+yarn.lock

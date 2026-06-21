@@ -1,0 +1,56 @@
+{
+  "summary": "Comprehensive frontend testing of traeningsmester.dk Vite/React landing page. Verified hero rendering, all section scroll-reveal, sticky pillar active state, FAQ accordion, 4 footer legal modals (open/close via X, Escape, backdrop), cookie banner + persistence, header scrolled state, header CTA + nav anchor links, mobile hamburger drawer, footer waitlist form presence, and live Supabase waitlist submit. Hero waitlist invalid-email and missing-consent validations both produce the correct Danish error messages. Happy-path submit (consent checked) returned HTTP 201 from supabase rest endpoint and showed 'Tak — du er skrevet op. Vi siger til.' success state. Performed only ONE real Supabase POST as instructed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mobile viewport 390x844", "issues": ["Document has ~12px of horizontal overflow on mobile (documentElement.scrollWidth - clientWidth = 12). Likely the marquee/decoration leaks past safe area; minor — no visible horizontal scrollbar to user but worth a tighter overflow-x: hidden on body/main."]}
+    ],
+    "csp_console_warnings": [
+      "Browser logs 'Content Security Policy directive frame-ancestors is ignored when delivered via a <meta> element' — this directive only works as an HTTP header. Cosmetic console noise, no functional impact, but in index.html the frame-ancestors part of the CSP meta should be removed (and moved to a real header via vercel.json/server config) to silence the warning.",
+      "Cloudflare insights beacon ('https://static.cloudflareinsights.com/beacon.min.js/...') is blocked by the strict script-src 'self' 'unsafe-inline' CSP. The beacon is injected by the Emergent preview proxy / Cloudflare in front of the site, not by the app itself, so the block is actually desirable (site doesn't want third-party scripts). Mention only — no action needed for the redesign."
+    ]
+  },
+  "verified_flows": {
+    "hero_render": "headline 'Træning uden støj. Næste skridt er altid klart.' + 'Dagens pas er klar' chip + phone mockup + waitlist form all present",
+    "hero_validation_invalid_email": "PASS — message: 'Skriv en gyldig emailadresse.'",
+    "hero_validation_missing_consent": "PASS — message: 'Accepter kontakt om Træningsmester for at skrive dig op.'",
+    "hero_happy_path_supabase": "PASS — Supabase POST /rest/v1/prelaunch_waitlist_signups -> 201, success message visible, class 'form-note submitted'",
+    "scroll_reveal_sections": "PASS — #for-hvem (7/7), #appen (2/2), #traener (6/6), #vejen (6/6), #faq (2/2) reveals all become is-visible",
+    "pillars_sticky_active": "PASS — pillar-nav-item.active follows scroll through shots 0,1,2",
+    "faq_accordion": "PASS — first open by default, clicking faq-question-2 toggles open/closed, single-open behavior",
+    "footer_legal_modals": "PASS — terms, privacy, cookies, accessibility all open with correct Danish titles; close via legal-close button, Escape, and backdrop click all work",
+    "cookie_banner": "PASS — visible on first load; cookie-read opens cookie-panel; cookie-save dismisses banner and persists across reload via localStorage 'tm-cookie-choice'; cookie-accept (OK) also dismisses; footer-cookie-settings reopens panel after dismissal",
+    "header_scrolled_state": "PASS — class 'scrolled' added once window.scrollY > 12",
+    "header_cta_scroll": "PASS — header-cta smooth-scrolls to #venteliste hero waitlist",
+    "nav_anchor_links": "PASS — nav-for-hvem, nav-appen, nav-traener, nav-vejen, nav-faq each jump to their section",
+    "mobile_390x844": "PASS — desktop .site-nav hidden, menu-toggle visible, mobile-nav drawer opens with 5 links + Skriv mig op CTA",
+    "footer_waitlist_form": "PASS — footer-waitlist-form / footer-waitlist-email / footer-waitlist-submit all present in final dark CTA (note: by design shares React state with hero form)",
+    "broken_images": "None detected"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL (cosmetic): remove 'frame-ancestors' from the index.html CSP <meta> tag (browsers ignore it there) and instead set it as an HTTP header in vercel.json / hosting config — clears the 6 repeated console errors.",
+    "OPTIONAL: fix ~12px horizontal overflow on mobile viewport (add overflow-x: hidden on body/html or inspect the trust marquee/footer wordmark for the leaking element).",
+    "No required fixes — all functional requirements pass."
+  ],
+  "critical_code_review_comments": [
+    "Supabase anon key is embedded as a default in src/main.tsx (lines 22-31). Acceptable for a public anon role with RLS, but make sure the Supabase table 'prelaunch_waitlist_signups' has RLS policies that only allow INSERT (no SELECT/UPDATE/DELETE from anon).",
+    "WaitlistForm intentionally shares email/consent/waitlistState between hero and footer instances. Confirmed working but submitting in one form clears the input in the other and shows the success/error message under whichever form the user is currently looking at only via re-render — could surprise users who submit on hero then scroll down and see no confirmation under the footer form. Consider per-form local state.",
+    "main.tsx is a single 1196-line file. Per code-review guidelines, files >700 lines should be split — Header, Hero, Pillars, FAQ, Legal/Cookie modals, WaitlistForm, and the content arrays should each live in their own module.",
+    "No data-testid on nav-backdrop links individually, on the close button inside cookie-panel, and on the trainer 'Skriv dig op som træner' CTA already has data-testid='trainer-cta' (good). Consider adding for nav-backdrop links if mobile drawer needs deeper testing.",
+    "scrollIntoView({behavior:'smooth', block:'center'}) on hero/venteliste is fine but on Safari iOS some versions ignore options object; consider polyfill or test on real iOS."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only request)", "frontend": "100% (all 13 verified flows pass)"},
+  "test_credentials": "Not applicable — no auth on this site. Supabase anon key is embedded in client by design.",
+  "seed_data_creation": "One real waitlist signup was created in Supabase prelaunch_waitlist_signups with email like 'qa+tm-redesign-test-<unix-timestamp>@example.com' (per instructions, happy-path submitted ONCE). Network response confirmed 201 Created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Single-page Vite/React site at /app/src/main.tsx (no FastAPI backend). Preview URL: https://007f4f69-0fad-4e47-9ea0-585b9a133370.preview.emergentagent.com. Waitlist POSTs directly to public Supabase REST endpoint. Hero & footer waitlist forms share React state by design. All data-testids listed in the original request are present and working. Only minor cosmetic items remain (CSP meta frame-ancestors warning + 12px mobile horizontal overflow).",
+  "rca_of_the_issue": "No functional bugs found. The CSP frame-ancestors console warning is a known browser limitation (the directive is HTTP-header-only and silently ignored from a <meta http-equiv> tag — not a bug in the app, just noisy logs). The Cloudflare beacon block is from the Emergent preview proxy injecting a script that the site's strict CSP correctly rejects — not affecting the page's own functionality."
+}
