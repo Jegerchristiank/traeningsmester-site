@@ -32,7 +32,7 @@ type WaitlistRecord = {
   consent: true;
   submitted_at: string | null;
   metadata: {
-    capture: "prelaunch-site";
+    capture: "closed-beta-site";
   };
 };
 
@@ -138,7 +138,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   const email = textValue(body.email, 180).toLowerCase();
   const audience = textValue(body.audience, 40) || "nysgerrig";
-  const audienceLabel = textValue(body.audienceLabel, 80) || "Pre-launch signup";
+  const audienceLabel = textValue(body.audienceLabel, 80) || "Closed beta signup";
   const source = textValue(body.source, 220);
   const submittedAt = isoDateValue(body.submittedAt);
 
@@ -163,12 +163,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     audience_label: audienceLabel,
     name: null,
     note: null,
-    source: source || "prelaunch-site",
+    source: source || "closed-beta-site",
     referrer: optionalTextValue(firstHeader(req.headers.referer), 500),
     consent: true,
     submitted_at: submittedAt,
     metadata: {
-      capture: "prelaunch-site"
+      capture: "closed-beta-site"
     }
   };
 

@@ -56,11 +56,11 @@ const saveWaitlistSignup = async (email: string) => {
       body: JSON.stringify({
         email,
         audience: "nysgerrig",
-        audience_label: "Pre-launch signup",
+        audience_label: "Closed beta signup",
         source: siteUrl,
         consent: true,
         submitted_at: new Date().toISOString(),
-        metadata: { capture: "prelaunch-site" }
+        metadata: { capture: "closed-beta-site" }
       })
     }
   );
@@ -113,13 +113,13 @@ const navItems = [
 ];
 
 const trustItems = [
+  "Lukket beta på iOS",
   "100% danskudviklet",
   "Privacy-first",
   "Ingen markedsføringscookies",
   "Apple Watch & Live Activities",
   "Bygget af løftere — til løftere",
-  "Program · Log · Historik",
-  "AI-indsigt på vej"
+  "Program · Log · Historik"
 ];
 
 const audience: {
@@ -202,20 +202,20 @@ const stats = [
 const roadmap = [
   {
     time: "Nu",
-    title: "Venteliste & pre-launch",
-    desc: "Skriv dig op og sikr dig en plads forrest, når dørene åbner.",
+    title: "Lukket beta på iOS",
+    desc: "Vi inviterer nye testere i små hold, så feedback bliver brugt rigtigt.",
     now: true
   },
   {
     time: "Næste",
-    title: "Lukket beta på iOS",
-    desc: "Kernen testes sammen med Apple Watch-app og Live Activities.",
+    title: "Beta-feedback & Apple Watch",
+    desc: "Kernen finpudses sammen med Apple Watch-app, Live Activities og træningsflow.",
     now: false
   },
   {
-    time: "Efter åbning",
-    title: "AI & Premium",
-    desc: "AI-analyse, AI-programmer og det fulde træner-workspace ruller ud.",
+    time: "Efter beta",
+    title: "Offentlig åbning & Premium",
+    desc: "AI-analyse, AI-programmer og det fulde træner-workspace ruller ud efter betaen.",
     now: false
   }
 ];
@@ -223,7 +223,7 @@ const roadmap = [
 const faqRows = [
   {
     q: "Hvornår lancerer I?",
-    a: "Vi går snart i lukket beta. Der er ingen offentlig dato endnu, men ventelisten får besked først — og kommer forrest i køen."
+    a: "Træningsmester er i lukket beta på iOS. Der er ingen offentlig dato endnu, men vi inviterer nye testere i små hold fra listen."
   },
   {
     q: "Er Træningsmester kun for øvede?",
@@ -239,7 +239,7 @@ const faqRows = [
   },
   {
     q: "Hvad sker der med min email?",
-    a: "Den bruges udelukkende til at sige til, når Træningsmester åbner. Siden bruger ingen markedsføringscookies og ingen statistikværktøjer."
+    a: "Den bruges udelukkende til at kontakte dig om beta-adgang og lancering. Siden bruger ingen markedsføringscookies og ingen statistikværktøjer."
   }
 ];
 
@@ -305,15 +305,15 @@ const legalPanels: Record<
     title: "Privatliv",
     kicker: "Data",
     summary:
-      "Hjemmesiden er en pre-launch side. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
+      "Hjemmesiden er en lukket beta-side. Den henter ikke dine træningsdata og beder ikke om konto, helbred, lokation eller betaling.",
     sections: [
       {
         heading: "Ansvarlig virksomhed",
         body: `${company.legalName}, CVR ${company.cvr}, er den offentligt registrerede virksomhed bag siden. Kilde: ${company.source}.`
       },
       {
-        heading: "Ventelisten",
-        body: "Når du sender ventelisteformularen, gemmes din email i Træningsmesters Supabase-database, så du kan få besked, når appen åbner. Siden sender ikke bekræftelsesmail og åbner ikke din mailklient."
+        heading: "Beta-listen",
+        body: "Når du sender betaformularen, gemmes din email i Træningsmesters Supabase-database, så du kan få besked om beta-adgang og lancering. Siden sender ikke bekræftelsesmail og åbner ikke din mailklient."
       },
       {
         heading: "På websitet",
@@ -851,7 +851,7 @@ function App() {
     if (!consent) {
       setWaitlistState({
         type: "error",
-        message: "Accepter kontakt om Træningsmester for at skrive dig op."
+        message: "Accepter kontakt om Træningsmester for at søge beta-adgang."
       });
       return;
     }
@@ -860,7 +860,7 @@ function App() {
       await saveWaitlistSignup(clean);
       setWaitlistState({
         type: "submitted",
-        message: "Tak — du er skrevet op. Vi siger til."
+        message: "Tak — du er skrevet op til lukket beta. Vi siger til."
       });
       setEmail("");
       setConsent(false);
@@ -912,7 +912,7 @@ function App() {
           disabled={waitlistState.type === "submitting"}
           data-testid={`${idPrefix}-waitlist-submit`}
         >
-          {waitlistState.type === "submitting" ? "Sender…" : "Skriv mig op"}
+          {waitlistState.type === "submitting" ? "Sender…" : "Søg beta-adgang"}
           <span className="arrow" aria-hidden="true">→</span>
         </button>
       </div>
@@ -927,8 +927,8 @@ function App() {
           data-testid={`${idPrefix}-waitlist-consent`}
         />
         <span>
-          I må kontakte mig om Træningsmester. Jeg kan altid svare og bede om at
-          blive fjernet igen.
+          I må kontakte mig om beta-adgang til Træningsmester. Jeg kan altid
+          svare og bede om at blive fjernet igen.
         </span>
       </label>
       {waitlistState.type === "submitted" || waitlistState.type === "error" ? (
@@ -980,7 +980,7 @@ function App() {
             data-magnetic=""
             data-testid="header-cta"
           >
-            Skriv mig op
+            Beta-adgang
           </button>
           <button
             className="menu-toggle"
@@ -1009,7 +1009,7 @@ function App() {
             ))}
           </nav>
           <button className="btn btn-primary" onClick={scrollToWaitlist}>
-            Skriv mig op →
+            Søg beta-adgang →
           </button>
         </div>
       ) : null}
@@ -1021,18 +1021,18 @@ function App() {
             <div className="hero-grid">
               <div className="hero-copy">
                 <Reveal as="span" className="overline">
-                  Træningsmester · iOS · watchOS
+                  Lukket beta · iOS · watchOS
                 </Reveal>
                 <Reveal as="h1" delay={60}>
                   <span id="hero-title">
                     Træning uden støj.{" "}
-                    <span className="grad-text">Næste skridt</span> er altid klart.
+                    <span className="grad-text">Lukket beta</span> er i gang.
                   </span>
                 </Reveal>
                 <Reveal as="p" className="hero-sub" delay={120}>
-                  Programmet før. Loggen undervejs. Historikken bagefter. En rolig,
-                  dansk træningsapp, der samler det hele ét sted — og hjælper uden
-                  at overtage fokus.
+                  Programmet før. Loggen undervejs. Historikken bagefter.
+                  Træningsmester er nu i lukket beta på iOS og Apple Watch — og
+                  nye testere inviteres ind i små hold.
                 </Reveal>
                 <Reveal delay={180}>
                   <WaitlistForm idPrefix="hero" inputRef={heroEmailRef} />
@@ -1047,7 +1047,7 @@ function App() {
                   <p className="proof-text">
                     <strong>Begyndere, løftere og trænere</strong>
                     <br />
-                    skriver sig op før lancering.
+                    søger beta-adgang lige nu.
                   </p>
                 </Reveal>
               </div>
@@ -1056,7 +1056,7 @@ function App() {
                 <div className="phone3d-wrap">
                   <div className="hero-chip">
                     <span className="dot" />
-                    Dagens pas er klar
+                    Lukket beta aktiv
                   </div>
                   <div className="phone3d-shadow" aria-hidden="true" />
                   <Phone3D
@@ -1225,7 +1225,7 @@ function App() {
                   data-magnetic=""
                   data-testid="trainer-cta"
                 >
-                  Skriv dig op som træner →
+                  Søg beta-adgang som træner →
                 </button>
               </Reveal>
             </div>
@@ -1271,12 +1271,12 @@ function App() {
                 Vejen frem
               </Reveal>
               <Reveal as="h2" className="h2" delay={60}>
-                Pre-launch i den <span className="grad-text">rigtige rækkefølge</span>
+                Betaen i den <span className="grad-text">rigtige rækkefølge</span>
               </Reveal>
             </div>
             <Reveal as="p" delay={120}>
-              Ventelisten hjælper os med at åbne for de rigtige brugere først — og gøre
-              appen skarpere undervejs.
+              Beta-listen hjælper os med at invitere de rigtige brugere først —
+              og gøre appen skarpere undervejs.
             </Reveal>
           </div>
           <div className="roadmap-track">
@@ -1343,14 +1343,13 @@ function App() {
         <section className="section final-cta">
           <div className="wrap inner">
             <Reveal as="span" className="overline on-dark">
-              Pre-launch liste
+              Lukket beta
             </Reveal>
             <Reveal as="h2" delay={60}>
-              Vær med fra <span className="grad-text">første løft.</span>
+              Vær med fra <span className="grad-text">første beta-løft.</span>
             </Reveal>
             <Reveal as="p" delay={120}>
-              Skriv dig på ventelisten og få besked, før alle andre, når
-              Træningsmester åbner.
+              Søg beta-adgang og få besked, når næste hold testere åbner.
             </Reveal>
             <Reveal delay={180}>
               <WaitlistForm idPrefix="footer" />
@@ -1539,10 +1538,10 @@ function App() {
                 "@id": `${siteUrl}#app`,
                 name: "Træningsmester",
                 applicationCategory: "HealthApplication",
-                operatingSystem: "iOS, watchOS, Android",
+                operatingSystem: "iOS, watchOS",
                 url: siteUrl,
                 description:
-                  "Dansk træningsapp på vej til program, log, historik og coach-samarbejde.",
+                  "Dansk træningsapp i lukket beta til program, log, historik og coach-samarbejde.",
                 publisher: { "@id": `${siteUrl}#organization` }
               }
             ]
