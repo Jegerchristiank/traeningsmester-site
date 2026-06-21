@@ -1,6 +1,6 @@
 # Træningsmester Website
 
-Closed beta website for Træningsmester with a Danish beta access signup flow.
+Pre-launch website for Træningsmester with a Danish waitlist signup flow.
 
 ## Development
 
@@ -17,13 +17,10 @@ npm run build
 
 The site is static and Vercel-ready. No private runtime credentials are shipped in the client.
 
-## Beta access signup
+## Waitlist
 
-The signup form writes beta access signups directly to the Træningsmester
-Supabase table `public.prelaunch_waitlist_signups`.
-
-The table name is legacy from the pre-launch phase. The current site labels new
-submissions as closed beta signups.
+The signup form writes email signups directly to the Træningsmester Supabase
+table `public.prelaunch_waitlist_signups`.
 
 The site does not send confirmation emails and does not open a mail client. The
 browser submits directly to Supabase REST using the public anon key; RLS only
