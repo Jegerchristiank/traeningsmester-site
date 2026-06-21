@@ -4,42 +4,43 @@
 Total redesign of https://www.traeningsmester.dk/ — the Danish pre-launch
 marketing/landing page for the Træningsmester fitness/strength-training app
 (iOS / Apple Watch; app repo: github.com/Jegerchristiank/Traeningsmester-swift-ios).
-User direction: beautiful marketing/landing page promoting the app · light, clean,
-minimalist style ("surprise me") · fresh new Danish content · Danish only ·
-suggest sensible integrations.
+User direction over iterations: beautiful marketing/landing page · Danish only ·
+fresh content · then explicitly: must be CLEAN/minimal (v2's heavy gradients were
+rejected as "unicorn vomit") AND have genuine "woaw, didn't know a website could do
+that" showoff features.
 
-## Tech stack (IMPORTANT — not the standard Emergent CRA/FastAPI/Mongo stack)
-- Vite 7 + React 19 + TypeScript single-page app. Source repo: `traeningsmester-site` (deployed on Vercel).
-- Entry: `/app/src/main.tsx` (single-file app), styles `/app/src/styles.css`, `/app/index.html`.
-- Self-hosted fonts in `/app/public/fonts` (Cabinet Grotesk + Satoshi, from Fontshare) to respect the strict CSP / privacy-first ethos.
-- No FastAPI backend. The ONLY integration is the waitlist, which POSTs directly from the browser to the real Supabase REST table `prelaunch_waitlist_signups` (public anon key embedded by design; relies on Supabase RLS allowing INSERT only).
-- `/app/api/waitlist.ts` is a Vercel serverless fallback (not used by the client; client posts directly to Supabase).
+## Tech stack (NOT the standard Emergent CRA/FastAPI/Mongo stack)
+- Vite 7 + React 19 + TypeScript. Repo `traeningsmester-site` (deployed on Vercel).
+- Entry `/app/src/main.tsx`; styles `/app/src/styles.css`; set-pieces `/app/src/Phone3D.tsx` (Three.js) and `/app/src/PlatePlayground.tsx` (Matter.js).
+- Self-hosted fonts `/app/public/fonts` (Cabinet Grotesk + Satoshi).
+- No FastAPI backend. Only integration: waitlist POSTs directly from browser to real Supabase REST table `prelaunch_waitlist_signups` (public anon key embedded by design). `/app/api/waitlist.ts` is an unused Vercel fallback.
 
-## Preview runtime (how it runs in this environment)
-- Supervisor `frontend` program runs `yarn start` in `/app/frontend`.
-- `/app/frontend/package.json` is a thin launcher whose `start` script runs `cd /app && vite --host 0.0.0.0 --port 3000 --strictPort`.
-- `/app/frontend` and `yarn.lock` are git-ignored so the Vercel repo root stays clean.
-- `vite.config.ts` has a `server` block (host/port/allowedHosts/hmr) for the preview; ignored by Vercel's `build`.
-- Build (what Vercel runs): `npm run build` = `tsc -b && vite build` — passes clean.
+## Preview runtime
+- Supervisor `frontend` runs `yarn start` in `/app/frontend` (thin launcher: `cd /app && vite --host 0.0.0.0 --port 3000 --strictPort`). `/app/frontend` + `yarn.lock` are git-ignored so the Vercel repo root stays clean.
+- `vite.config.ts` has a `server` block for preview (ignored by Vercel build).
+- Vercel build = `npm run build` = `tsc -b && vite build` — passes clean. Bundle ~228kb gzip (Three.js).
 
-## Design system
-- Light editorial / Swiss-brutalist fitness aesthetic. BG #FCFCFA, ink #0C0C0C, accent International Orange #FF4F00. Dark sections (#0C0C0C) for trainer/quote/CTA/footer contrast.
-- Cabinet Grotesk (display) + Satoshi (text), JetBrains-style mono for overlines.
-- Sections: sticky header → hero (headline + inline waitlist + device mockup + lifestyle photo) → trust marquee → audience bento (4 cards) → 3 pillars sticky-scroll → trainer workspace (dark) → orange quote band → roadmap timeline → FAQ accordion → final dark CTA (2nd waitlist) → footer (giant TRÆNINGSMESTER wordmark + legal). Scroll-reveal animations + IntersectionObserver, CSS marquee, all `prefers-reduced-motion` aware.
-- All interactive/key elements have `data-testid`s.
+## Design (v3 — CLEAN "showoff")
+- Editorial Swiss minimalism: black ink on white/off-white paper, generous whitespace, hairline dividers, mono overlines. ONE accent = electric blue #0A4BE0 (pulled from the logo), used sparingly. NO rainbow gradients.
+- Cabinet Grotesk (display) + Satoshi (text).
+- Two interactive set-pieces ("woaw"):
+  1. Hero: draggable 3D iPhone (Three.js) showing the app screen — grab to rotate w/ inertia, idle auto-rotate, gentle float; falls back to flat image if WebGL missing.
+  2. "Mærk vægten" section: Matter.js physics playground — drag/throw/stack real kg weight plates; live total; touch-drag disabled on mobile to preserve scroll.
+- Plus: scroll-scrubbed pinned "Tre faser" section, count-up stats, custom cursor (desktop), magnetic CTAs, fit-to-width footer wordmark, reveal-on-scroll. All `prefers-reduced-motion` aware.
+- Sections: header → hero (3D phone + waitlist) → trust marquee → audience bento → pillars (scroll-scrub) → plate playground → trainer → quote → stats → roadmap → FAQ → final CTA → footer + legal modals + cookie banner.
 
-## Status (implemented — 2026-06-21)
-- Full redesign shipped and verified by testing agent: 13/13 frontend flows PASS (100%).
-  Hero render, waitlist validation (invalid email + missing consent), live Supabase happy-path (HTTP 201 + success state), all section scroll-reveal, sticky pillar active state, FAQ accordion, 4 legal modals (X/Esc/backdrop close), cookie banner + persistence, header scrolled state, header CTA + nav anchors, mobile hamburger drawer.
-- Polish applied: removed `frame-ancestors` from CSP `<meta>` (browser-ignored) and added security headers via `vercel.json` (X-Frame-Options DENY, X-Content-Type-Options, Referrer-Policy); added `html { overflow-x: hidden }` to remove ~12px mobile overflow.
+## Status (verified 2026-06-21)
+- v3 verified by testing agent: 14/14 frontend flows PASS (100%). Both set-pieces work; design reads clean (1 gradient left = subtle phone shadow); mobile 390 overflow-free; footer wordmark fits one line; pillars scrub works; waitlist → Supabase 201; FAQ/legal/cookie/header/nav all pass.
+- Polish applied post-test: added `noValidate` to waitlist form (real users now see the Danish validation copy, not the browser's English popup); footer fit factor 0.98 (removes 1px mobile sub-pixel overflow).
+- Security headers via vercel.json (X-Frame-Options DENY etc.); strict CSP in index.html (fonts self-hosted, Supabase allow-listed).
 
-## Backlog / next ideas (P1/P2)
-- P1: Split `main.tsx` (~1.2k lines) into modules (Header, Hero, Pillars, FAQ, modals, WaitlistForm, content data).
-- P1: Give hero & footer waitlist forms independent local state (currently share one React state by design).
-- P2: App Store / Google Play badge buttons once links exist; OG image refresh to match new look.
-- P2: Optional newsletter double opt-in / confirmation email (currently no confirmation email — by design).
-- P2: Lightweight, privacy-friendly analytics (matches no-marketing-cookies stance) if desired.
+## Backlog / next ideas
+- P1: Split main.tsx (~1500 lines) into per-section modules (maintainability; carried over).
+- P1: Code-split Phone3D/PlatePlayground (React.lazy) to trim initial JS.
+- P2: App Store / Google Play badges when links exist; refresh OG image to the new clean look.
+- P2: Independent local state for hero vs footer waitlist forms (currently shared by design).
+- P2: Optional privacy-friendly analytics (matches no-marketing-cookies stance).
 
 ## Notes
-- No auth on this site → no test credentials needed.
-- Testing inserted ONE real waitlist row (`qa+tm-redesign-test-<ts>@example.com`) in Supabase.
+- No auth → no test credentials needed.
+- Testing inserted real Supabase rows: qa+tm-redesign-test@example.com, qa+tm-v3-test-...@example.com (can be deleted).

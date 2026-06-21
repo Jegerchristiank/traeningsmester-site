@@ -745,7 +745,7 @@ function App() {
       const avail = parent.clientWidth - pad;
       el.style.fontSize = "100px";
       const textW = el.scrollWidth || 1;
-      el.style.fontSize = `${Math.max(22, (100 * avail) / textW) * 0.99}px`;
+      el.style.fontSize = `${Math.max(22, (100 * avail) / textW) * 0.98}px`;
     };
     fit();
     const ro = new ResizeObserver(fit);
@@ -882,6 +882,7 @@ function App() {
     <form
       className="waitlist"
       onSubmit={submit}
+      noValidate
       data-testid={`${idPrefix}-waitlist-form`}
     >
       <div className="waitlist-row">
