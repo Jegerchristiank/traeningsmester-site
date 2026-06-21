@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import "./styles.css";
+import Phone3D from "./Phone3D";
+import PlatePlayground from "./PlatePlayground";
 
 /* ---------------- Types ---------------- */
 type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
@@ -1014,7 +1016,6 @@ function App() {
       <main id="top">
         {/* Hero */}
         <section className="hero" id="venteliste" aria-labelledby="hero-title">
-          <HeroCanvas />
           <div className="wrap">
             <div className="hero-grid">
               <div className="hero-copy">
@@ -1050,17 +1051,20 @@ function App() {
                 </Reveal>
               </div>
 
-              <Reveal className="hero-visual" delay={140}>
-                <div className="hero-glow" aria-hidden="true" />
-                <div className="hero-photo">
-                  <img src="/photos/hero-training.jpg" alt="Træning i fitnesscenter" />
-                </div>
-                <div className="hero-chip">
-                  <span className="dot" />
-                  Dagens pas er klar
-                </div>
-                <div className="hero-device">
-                  <Device img="/app/home-training.jpg" alt="Dagens træning i Træningsmester" />
+              <Reveal delay={140}>
+                <div className="phone3d-wrap">
+                  <div className="hero-chip">
+                    <span className="dot" />
+                    Dagens pas er klar
+                  </div>
+                  <div className="phone3d-shadow" aria-hidden="true" />
+                  <Phone3D
+                    screen="/app/home-training.jpg"
+                    alt="Dagens træning i Træningsmester — træk for at rotere telefonen"
+                  />
+                  <div className="phone3d-hint" aria-hidden="true">
+                    <span className="grab" /> Træk for at rotere
+                  </div>
                 </div>
               </Reveal>
             </div>
@@ -1162,6 +1166,29 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Playground — physics weight plates */}
+        <section className="section playground">
+          <div className="wrap">
+            <div className="eyebrow-row">
+              <div>
+                <Reveal as="span" className="overline">
+                  Mellemspil
+                </Reveal>
+                <Reveal as="h2" className="h2" delay={60}>
+                  Mærk vægten. <span className="grad-text">Helt bogstaveligt.</span>
+                </Reveal>
+              </div>
+              <Reveal as="p" delay={120}>
+                Et lille pusterum: træk skiverne, kast dem rundt og stabl dem —
+                ægte fysik, direkte i browseren.
+              </Reveal>
+            </div>
+            <Reveal delay={80}>
+              <PlatePlayground />
+            </Reveal>
           </div>
         </section>
 
