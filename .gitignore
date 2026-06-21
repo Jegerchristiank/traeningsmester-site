@@ -10,3 +10,10 @@ vite.config.d.ts
 *.log
 /frontend
 yarn.lock
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

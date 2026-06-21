@@ -9,6 +9,7 @@ import { createRoot, type Root } from "react-dom/client";
 import "./styles.css";
 import Phone3D from "./Phone3D";
 import PlatePlayground from "./PlatePlayground";
+import IntroLoader from "./IntroLoader";
 
 /* ---------------- Types ---------------- */
 type LegalPanelId = "terms" | "privacy" | "cookies" | "accessibility";
@@ -600,6 +601,19 @@ function App() {
   const [scrolled, setScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const [introActive, setIntroActive] = useState(true);
+
+  /* lock scroll while the intro plays */
+  useEffect(() => {
+    if (!introActive) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.scrollTo(0, 0);
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [introActive]);
+
   const [pProg, setPProg] = useState(0);
   const [pActive, setPActive] = useState(0);
 
@@ -946,6 +960,8 @@ function App() {
 
   return (
     <>
+      {introActive ? <IntroLoader onDone={() => setIntroActive(false)} /> : null}
+
       <CustomCursor />
 
       {/* Header */}
@@ -1176,15 +1192,16 @@ function App() {
             <div className="eyebrow-row">
               <div>
                 <Reveal as="span" className="overline">
-                  Mellemspil
+                  Mini-spil
                 </Reveal>
                 <Reveal as="h2" className="h2" delay={60}>
-                  Mærk vægten. <span className="grad-text">Helt bogstaveligt.</span>
+                  Stabl stangen. <span className="grad-text">Ét tryk ad gangen.</span>
                 </Reveal>
               </div>
               <Reveal as="p" delay={120}>
-                Et lille pusterum: træk skiverne, kast dem rundt og stabl dem —
-                ægte fysik, direkte i browseren.
+                Skiven svinger hen over stangen — slip den på det helt rigtige
+                tidspunkt. Ram centrum for perfekte combos, byg tårnet i vejret og
+                jagt din rekord. Ægte fysik, direkte i browseren.
               </Reveal>
             </div>
             <Reveal delay={80}>
