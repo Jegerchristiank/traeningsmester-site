@@ -1,0 +1,166 @@
+{
+  "project": {
+    "name": "Træningsmester",
+    "type": "Waitlist Landing Page",
+    "language": "da"
+  },
+  "design_system": {
+    "theme": "light",
+    "archetype": "4 (Swiss & High-Contrast) - Adapted for Organic Minimalist Fitness",
+    "philosophy": "Næste handling skal være klar. Light, clean, and distraction-free but with an energetic, authoritative typographic presence. Asymmetrical layouts create an editorial feel rather than a generic app landing page. Avoid all purple/teal AI defaults and boring Inter fonts.",
+    "colors": {
+      "background": "#FCFCFC",
+      "surface": "#F3F3F3",
+      "surface_glass": "rgba(255, 255, 255, 0.75)",
+      "text_primary": "#0A0A0A",
+      "text_secondary": "#525252",
+      "accent_primary": "#FF4F00",
+      "accent_hover": "#CC3F00",
+      "border": "rgba(10, 10, 10, 0.08)"
+    },
+    "typography": {
+      "fonts": {
+        "headings": "Cabinet Grotesk, sans-serif",
+        "body": "Satoshi, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "rules": {
+        "h1": "text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none",
+        "h2": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight",
+        "h3": "text-2xl sm:text-3xl font-medium tracking-tight",
+        "body": "text-base lg:text-lg leading-relaxed font-light",
+        "overline": "text-xs font-mono uppercase tracking-[0.2em] text-[#FF4F00]"
+      }
+    },
+    "layout_and_spacing": {
+      "grid_system": "Bento 'Tetris' grid (grid-cols-1 md:grid-cols-12). Heavy use of asymmetry and overlapping elements.",
+      "section_spacing": "py-24 lg:py-32",
+      "card_padding": "p-8 lg:p-12",
+      "border_radius": "rounded-2xl"
+    },
+    "motion_and_interactions": {
+      "scrolling": "Lenis smooth scrolling is MANDATORY.",
+      "entrance": "Staggered fade-up using Framer Motion (y: 20, opacity: 0 -> 1).",
+      "hover_states": "Buttons scale (0.98) and darken. Cards lift slightly (-translate-y-1) with shadow-lg.",
+      "marquee": "Slow organic drift for the Trust Strip using react-fast-marquee."
+    }
+  },
+  "components": {
+    "button": "Flat, sharp or rounded-full. Primary uses Accent Color (#FF4F00) with pure white text. text-sm font-bold.",
+    "input": "Large and airy (h-14). bg-surface border-b-2 border-transparent focus:bg-white focus:border-accent_primary transition-all.",
+    "cards": "Flat background with 1px border. Avoid generic drop shadows. Inner padding p-8 minimum.",
+    "accordion": "For FAQ: Large text, border-bottom only between items, no bounding box container.",
+    "dialog": "For legal pages. Glassmorphism overlay (backdrop-blur-xl bg-white/70) with solid white modal body."
+  },
+  "page_sections": [
+    {
+      "id": "hero",
+      "layout": "Two columns (Desktop: 7 cols text, 5 cols visuals). Left-aligned. Mockup overlaps lifestyle image on the right.",
+      "content": {
+        "overline": "TRÆNINGSMESTER TIL IOS & WATCHOS",
+        "headline": "Træning uden støj. Næste handling er altid klar.",
+        "subheadline": "Program før, log undervejs, historik efter. Alt samlet i én rolig oplevelse. Skriv dig på ventelisten.",
+        "cta": "Email input + Consent Checkbox + Submit Button ('Skriv mig op'). MUST have data-testid='hero-waitlist-form'."
+      },
+      "media": {
+        "mockup": "programs.jpg",
+        "background_image": "hero-training.jpg"
+      }
+    },
+    {
+      "id": "trust_strip",
+      "layout": "Full-width marquee with light surface background.",
+      "content": {
+        "items": ["100% Danskudviklet", "Privacy-first", "Ingen markedsføringscookies", "Apple Health", "Live Activities"]
+      }
+    },
+    {
+      "id": "audience_bento",
+      "layout": "Asymmetric Bento Grid (12 cols).",
+      "content": {
+        "headline": "Skabt til alle der tager træning seriøst",
+        "cards": [
+          {"title": "Begynderen", "desc": "Få struktur og lær øvelserne fra bunden.", "span": "col-span-12 md:col-span-5", "image": "beginner-training.jpg"},
+          {"title": "Selvtrænende", "desc": "Avanceret logning, supersæt og 1RM tracking.", "span": "col-span-12 md:col-span-7", "image": "home-training.jpg"},
+          {"title": "Træneren", "desc": "Administrer klienter og forløb, ikke tråde.", "span": "col-span-12 md:col-span-7", "image": "coach-training.jpg"},
+          {"title": "Den Nysgerrige", "desc": "AI-analyse af dit program og din fremgang.", "span": "col-span-12 md:col-span-5"}
+        ]
+      }
+    },
+    {
+      "id": "three_pillars",
+      "layout": "Sticky scroll layout. Left column sticks with text, right column scrolls through mockups.",
+      "content": {
+        "headline": "Tre faser. Ét samlet flow.",
+        "items": [
+          {"phase": "Før passet", "title": "Programmet er lagt", "desc": "Planlæg ugerne, juster progression og vær klar inden du træder ind.", "image": "programs.jpg"},
+          {"phase": "Undervejs", "title": "Loggen holdes ren", "desc": "Fokus på sæt, reps og vægt. Ingen notifikationer. Bare dig og jernet.", "image": "exercises.jpg"},
+          {"phase": "Bagefter", "title": "Historikken lyver ikke", "desc": "Se udvikling, analyser volumen og forbered næste pas med AI-indsigter.", "image": "home-training.jpg"}
+        ]
+      }
+    },
+    {
+      "id": "trainer_workspace",
+      "layout": "Technical grid ('Control Room') style. Pure white background with distinct structural borders.",
+      "content": {
+        "headline": "Et dedikeret workspace til trænere",
+        "desc": "Kast beskedsystemerne væk. Følg klienternes progression, ret programmer i realtid og hold fokus på resultater.",
+        "image": "coach.jpg"
+      }
+    },
+    {
+      "id": "roadmap",
+      "layout": "Horizontal flex timeline with raw dividing lines.",
+      "content": {
+        "headline": "Vejen frem",
+        "phases": [
+          {"time": "Nu", "title": "Pre-launch & Venteliste", "desc": "Tilmeld dig og få tidlig adgang."},
+          {"time": "Næste", "title": "Beta-test (iOS)", "desc": "Lukket test af kernefunktioner og Apple Watch app."},
+          {"time": "Efter åbning", "title": "AI & Premium Tools", "desc": "Lancering af AI planlægning og avanceret historik."}
+        ]
+      }
+    },
+    {
+      "id": "faq",
+      "layout": "Single column narrow (max-w-3xl) with minimalist borders.",
+      "content": {
+        "headline": "Spørgsmål & Svar",
+        "questions": [
+          {"q": "Hvornår lancerer I?", "a": "Vi forventer at starte lukket beta meget snart. Ventelisten får besked først."},
+          {"q": "Er appen på dansk?", "a": "Ja, appen er 100% dansk udviklet, designet til det danske marked."},
+          {"q": "Hvad koster det?", "a": "Basis-funktioner vil være gratis. Derudover tilbydes en premium-model med AI-funktioner og Træner-workspace."}
+        ]
+      }
+    },
+    {
+      "id": "footer",
+      "layout": "Massive typography for 'TRÆNINGSMESTER', simple grid for links. Cookie Consent banner floats at bottom.",
+      "content": {
+        "brand": "TRÆNINGSMESTER",
+        "links": ["Handelsbetingelser", "Privatliv", "Cookiepolitik", "Tilgængelighed"]
+      }
+    }
+  ],
+  "testing": {
+    "requirements": "All interactive and key informational elements MUST include a data-testid attribute (e.g., data-testid='hero-cta-button', data-testid='faq-accordion-1')."
+  },
+  "media_library": {
+    "logos": {
+      "brand": "tm-logo.png",
+      "app_icon": "app-icon.png"
+    },
+    "mockups": {
+      "programs": "programs.jpg",
+      "exercises": "exercises.jpg",
+      "home_training": "home-training.jpg",
+      "coach": "coach.jpg"
+    },
+    "lifestyle": {
+      "hero": "hero-training.jpg",
+      "coach": "coach-training.jpg",
+      "beginner": "beginner-training.jpg",
+      "fallback_1": "https://images.unsplash.com/photo-1590487988256-9ed24133863e",
+      "fallback_2": "https://images.unsplash.com/photo-1550345332-09e3ac987658"
+    }
+  }
+}
