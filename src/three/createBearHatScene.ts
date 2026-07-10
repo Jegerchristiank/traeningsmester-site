@@ -1,6 +1,8 @@
 import * as THREE from "three";
 
 const DURATION_SECONDS = 5.2;
+const LOOP_SECONDS = DURATION_SECONDS * 2;
+const LOOP_MILLISECONDS = LOOP_SECONDS * 1000;
 const BRAND_BLUE = 0x0047ab;
 const BRAND_RED = 0xe31836;
 const INK = 0x101319;
@@ -55,6 +57,12 @@ function lerp(from: number, to: number, amount: number): number {
 function pulse(time: number, start: number, peak: number, end: number): number {
   if (time <= peak) return smooth(segment(time, start, peak));
   return 1 - smooth(segment(time, peak, end));
+}
+
+function pingPongTime(elapsedSeconds: number): number {
+  const phase = (elapsedSeconds % LOOP_SECONDS) / LOOP_SECONDS;
+  // Cosine easing makes both direction changes land with zero velocity.
+  return DURATION_SECONDS * (0.5 - 0.5 * Math.cos(phase * Math.PI * 2));
 }
 
 /**
@@ -569,7 +577,7 @@ export function createBearHatScene(
   let manuallyPaused = false;
   let inView = false;
   let pageVisible = document.visibilityState === "visible";
-  let completed = false;
+  let finalPoseLocked = false;
   let elapsedMilliseconds = 0;
   let lastFrameMilliseconds = 0;
   let animationFrame = 0;
@@ -587,7 +595,13 @@ export function createBearHatScene(
   };
 
   const shouldAnimate = (): boolean =>
-    ready && !disposed && !contextLost && !manuallyPaused && !completed && inView && pageVisible;
+    ready &&
+    !disposed &&
+    !contextLost &&
+    !manuallyPaused &&
+    !finalPoseLocked &&
+    inView &&
+    pageVisible;
 
   const tick = (now: number): void => {
     animationFrame = 0;
@@ -596,17 +610,8 @@ export function createBearHatScene(
     if (lastFrameMilliseconds === 0) lastFrameMilliseconds = now;
     const frameDelta = Math.min(100, Math.max(0, now - lastFrameMilliseconds));
     lastFrameMilliseconds = now;
-    elapsedMilliseconds += frameDelta;
-
-    const seconds = Math.min(DURATION_SECONDS, elapsedMilliseconds / 1000);
-    renderAt(seconds);
-
-    if (seconds >= DURATION_SECONDS) {
-      completed = true;
-      renderAt(DURATION_SECONDS);
-      stopAnimationFrame();
-      return;
-    }
+    elapsedMilliseconds = (elapsedMilliseconds + frameDelta) % LOOP_MILLISECONDS;
+    renderAt(pingPongTime(elapsedMilliseconds / 1000));
 
     animationFrame = requestAnimationFrame(tick);
   };
@@ -635,7 +640,11 @@ export function createBearHatScene(
       Math.min(window.devicePixelRatio || 1, width < 640 ? 1.35 : 1.75),
     );
     renderer.setSize(width, height, false);
-    renderAt(completed ? DURATION_SECONDS : elapsedMilliseconds / 1000);
+    renderAt(
+      finalPoseLocked
+        ? DURATION_SECONDS
+        : pingPongTime(elapsedMilliseconds / 1000),
+    );
   };
 
   const resizeObserver = new ResizeObserver(resize);
@@ -746,11 +755,12 @@ export function createBearHatScene(
     },
     play: () => {
       manuallyPaused = false;
+      finalPoseLocked = false;
       updatePlayback();
     },
     renderFinalPose: () => {
       elapsedMilliseconds = DURATION_SECONDS * 1000;
-      completed = true;
+      finalPoseLocked = true;
       stopAnimationFrame();
       renderAt(DURATION_SECONDS);
     },
