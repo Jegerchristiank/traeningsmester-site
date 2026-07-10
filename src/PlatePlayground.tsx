@@ -1,45 +1,64 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Matter from "matter-js";
 
-const WEIGHTS = [5, 10, 15, 20, 25];
-const radiusFor = (kg: number) => 26 + kg * 1.5;
-const rand5 = (lo: number, hi: number) => {
-  const steps = Math.max(0, Math.floor((hi - lo) / 5));
-  return lo + Math.floor(Math.random() * (steps + 1)) * 5;
-};
-const makeTarget = (streak: number) => rand5(20, Math.min(140, 40 + streak * 12));
+const BEST_KEY = "tm-stack-best";
 
-const BEST_KEY = "tm-plate-best";
+type Status = "ready" | "playing" | "over";
+type Piece = Matter.Body & { plateW?: number; perfect?: boolean; isBase?: boolean };
 
-type PlateApi = {
-  add: (kg: number) => void;
-  undo: () => void;
-  clear: () => void;
-  celebrate: () => void;
+type GameApi = {
+  start: () => void;
+  drop: () => void;
 };
+
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  const rr = Math.min(r, h / 2, w / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
 
 /**
- * "Ram vægten" — a tiny physics game.
- * Drop plates to hit the exact target weight; chase your longest streak.
- * Built with Matter.js (real collisions, drag-to-rearrange on desktop).
+ * "Stabl stangen" — a one-tap timing + physics arcade game.
+ * A plate swings across the top; tap to drop it straight down onto the bar.
+ * Land it on the stack to score, nail the centre for perfect combos, and the
+ * tower scrolls as it grows. Miss the stack and real physics tips it off — game over.
+ * Built with Matter.js.
  */
 export default function PlatePlayground() {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const apiRef = useRef<PlateApi | null>(null);
+  const apiRef = useRef<GameApi | null>(null);
 
-  const [target, setTarget] = useState(() => makeTarget(0));
-  const [stack, setStack] = useState<number[]>([]);
-  const [streak, setStreak] = useState(0);
+  const [status, setStatus] = useState<Status>("ready");
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
   const [best, setBest] = useState(0);
-  const [status, setStatus] = useState<"playing" | "won" | "over">("playing");
-  const lockRef = useRef(false);
+  const [perfect, setPerfect] = useState(false);
 
-  const total = stack.reduce((a, b) => a + b, 0);
+  const statusRef = useRef<Status>("ready");
+  const scoreRef = useRef(0);
+  const comboRef = useRef(0);
+  const bestRef = useRef(0);
+  const perfectTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     try {
       const v = Number(window.localStorage?.getItem(BEST_KEY) || 0);
-      if (v > 0) setBest(v);
+      if (v > 0) {
+        setBest(v);
+        bestRef.current = v;
+      }
     } catch {
       /* noop */
     }
@@ -50,10 +69,14 @@ export default function PlatePlayground() {
     if (!wrap) return;
     let cleanup = () => {};
     try {
-      const W = () => wrap.clientWidth || 800;
-      const H = () => wrap.clientHeight || 460;
-      let w = W();
-      let h = H();
+      let w = wrap.clientWidth || 800;
+      let h = wrap.clientHeight || 460;
+
+      const PLATE_H = 32;
+      const plateWidth = () => Math.max(94, Math.min(150, w * 0.2));
+      const BASE_TALL = 260;
+      const DROP_Y = 74;
+      const TIP_LINE = 210;
 
       const engine = Matter.Engine.create();
       engine.gravity.y = 1;
@@ -70,100 +93,276 @@ export default function PlatePlayground() {
           pixelRatio: Math.min(2, window.devicePixelRatio || 1)
         }
       });
+      render.canvas.style.cursor = "pointer";
 
-      const wallOpts = { isStatic: true, render: { visible: false } };
-      const T = 240;
-      const floor = Matter.Bodies.rectangle(w / 2, h + T / 2 - 1, w * 3, T, wallOpts);
-      const left = Matter.Bodies.rectangle(-T / 2 + 1, h / 2, T, h * 3, wallOpts);
-      const right = Matter.Bodies.rectangle(w + T / 2 - 1, h / 2, T, h * 3, wallOpts);
-      Matter.Composite.add(world, [floor, left, right]);
-
-      const plates: (Matter.Body & { kg?: number })[] = [];
+      const pieces: Piece[] = [];
+      let active: Piece | null = null;
+      let pending: Piece | null = null;
+      let towerX = w / 2;
+      let towerTopY = h - 90;
+      let landOnX = w / 2;
+      let dropTime = 0;
       let flashUntil = 0;
+      let swingPhase = 0;
 
-      const addPlate = (kg: number) => {
-        const r = radiusFor(kg);
-        const x = w / 2 + (Math.random() - 0.5) * Math.min(w * 0.5, 260);
-        const body = Matter.Bodies.circle(x, -r - 8, r, {
-          restitution: 0.42,
-          friction: 0.5,
-          frictionAir: 0.01,
-          density: 0.004,
-          render: { fillStyle: "#101012", strokeStyle: "rgba(255,255,255,0.16)", lineWidth: 2 }
-        }) as Matter.Body & { kg?: number };
-        body.kg = kg;
-        Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.18);
+      const makeBase = (): Piece => {
+        const bw = plateWidth() * 2.3;
+        const body = Matter.Bodies.rectangle(w / 2, TIP_LINE + BASE_TALL / 2, bw, BASE_TALL, {
+          isStatic: true,
+          friction: 1,
+          render: { visible: false }
+        }) as Piece;
+        body.plateW = bw;
+        body.isBase = true;
+        return body;
+      };
+
+      const spawnActive = () => {
+        const pw = plateWidth();
+        const body = Matter.Bodies.rectangle(w / 2, DROP_Y, pw, PLATE_H, {
+          chamfer: { radius: 6 },
+          friction: 0.95,
+          frictionStatic: 1.2,
+          restitution: 0,
+          density: 0.02,
+          render: { visible: false }
+        }) as Piece;
+        body.plateW = pw;
         Matter.Composite.add(world, body);
-        plates.push(body);
+        active = body;
+        swingPhase = performance.now();
       };
-      const undo = () => {
-        const b = plates.pop();
-        if (b) Matter.Composite.remove(world, b);
+
+      const triggerPerfect = () => {
+        flashUntil = performance.now() + 620;
+        setPerfect(true);
+        window.clearTimeout(perfectTimer.current);
+        perfectTimer.current = window.setTimeout(() => setPerfect(false), 680);
       };
-      const clear = () => {
-        plates.forEach((b) => Matter.Composite.remove(world, b));
-        plates.length = 0;
+
+      const gameOver = () => {
+        if (statusRef.current !== "playing") return;
+        statusRef.current = "over";
+        setStatus("over");
+        active = null;
+        pending = null;
       };
-      const celebrate = () => {
-        flashUntil = performance.now() + 950;
-        plates.forEach((b) =>
-          Matter.Body.setVelocity(b, { x: (Math.random() - 0.5) * 5, y: -9 - Math.random() * 3 })
-        );
+
+      const evaluate = () => {
+        const p = pending;
+        pending = null;
+        if (!p) return;
+        const angle = Math.abs(((p.angle + Math.PI) % (Math.PI * 2)) - Math.PI);
+        const restedOnTower = p.position.y < towerTopY + PLATE_H * 0.7;
+        if (!restedOnTower || angle > 0.55 || p.position.y > h - 28) {
+          gameOver();
+          return;
+        }
+        Matter.Body.setStatic(p, true);
+        pieces.push(p);
+        towerTopY = p.position.y - PLATE_H / 2;
+        towerX = p.position.x;
+
+        const off = Math.abs(p.position.x - landOnX);
+        const pw = p.plateW ?? plateWidth();
+        if (off < 13) {
+          comboRef.current += 1;
+          scoreRef.current += 10 + comboRef.current * 2;
+          p.perfect = true;
+          triggerPerfect();
+        } else if (off < pw * 0.62) {
+          comboRef.current = 0;
+          scoreRef.current += 4;
+        } else {
+          comboRef.current = 0;
+          scoreRef.current += 2;
+        }
+        setScore(scoreRef.current);
+        setCombo(comboRef.current);
+        if (scoreRef.current > bestRef.current) {
+          bestRef.current = scoreRef.current;
+          setBest(bestRef.current);
+          try {
+            window.localStorage?.setItem(BEST_KEY, String(bestRef.current));
+          } catch {
+            /* noop */
+          }
+        }
+
+        // camera follow — keep the tip near a fixed line
+        if (towerTopY < TIP_LINE) {
+          const shift = TIP_LINE - towerTopY;
+          pieces.forEach((b) => Matter.Body.translate(b, { x: 0, y: shift }));
+          towerTopY += shift;
+          for (let i = pieces.length - 1; i >= 0; i--) {
+            if (pieces[i].position.y - (pieces[i].isBase ? BASE_TALL / 2 : PLATE_H / 2) > h + 20) {
+              Matter.Composite.remove(world, pieces[i]);
+              pieces.splice(i, 1);
+            }
+          }
+        }
+        spawnActive();
       };
-      apiRef.current = { add: addPlate, undo, clear, celebrate };
+
+      const drop = () => {
+        if (statusRef.current !== "playing" || !active || pending) return;
+        const dropped = active;
+        active = null;
+        landOnX = towerX;
+        Matter.Body.setVelocity(dropped, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(dropped, 0);
+        pending = dropped;
+        dropTime = performance.now();
+      };
+
+      const start = () => {
+        Matter.Composite.clear(world, false);
+        pieces.length = 0;
+        active = null;
+        pending = null;
+        const base = makeBase();
+        Matter.Composite.add(world, base);
+        pieces.push(base);
+        towerX = base.position.x;
+        towerTopY = base.position.y - BASE_TALL / 2;
+        landOnX = towerX;
+        scoreRef.current = 0;
+        comboRef.current = 0;
+        setScore(0);
+        setCombo(0);
+        setPerfect(false);
+        statusRef.current = "playing";
+        setStatus("playing");
+        spawnActive();
+      };
+
+      apiRef.current = { start, drop };
+
+      Matter.Events.on(engine, "beforeUpdate", () => {
+        if (statusRef.current !== "playing" || !active) return;
+        const t = performance.now();
+        const speed = 0.0013 + Math.min(0.0036, scoreRef.current * 0.00007);
+        const pw = active.plateW ?? 120;
+        const amp = Math.min(w / 2 - pw / 2 - 12, pw * 1.7);
+        const x = w / 2 + Math.sin((t - swingPhase) * speed) * amp;
+        // hold the live plate kinematically (it is a dynamic body we pin each frame)
+        Matter.Body.setPosition(active, { x, y: DROP_Y });
+        Matter.Body.setAngle(active, 0);
+        Matter.Body.setVelocity(active, { x: 0, y: 0 });
+        Matter.Body.setAngularVelocity(active, 0);
+      });
+
+      Matter.Events.on(engine, "afterUpdate", () => {
+        if (!pending) return;
+        if (pending.position.y > h + 60) {
+          gameOver();
+          return;
+        }
+        const v = Math.hypot(pending.velocity.x, pending.velocity.y);
+        const settled = v < 0.4 && Math.abs(pending.angularVelocity) < 0.04;
+        const elapsed = performance.now() - dropTime;
+        if (elapsed > 280 && (settled || elapsed > 1800)) evaluate();
+      });
 
       Matter.Events.on(render, "afterRender", () => {
         const ctx = render.context;
-        const flashing = performance.now() < flashUntil;
-        plates.forEach((b) => {
-          const kg = b.kg ?? 0;
-          const r = (b.circleRadius ?? 30) as number;
-          const { x, y } = b.position;
-          if (flashing) {
+        const now = performance.now();
+        const flashing = now < flashUntil;
+
+        const drawPiece = (b: Piece) => {
+          const pw = b.plateW ?? 120;
+          if (b.isBase) {
+            // draw a slim platform at the top surface of the tall (collision-safe) base body
+            const topY = b.position.y - BASE_TALL / 2;
             ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(10,75,224,0.9)";
+            ctx.translate(b.position.x, topY);
+            roundRectPath(ctx, -pw / 2, 0, pw, 64, 12);
+            ctx.fillStyle = "#16161a";
             ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "rgba(255,255,255,0.14)";
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-pw / 2 + 16, 1.5);
+            ctx.lineTo(pw / 2 - 16, 1.5);
+            ctx.strokeStyle = "rgba(10,75,224,0.7)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
             ctx.restore();
+            return;
           }
+          const ph = PLATE_H;
           ctx.save();
+          ctx.translate(b.position.x, b.position.y);
+          ctx.rotate(b.angle);
+          roundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, ph / 2);
+          if (b.perfect && flashing) {
+            ctx.fillStyle = "#0a4be0";
+            ctx.shadowColor = "rgba(10,75,224,0.7)";
+            ctx.shadowBlur = 26;
+          } else {
+            ctx.fillStyle = "#101012";
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "rgba(255,255,255,0.16)";
+          ctx.stroke();
           ctx.beginPath();
-          ctx.arc(x, y, r * 0.3, 0, Math.PI * 2);
-          ctx.strokeStyle = "rgba(255,255,255,0.22)";
+          ctx.arc(0, 0, ph * 0.27, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(255,255,255,0.34)";
           ctx.lineWidth = 2;
           ctx.stroke();
-          ctx.fillStyle = "#fff";
-          ctx.font = `800 ${Math.round(r * 0.5)}px "Cabinet Grotesk", system-ui, sans-serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.translate(x, y);
-          ctx.rotate(b.angle);
-          ctx.fillText(String(kg), 0, 0);
           ctx.restore();
-        });
-      });
+        };
 
-      // desktop-only drag (keep touch scrolling smooth)
-      if (window.matchMedia("(pointer: fine)").matches) {
-        const mouse = Matter.Mouse.create(render.canvas);
-        const mc = Matter.MouseConstraint.create(engine, {
-          mouse,
-          constraint: { stiffness: 0.2, render: { visible: false } }
-        });
-        Matter.Composite.add(world, mc);
-        render.mouse = mouse;
-        const anyMouse = mouse as unknown as { mousewheel: EventListener; element: HTMLElement };
-        anyMouse.element.removeEventListener("wheel", anyMouse.mousewheel);
-      }
+        pieces.forEach(drawPiece);
+
+        if (active && statusRef.current === "playing") {
+          const ax = active.position.x;
+          ctx.save();
+          ctx.strokeStyle = "rgba(10,75,224,0.45)";
+          ctx.setLineDash([5, 8]);
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(ax, DROP_Y + PLATE_H / 2);
+          ctx.lineTo(ax, Math.max(towerTopY, DROP_Y + PLATE_H));
+          ctx.stroke();
+          ctx.restore();
+          drawPiece(active);
+          // accent outline on the live plate
+          const pw = active.plateW ?? 120;
+          ctx.save();
+          ctx.translate(active.position.x, active.position.y);
+          roundRectPath(ctx, -pw / 2, -PLATE_H / 2, pw, PLATE_H, PLATE_H / 2);
+          ctx.strokeStyle = "rgba(10,75,224,0.9)";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+        if (pending) drawPiece(pending);
+      });
 
       const runner = Matter.Runner.create();
       Matter.Render.run(render);
       Matter.Runner.run(runner, engine);
 
+      const onPointer = () => {
+        if (statusRef.current === "playing") drop();
+      };
+      render.canvas.addEventListener("pointerdown", onPointer);
+
+      const onKey = (e: KeyboardEvent) => {
+        if (e.code !== "Space") return;
+        e.preventDefault();
+        if (statusRef.current === "playing") drop();
+        else start();
+      };
+      window.addEventListener("keydown", onKey);
+
       const ro = new ResizeObserver(() => {
-        w = W();
-        h = H();
+        w = wrap.clientWidth || w;
+        h = wrap.clientHeight || h;
         const pr = render.options.pixelRatio as number;
         render.canvas.width = w * pr;
         render.canvas.height = h * pr;
@@ -172,13 +371,13 @@ export default function PlatePlayground() {
         render.options.width = w;
         render.options.height = h;
         Matter.Render.setPixelRatio(render, pr);
-        Matter.Body.setPosition(floor, { x: w / 2, y: h + T / 2 - 1 });
-        Matter.Body.setPosition(right, { x: w + T / 2 - 1, y: h / 2 });
-        Matter.Body.setPosition(left, { x: -T / 2 + 1, y: h / 2 });
       });
       ro.observe(wrap);
 
       cleanup = () => {
+        window.clearTimeout(perfectTimer.current);
+        render.canvas.removeEventListener("pointerdown", onPointer);
+        window.removeEventListener("keydown", onKey);
         ro.disconnect();
         Matter.Render.stop(render);
         Matter.Runner.stop(runner);
@@ -194,129 +393,80 @@ export default function PlatePlayground() {
     return () => cleanup();
   }, []);
 
-  const handleAdd = (kg: number) => {
-    if (status !== "playing" || lockRef.current) return;
-    apiRef.current?.add(kg);
-    const next = total + kg;
-    const nextStack = [...stack, kg];
-    setStack(nextStack);
-    if (next === target) {
-      lockRef.current = true;
-      setStatus("won");
-      apiRef.current?.celebrate();
-      const ns = streak + 1;
-      setStreak(ns);
-      if (ns > best) {
-        setBest(ns);
-        try {
-          window.localStorage?.setItem(BEST_KEY, String(ns));
-        } catch {
-          /* noop */
-        }
-      }
-      window.setTimeout(() => {
-        apiRef.current?.clear();
-        setStack([]);
-        setTarget(makeTarget(ns));
-        setStatus("playing");
-        lockRef.current = false;
-      }, 1250);
-    } else if (next > target) {
-      setStatus("over");
-    }
-  };
-
-  const handleUndo = () => {
-    if (lockRef.current || stack.length === 0) return;
-    apiRef.current?.undo();
-    const nextStack = stack.slice(0, -1);
-    setStack(nextStack);
-    const next = nextStack.reduce((a, b) => a + b, 0);
-    if (next <= target) setStatus("playing");
-  };
-
-  const handleReset = () => {
-    if (lockRef.current) return;
-    apiRef.current?.clear();
-    setStack([]);
-    setStreak(0);
-    setTarget(makeTarget(0));
-    setStatus("playing");
-  };
-
-  const remaining = target - total;
-  const totalClass = status === "won" ? "win" : status === "over" ? "over" : "";
+  const isRecord = status === "over" && score > 0 && score >= best;
 
   return (
     <div className="plate-stage" ref={wrapRef} data-testid="plate-stage">
       <div className="game-hud" aria-live="polite">
         <div className="gh-item">
-          <span className="gh-k">Mål</span>
-          <span className="gh-v" data-testid="plate-target">
-            {target}
-            <i>kg</i>
+          <span className="gh-k">Score</span>
+          <span className="gh-v" data-testid="game-score">
+            {score}
           </span>
         </div>
         <div className="gh-item">
-          <span className="gh-k">På stangen</span>
-          <span className={`gh-v ${totalClass}`} data-testid="plate-total">
-            {total}
-            <i>kg</i>
-          </span>
-        </div>
-        <div className="gh-item">
-          <span className="gh-k">Streak</span>
-          <span className="gh-v" data-testid="plate-streak">
-            {streak}
+          <span className="gh-k">Combo</span>
+          <span className={`gh-v ${combo > 0 ? "win" : ""}`} data-testid="game-combo">
+            ×{combo}
           </span>
         </div>
         <div className="gh-item">
           <span className="gh-k">Rekord</span>
-          <span className="gh-v">{best}</span>
+          <span className="gh-v" data-testid="game-best">
+            {best}
+          </span>
         </div>
       </div>
 
-      {status === "won" ? (
-        <div className="game-banner win" data-testid="plate-win">
-          ✓ Ramt!
+      {perfect ? (
+        <div className="game-banner win" data-testid="game-perfect">
+          PERFEKT
         </div>
-      ) : status === "over" ? (
-        <div className="game-banner over">
-          {Math.abs(remaining)} kg for meget — fortryd en skive
-        </div>
-      ) : total === 0 ? (
-        <div className="plate-tip">Drop skiver, ram målet præcist</div>
-      ) : (
-        <div className="plate-tip">{remaining} kg igen</div>
-      )}
+      ) : null}
 
-      <div className="plate-controls">
-        <div className="plate-btns" role="group" aria-label="Tilføj skive">
-          {WEIGHTS.map((kg) => (
-            <button
-              key={kg}
-              type="button"
-              onClick={() => handleAdd(kg)}
-              disabled={status !== "playing"}
-              data-testid={`plate-add-${kg}`}
-            >
-              {kg}
-            </button>
-          ))}
+      {status === "playing" ? (
+        <div className="plate-tip" data-testid="game-tip">
+          Tryk for at slippe — ram centrum
         </div>
-        <div className="plate-actions">
-          <button type="button" onClick={handleUndo} data-testid="plate-undo">
-            Fortryd
-          </button>
+      ) : null}
+
+      {status !== "playing" ? (
+        <div className="game-overlay" data-testid="game-overlay">
+          <span className="go-kicker">
+            {status === "over" ? "Game over" : "Mini-spil"}
+          </span>
+          <h3 className="go-title" data-testid="game-overlay-title">
+            {status === "over" ? `${score} point` : "Stabl stangen"}
+          </h3>
+          <p className="go-sub">
+            {status === "over"
+              ? isRecord
+                ? "Ny rekord. Slå den igen."
+                : "Slip skiven i centrum og byg tårnet højere."
+              : "Slip skiverne præcist oven på hinanden. Ram centrum for combos — og byg det højeste tårn."}
+          </p>
           <button
             type="button"
-            className="primary"
-            onClick={handleReset}
-            data-testid="plate-reset"
+            className="go-btn"
+            onClick={() => apiRef.current?.start()}
+            data-testid="game-start"
           >
-            Nulstil
+            {status === "over" ? "Spil igen" : "Start spil"}
           </button>
+          <span className="go-hint">Tryk på feltet eller mellemrumstasten</span>
         </div>
+      ) : null}
+
+      <div className="plate-controls">
+        <button
+          type="button"
+          className="drop-btn"
+          onClick={() => apiRef.current?.drop()}
+          disabled={status !== "playing"}
+          data-testid="game-drop"
+        >
+          Slip skive
+        </button>
       </div>
     </div>
   );
