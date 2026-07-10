@@ -8,6 +8,7 @@ og en separat webapp til det personlige træningsflow.
 - `/` — offentlig marketing- og ventelisteside
 - `/app` — loginbeskyttet webapp
 - `/privatliv`, `/vilkaar`, `/cookies`, `/tilgaengelighed` — juridiske sider
+- `/afmeld#token=...` — sikker bekræftelsesside til tilbagetrækning af ventelistesamtykke
 
 ## Development
 
@@ -57,13 +58,56 @@ Tilmeldingsformularen sender til den samme origins `/api/waitlist`-endpoint, som
 validerer inputtet og gemmer til Træningsmesters Supabase-tabel
 `public.prelaunch_waitlist_signups`.
 
-Siden sender ikke bekræftelsesmail og åbner ikke en mailklient. Databasens RLS
-tillader kun inserts for offentlige roller.
+Endpointet bruger et server-side mailflow: nye tilmeldinger får en neutral HTML-
+og tekstkvittering via Træningsmesters SMTP-konto. Mailen indeholder ingen
+tracking eller reklame og har et tokeniseret afmeldingslink. Linkets GET-side
+ændrer ikke data; sletningen sker først ved brugerens POST-bekræftelse. En
+one-click POST fra mailklientens `List-Unsubscribe`-funktion er også understøttet.
+
+Supabase-kontrakten holder levering idempotent. Kun `pending`, `failed` eller en
+stale `sending`-række kan claim'es til udsendelse. En allerede accepteret mail
+sendes ikke igen ved en dublettilmelding. Eksisterende rækker fra før mailflowet
+forbliver `legacy` og får ikke automatisk mail. Samtykkets autoritative tidspunkt
+skrives af serveren; browserens tidspunkt gemmes kun som sekundær metadata.
 
 Optional waitlist environment overrides:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`
+
+Required server-only mail variables:
+
+- `TM_SMTP_HOST` (Nordicway: `cp13.nordicway.dk`)
+- `TM_SMTP_PORT` (`465`)
+- `TM_SMTP_SECURE` (`true` for port 465)
+- `TM_SMTP_USER`
+- `TM_SMTP_PASS`
+- `TM_SMTP_ENVELOPE_FROM`
+- `TM_MAIL_FROM`
+- `TM_MAIL_FROM_NAME`
+- optional `TM_MAIL_REPLY_TO`
+- `WAITLIST_TOKEN_SECRET` (minimum 32 random characters; keep stable so future
+  waitlist mails can derive the same withdrawal token)
+- `PUBLIC_SITE_URL` (`https://www.traeningsmester.dk`)
+
+These variables must be configured in Vercel as server-only values. Never use a
+`VITE_` prefix for SMTP credentials or `WAITLIST_TOKEN_SECRET`.
+
+Delivery readiness also requires the exact MX, SPF and DKIM records supplied by
+Nordicway/cPanel plus an intentional DMARC policy on `traeningsmester.dk`. Do not
+guess these DNS values. SMTP acceptance alone does not prove inbox delivery.
+
+The endpoint keeps an in-memory burst limit and a hidden honeypot as basic abuse
+protection. The database uniqueness constraint and atomic claim prevent repeated
+mails to the same address; Vercel Firewall/Turnstile can be added if public abuse
+becomes visible.
+
+Run the email/template tests and the full build with:
+
+```bash
+npm test
+npm run build
+```
 
 ## Domains
 

@@ -8,6 +8,12 @@ type WaitlistState =
   | { type: "success"; message: string }
   | { type: "error"; field: "email" | "consent" | "network"; message: string };
 
+type WaitlistResponse = {
+  ok?: boolean;
+  code?: string;
+  confirmation?: "accepted";
+};
+
 type LegalRoute = "privatliv" | "vilkaar" | "cookies" | "tilgaengelighed";
 
 const siteUrl = "https://www.traeningsmester.dk/";
@@ -46,7 +52,7 @@ const legalDocuments: Record<
       {
         title: "Ventelisten",
         body:
-          "Når du skriver dig op, gemmer vi din email, dit samtykke, tidspunktet og kilden til tilmeldingen i Supabase. Formålet er kun at kunne fortælle dig, når Træningsmester åbner. Oplysningerne slettes, når de ikke længere er nødvendige for ventelisten, eller når du beder om det."
+          "Når du skriver dig op, gemmer vi din email, samtykkets version, tidspunktet og kilden til tilmeldingen. Formålet er at sende e-mails om Træningsmesters lancering og adgangsrunder. Tilmeldingen slettes, når formålet med ventelisten er afsluttet, eller straks når du bruger afmeldingslinket i en mail."
       },
       {
         title: "Når du bruger webappen",
@@ -56,12 +62,21 @@ const legalDocuments: Record<
       {
         title: "Retsgrundlag og modtagere",
         body:
-          "Ventelisten bygger på dit samtykke. Supabase bruges som databehandler til database og login. Der bruges ikke annoncepixels eller statistikværktøjer på hjemmesiden."
+          "Ventelisten bygger på dit samtykke. Supabase bruges til database, Vercel til hjemmesiden og Nordicway til maillevering. Hvis en leverandør behandler oplysninger uden for EU/EØS, sker det på et lovligt overførselsgrundlag. Hjemmesiden og bekræftelsesmailen bruger ingen annoncepixels eller statistiktracking."
       },
       {
         title: "Dine rettigheder",
-        body:
-          "Du kan bede om indsigt, rettelse eller sletning og kan altid trække et samtykke tilbage. Henvendelser kan sendes skriftligt til virksomhedens adresse ovenfor, indtil en særskilt supportkanal offentliggøres."
+        body: (
+          <>
+            Du kan bede om indsigt, rettelse eller sletning og kan altid trække samtykket
+            tilbage gratis via afmeldingslinket i mails. Du kan også skrive til virksomhedens
+            adresse ovenfor. Hvis du er utilfreds med behandlingen, kan du klage til{" "}
+            <a href="https://www.datatilsynet.dk/borger/klage" rel="noreferrer">
+              Datatilsynet
+            </a>
+            .
+          </>
+        )
       }
     ]
   },
@@ -186,7 +201,7 @@ const faqRows = [
   {
     question: "Hvad sker der med min email?",
     answer:
-      "Den gemmes med dit samtykke og bruges kun til at kontakte dig om åbningen af Træningsmester. Der er ingen marketing- eller statistiktracking på hjemmesiden."
+      "Den gemmes med dit samtykke og bruges kun til e-mails om lancering og adgangsrunder. Du får en neutral bekræftelse og kan altid afmelde dig gratis via linket i mails."
   },
   {
     question: "Kan jeg bruge den til cardio?",
@@ -215,6 +230,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
 function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boolean }) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  const [website, setWebsite] = useState("");
   const [state, setState] = useState<WaitlistState>({ type: "idle" });
 
   const submit = async (event: FormEvent) => {
@@ -228,7 +244,7 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
       setState({
         type: "error",
         field: "consent",
-        message: "Sæt kryds, så vi må kontakte dig om Træningsmester."
+        message: "Sæt kryds, hvis KRISTENSON må sende dig e-mails om lancering og adgang."
       });
       return;
     }
@@ -238,24 +254,40 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
       const response = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        referrerPolicy: "origin",
         body: JSON.stringify({
           email: cleanEmail,
           audience: "nysgerrig",
           audienceLabel: "Pre-launch signup",
           consent: true,
-          source: window.location.href,
-          submittedAt: new Date().toISOString()
+          source: `${window.location.origin}${window.location.pathname}`,
+          submittedAt: new Date().toISOString(),
+          website
         })
       });
-      if (!response.ok) throw new Error("waitlist rejected");
+      const payload = (await response.json().catch(() => ({}))) as WaitlistResponse;
+      if (!response.ok) {
+        if (payload.code === "RATE_LIMITED") {
+          throw new Error("rate limited");
+        }
+        throw new Error("waitlist rejected");
+      }
       setEmail("");
       setConsent(false);
-      setState({ type: "success", message: "Tak. Du får besked, når Træningsmester åbner." });
-    } catch {
+      setWebsite("");
+      setState({
+        type: "success",
+        message:
+          "Tak. Din tilmelding er registreret. Hvis adressen er ny, har vi sendt en neutral bekræftelsesmail."
+      });
+    } catch (error) {
       setState({
         type: "error",
         field: "network",
-        message: "Tilmeldingen kunne ikke gemmes lige nu. Prøv igen om lidt."
+        message:
+          error instanceof Error && error.message === "rate limited"
+            ? "Der er sendt for mange tilmeldinger herfra. Prøv igen om lidt."
+            : "Tilmeldingen kunne ikke gemmes lige nu. Prøv igen om lidt."
       });
     }
   };
@@ -288,6 +320,18 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
           <Arrow />
         </button>
       </div>
+      <div className="mk-honeypot" aria-hidden="true">
+        <label htmlFor={`${idPrefix}-website`}>Lad dette felt stå tomt</label>
+        <input
+          id={`${idPrefix}-website`}
+          name="website"
+          type="text"
+          value={website}
+          tabIndex={-1}
+          autoComplete="off"
+          onChange={(event) => setWebsite(event.target.value)}
+        />
+      </div>
       <label className="mk-consent">
         <input
           type="checkbox"
@@ -300,8 +344,15 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
           }}
           data-testid={`${idPrefix}-waitlist-consent`}
         />
-        <span>I må kontakte mig om Træningsmester.</span>
+        <span>
+          Jeg giver KRISTENSON (CVR {company.cvr}) samtykke til at sende mig e-mails om
+          Træningsmesters lancering og adgangsrunder. Jeg kan altid afmelde mig gratis via
+          linket i mails.
+        </span>
       </label>
+      <p className="mk-consent-privacy">
+        <a href="/privatliv">Se privatlivspolitikken.</a>
+      </p>
       {state.type === "success" || state.type === "error" ? (
         <p id={messageId} className={`mk-form-message ${state.type}`} role="status" aria-live="polite">
           {state.message}
@@ -595,8 +646,100 @@ function LegalPage({ route }: { route: LegalRoute }) {
   );
 }
 
+function UnsubscribePage() {
+  const fragmentToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token");
+  const token = fragmentToken ?? new URLSearchParams(window.location.search).get("token") ?? "";
+  const validToken = /^[A-Za-z0-9_-]{43}$/.test(token);
+  const [state, setState] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    window.document.title = "Afmeld ventelisten — Træningsmester";
+    const robots = window.document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (robots) robots.content = "noindex, nofollow, noarchive";
+    let referrer = window.document.querySelector<HTMLMetaElement>('meta[name="referrer"]');
+    if (!referrer) {
+      referrer = window.document.createElement("meta");
+      referrer.name = "referrer";
+      window.document.head.appendChild(referrer);
+    }
+    referrer.content = "no-referrer";
+    const canonical = window.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonical) canonical.href = new URL("/afmeld", siteUrl).href;
+  }, []);
+
+  const withdraw = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!validToken || state === "submitting") return;
+    setState("submitting");
+    try {
+      const response = await fetch(`/api/waitlist-withdraw?token=${encodeURIComponent(token)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      if (!response.ok) throw new Error("withdrawal rejected");
+      window.history.replaceState({}, "", "/afmeld");
+      setState("success");
+    } catch {
+      setState("error");
+    }
+  };
+
+  const heading = state === "success" ? "Du er afmeldt." : "Afmeld ventelisten";
+  const body =
+    state === "success"
+      ? "Din tilmelding er slettet, og du modtager ikke flere ventelistemails fra Træningsmester."
+      : validToken
+        ? "Bekræft herunder, hvis du ikke længere vil modtage e-mails om Træningsmesters lancering og adgangsrunder."
+        : "Afmeldingslinket er ugyldigt, allerede brugt eller mangler. Brug det fulde link fra din bekræftelsesmail.";
+
+  return (
+    <div className="tm-marketing mk-legal-page mk-unsubscribe-page">
+      <header className="mk-legal-header">
+        <a href="/" aria-label="Tilbage til Træningsmester">
+          <Brand />
+        </a>
+        <a className="mk-back-link" href="/">
+          <Arrow direction="left" /> Tilbage
+        </a>
+      </header>
+      <main>
+        <div className="mk-legal-hero">
+          <p className="mk-eyebrow">Samtykke</p>
+          <h1>{heading}</h1>
+          <p>{body}</p>
+        </div>
+        <div className="mk-unsubscribe-action">
+          {state === "success" ? (
+            <a className="mk-unsubscribe-link" href="/">
+              Tilbage til forsiden <Arrow />
+            </a>
+          ) : validToken ? (
+            <form onSubmit={withdraw}>
+              <button type="submit" disabled={state === "submitting"}>
+                {state === "submitting" ? "Afmelder…" : "Ja, slet min tilmelding"}
+              </button>
+              {state === "error" ? (
+                <p role="alert">Afmeldingen kunne ikke gennemføres lige nu. Prøv igen om lidt.</p>
+              ) : null}
+            </form>
+          ) : (
+            <a className="mk-unsubscribe-link" href="/privatliv">
+              Læs privatlivspolitikken <Arrow />
+            </a>
+          )}
+        </div>
+      </main>
+      <MarketingFooter />
+    </div>
+  );
+}
+
 function MarketingSite() {
-  const route = legalRoutes[window.location.pathname.replace(/\/$/, "") || "/"];
+  const pathname = window.location.pathname.replace(/\/$/, "") || "/";
+  if (pathname === "/afmeld") return <UnsubscribePage />;
+  const route = legalRoutes[pathname];
   return route ? <LegalPage route={route} /> : <MarketingHome />;
 }
 

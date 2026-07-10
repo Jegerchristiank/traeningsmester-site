@@ -58,6 +58,10 @@
     {
       "source": "/tilgaengelighed",
       "destination": "/index.html"
+    },
+    {
+      "source": "/afmeld",
+      "destination": "/index.html"
     }
   ]
 }

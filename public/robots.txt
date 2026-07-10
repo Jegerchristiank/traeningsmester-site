@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /app
+Disallow: /afmeld
+Disallow: /api/
 
 Sitemap: https://www.traeningsmester.dk/sitemap.xml

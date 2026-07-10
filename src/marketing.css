@@ -324,7 +324,7 @@ body {
   display: inline-flex;
   min-height: 38px;
   margin: 10px 0 0 18px;
-  align-items: center;
+  align-items: flex-start;
   gap: 9px;
   color: #606c7e;
   cursor: pointer;
@@ -334,8 +334,34 @@ body {
 .mk-consent input {
   width: 17px;
   height: 17px;
-  margin: 0;
+  margin: 2px 0 0;
+  flex: 0 0 auto;
   accent-color: var(--mk-blue);
+}
+
+.mk-consent span {
+  max-width: 680px;
+  line-height: 1.48;
+}
+
+.mk-consent-privacy {
+  margin: -4px 0 0 44px !important;
+  font-size: 0.82rem;
+}
+
+.mk-consent-privacy a {
+  color: var(--mk-blue);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mk-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
 }
 
 .mk-form-message {
@@ -843,6 +869,10 @@ body {
   color: #aebbd0;
 }
 
+.mk-waitlist.is-dark .mk-consent-privacy a {
+  color: #d7e8ff;
+}
+
 .mk-waitlist.is-dark .mk-form-message.error {
   color: #ff9bad;
 }
@@ -967,6 +997,76 @@ body {
 .mk-legal-content p {
   margin-top: 16px !important;
   color: #536074;
+}
+
+.mk-legal-content p a {
+  color: var(--mk-blue);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mk-unsubscribe-page main {
+  max-width: 900px;
+}
+
+.mk-unsubscribe-page .mk-legal-hero {
+  padding-bottom: 72px;
+}
+
+.mk-unsubscribe-page .mk-legal-hero .mk-eyebrow {
+  margin: 0 0 16px !important;
+  color: var(--mk-red);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mk-unsubscribe-action {
+  padding: 42px clamp(34px, 9vw, 140px) 72px;
+}
+
+.mk-unsubscribe-action form {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+}
+
+.mk-unsubscribe-action button,
+.mk-unsubscribe-link {
+  display: inline-flex;
+  min-height: 54px;
+  padding: 0 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff !important;
+  background: var(--mk-blue);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.mk-unsubscribe-action button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.mk-unsubscribe-action p {
+  margin: 0;
+  color: #bd1830;
+  font-weight: 700;
+}
+
+.mk-unsubscribe-link svg {
+  width: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 @media (max-width: 1180px) {

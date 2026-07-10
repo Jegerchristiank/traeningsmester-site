@@ -1,3 +1,12 @@
+import { createHash } from "node:crypto";
+import {
+  deriveWithdrawalToken,
+  hashWithdrawalToken,
+  readWaitlistMailConfig,
+  sendWaitlistConfirmationEmail,
+  WAITLIST_CONSENT_VERSION
+} from "./_lib/waitlistEmail.js";
+
 type ApiRequest = {
   method?: string;
   body?: unknown;
@@ -19,6 +28,7 @@ type WaitlistPayload = {
   consent?: unknown;
   source?: unknown;
   submittedAt?: unknown;
+  website?: unknown;
 };
 
 type WaitlistRecord = {
@@ -30,9 +40,17 @@ type WaitlistRecord = {
   source: string | null;
   referrer: string | null;
   consent: true;
+  consent_version: typeof WAITLIST_CONSENT_VERSION;
+  confirmation_status: "pending";
+  withdrawal_token_hash: string;
   submitted_at: string | null;
   metadata: {
     capture: "prelaunch-site";
+    client_submitted_at: string | null;
+    consent_channel: "email";
+    consent_controller: "KRISTENSON_CVR_40679456";
+    consent_purposes: ["launch", "access_rounds"];
+    consent_version: typeof WAITLIST_CONSENT_VERSION;
   };
 };
 
@@ -41,6 +59,9 @@ const allowedAudiences = new Set(["begynder", "selvtraenende", "traener", "nysge
 const defaultSupabaseUrl = "https://rbplnybmjwcoigiwtkuh.supabase.co";
 const defaultSupabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicGxueWJtandjb2lnaXd0a3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTUzNDQyNDUsImV4cCI6MjAzMDkyMDI0NX0.12xSasN9rsx8JzJLN_BImCvYu_7oFP_sXHdGWrnN5CM";
+const rateLimitWindowMs = 10 * 60 * 1_000;
+const rateLimitMaximum = 6;
+const requestBuckets = new Map<string, { count: number; resetAt: number }>();
 
 const parseBody = (body: unknown): WaitlistPayload | null => {
   if (!body) return null;
@@ -51,19 +72,12 @@ const parseBody = (body: unknown): WaitlistPayload | null => {
       return null;
     }
   }
-  if (typeof body === "object") {
-    return body as WaitlistPayload;
-  }
+  if (typeof body === "object") return body as WaitlistPayload;
   return null;
 };
 
 const textValue = (value: unknown, maxLength: number) =>
   typeof value === "string" ? value.trim().slice(0, maxLength) : "";
-
-const optionalTextValue = (value: unknown, maxLength: number) => {
-  const valueText = textValue(value, maxLength);
-  return valueText.length > 0 ? valueText : null;
-};
 
 const isoDateValue = (value: unknown) => {
   const valueText = textValue(value, 80);
@@ -72,8 +86,46 @@ const isoDateValue = (value: unknown) => {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 };
 
+const pageUrlValue = (value: unknown, maxLength = 500) => {
+  const raw = textValue(value, 2_000);
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return `${url.origin}${url.pathname}`.slice(0, maxLength);
+  } catch {
+    return null;
+  }
+};
+
 const firstHeader = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
+
+const requestAddress = (req: ApiRequest) =>
+  firstHeader(req.headers["x-forwarded-for"])?.split(",")[0]?.trim() ||
+  req.socket?.remoteAddress?.trim() ||
+  "";
+
+const isRateLimited = (req: ApiRequest) => {
+  const address = requestAddress(req);
+  if (!address) return false;
+  const now = Date.now();
+  const key = createHash("sha256").update(address, "utf8").digest("hex");
+  const current = requestBuckets.get(key);
+
+  if (!current || current.resetAt <= now) {
+    requestBuckets.set(key, { count: 1, resetAt: now + rateLimitWindowMs });
+    return false;
+  }
+
+  current.count += 1;
+  if (requestBuckets.size > 1_000) {
+    for (const [bucketKey, bucket] of requestBuckets) {
+      if (bucket.resetAt <= now) requestBuckets.delete(bucketKey);
+    }
+  }
+  return current.count > rateLimitMaximum;
+};
 
 const supabaseBaseUrl = () =>
   (process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? defaultSupabaseUrl)
@@ -92,7 +144,6 @@ const supabaseApiKey = () =>
 const saveToSupabase = async (record: WaitlistRecord) => {
   const baseUrl = supabaseBaseUrl();
   const apiKey = supabaseApiKey();
-  if (!baseUrl || !apiKey) return null;
 
   const response = await fetch(`${baseUrl}/rest/v1/prelaunch_waitlist_signups`, {
     method: "POST",
@@ -105,14 +156,56 @@ const saveToSupabase = async (record: WaitlistRecord) => {
     body: JSON.stringify(record)
   });
 
-  if (response.ok) return "inserted";
+  if (response.ok) return "inserted" as const;
 
   const responseText = await response.text().catch(() => "");
   if (response.status === 409 && responseText.includes("23505")) {
-    return "duplicate";
+    return "duplicate" as const;
   }
 
-  throw new Error(`Supabase waitlist insert failed: ${response.status} ${responseText.slice(0, 300)}`);
+  throw new Error(`WAITLIST_INSERT_${response.status}`);
+};
+
+const callWaitlistRpc = async (name: string, body: Record<string, unknown>) => {
+  const baseUrl = supabaseBaseUrl();
+  const apiKey = supabaseApiKey();
+  const response = await fetch(`${baseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: apiKey,
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) throw new Error(`WAITLIST_RPC_${name}_${response.status}`);
+  return (await response.json()) as unknown;
+};
+
+const claimConfirmation = async (token: string) => {
+  const claimId = await callWaitlistRpc("tm_claim_prelaunch_waitlist_confirmation", {
+    p_token: token
+  });
+  return typeof claimId === "string" && /^[0-9a-f-]{36}$/i.test(claimId) ? claimId : null;
+};
+
+const finishConfirmation = async (
+  token: string,
+  claimId: string,
+  accepted: boolean,
+  messageId: string | null
+) =>
+  (await callWaitlistRpc("tm_finish_prelaunch_waitlist_confirmation", {
+    p_token: token,
+    p_claim_id: claimId,
+    p_accepted: accepted,
+    p_message_id: messageId
+  })) === true;
+
+const safeErrorCode = (error: unknown) => {
+  if (!(error instanceof Error)) return "UNKNOWN";
+  return error.message.match(/^[A-Z0-9_]{3,180}$/)?.[0] ?? "UNCLASSIFIED";
 };
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -139,7 +232,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const email = textValue(body.email, 180).toLowerCase();
   const audience = textValue(body.audience, 40) || "nysgerrig";
   const audienceLabel = textValue(body.audienceLabel, 80) || "Pre-launch signup";
-  const source = textValue(body.source, 220);
+  const source = pageUrlValue(body.source, 220);
   const submittedAt = isoDateValue(body.submittedAt);
 
   if (!emailPattern.test(email)) {
@@ -157,6 +250,27 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
+  if (textValue(body.website, 200)) {
+    res.status(200).json({ ok: true, confirmation: "accepted" });
+    return;
+  }
+
+  if (isRateLimited(req)) {
+    res.status(429).json({ ok: false, code: "RATE_LIMITED" });
+    return;
+  }
+
+  let mailConfig: ReturnType<typeof readWaitlistMailConfig>;
+  let withdrawalToken: string;
+  try {
+    mailConfig = readWaitlistMailConfig();
+    withdrawalToken = deriveWithdrawalToken(email, mailConfig.tokenSecret);
+  } catch (error) {
+    console.error(`[waitlist] mail configuration rejected: ${safeErrorCode(error)}`);
+    res.status(503).json({ ok: false, code: "MAIL_NOT_CONFIGURED" });
+    return;
+  }
+
   const record: WaitlistRecord = {
     email,
     audience,
@@ -164,20 +278,58 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     name: null,
     note: null,
     source: source || "prelaunch-site",
-    referrer: optionalTextValue(firstHeader(req.headers.referer), 500),
+    referrer: pageUrlValue(firstHeader(req.headers.referer)),
     consent: true,
-    submitted_at: submittedAt,
+    consent_version: WAITLIST_CONSENT_VERSION,
+    confirmation_status: "pending",
+    withdrawal_token_hash: `\\x${hashWithdrawalToken(withdrawalToken)}`,
+    submitted_at: new Date().toISOString(),
     metadata: {
-      capture: "prelaunch-site"
+      capture: "prelaunch-site",
+      client_submitted_at: submittedAt,
+      consent_channel: "email",
+      consent_controller: "KRISTENSON_CVR_40679456",
+      consent_purposes: ["launch", "access_rounds"],
+      consent_version: WAITLIST_CONSENT_VERSION
     }
   };
 
   try {
-    const result = await saveToSupabase(record);
-    res.status(200).json({ ok: true, stored: "supabase", duplicate: result === "duplicate" });
-    return;
+    await saveToSupabase(record);
   } catch {
     res.status(502).json({ ok: false, code: "DATABASE_REJECTED" });
     return;
+  }
+
+  let claimId: string | null = null;
+  try {
+    claimId = await claimConfirmation(withdrawalToken);
+  } catch (error) {
+    console.error(`[waitlist] confirmation claim failed: ${safeErrorCode(error)}`);
+    res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
+    return;
+  }
+
+  if (!claimId) {
+    res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
+    return;
+  }
+
+  try {
+    const delivery = await sendWaitlistConfirmationEmail(email, withdrawalToken, mailConfig);
+    try {
+      await finishConfirmation(withdrawalToken, claimId, true, delivery.messageId);
+    } catch (error) {
+      console.error(`[waitlist] confirmation acknowledgement failed: ${safeErrorCode(error)}`);
+    }
+    res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
+  } catch (error) {
+    console.error(`[waitlist] confirmation delivery failed: ${safeErrorCode(error)}`);
+    try {
+      await finishConfirmation(withdrawalToken, claimId, false, null);
+    } catch (finishError) {
+      console.error(`[waitlist] confirmation failure state failed: ${safeErrorCode(finishError)}`);
+    }
+    res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
   }
 }
