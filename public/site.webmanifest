@@ -1,17 +1,18 @@
 {
   "name": "Træningsmester",
   "short_name": "Træningsmester",
-  "description": "Pre-launch side for den danske træningsapp Træningsmester.",
+  "description": "Dansk app til personlig træning, træningslog og historik.",
   "lang": "da-DK",
-  "start_url": "/",
+  "id": "/app",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0b0f14",
-  "theme_color": "#0b0f14",
+  "background_color": "#f4f7fc",
+  "theme_color": "#f4f7fc",
   "icons": [
     {
       "src": "/brand/app-icon.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     }

@@ -33,5 +33,31 @@
       "destination": "https://www.traeningsmester.dk/:path*",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/app",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privatliv",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vilkaar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cookies",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tilgaengelighed",
+      "destination": "/index.html"
+    }
   ]
 }
