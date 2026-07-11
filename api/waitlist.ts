@@ -54,6 +54,8 @@ type WaitlistRecord = {
   };
 };
 
+type WaitlistConsentMetadata = WaitlistRecord["metadata"];
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const allowedAudiences = new Set(["begynder", "selvtraenende", "traener", "nysgerrig"]);
 const defaultSupabaseUrl = "https://rbplnybmjwcoigiwtkuh.supabase.co";
@@ -141,6 +143,14 @@ const supabaseApiKey = () =>
     defaultSupabaseAnonKey
   ).trim();
 
+const supabaseSecretKey = () => {
+  const secretKey = (process.env.SUPABASE_SECRET_KEY ?? "").trim();
+  if (!/^sb_secret_[A-Za-z0-9_-]{20,}$/.test(secretKey)) {
+    throw new Error("WAITLIST_SUPABASE_SECRET_INVALID");
+  }
+  return secretKey;
+};
+
 const saveToSupabase = async (record: WaitlistRecord) => {
   const baseUrl = supabaseBaseUrl();
   const apiKey = supabaseApiKey();
@@ -166,14 +176,17 @@ const saveToSupabase = async (record: WaitlistRecord) => {
   throw new Error(`WAITLIST_INSERT_${response.status}`);
 };
 
-const callWaitlistRpc = async (name: string, body: Record<string, unknown>) => {
+const callPrivilegedWaitlistRpc = async (
+  name: string,
+  body: Record<string, unknown>,
+  secretKey: string
+) => {
   const baseUrl = supabaseBaseUrl();
-  const apiKey = supabaseApiKey();
   const response = await fetch(`${baseUrl}/rest/v1/rpc/${name}`, {
     method: "POST",
     headers: {
-      apikey: apiKey,
-      Authorization: `Bearer ${apiKey}`,
+      apikey: secretKey,
+      Authorization: `Bearer ${secretKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
@@ -183,10 +196,12 @@ const callWaitlistRpc = async (name: string, body: Record<string, unknown>) => {
   return (await response.json()) as unknown;
 };
 
-const claimConfirmation = async (token: string) => {
-  const claimId = await callWaitlistRpc("tm_claim_prelaunch_waitlist_confirmation", {
-    p_token: token
-  });
+const claimConfirmation = async (token: string, secretKey: string) => {
+  const claimId = await callPrivilegedWaitlistRpc(
+    "tm_claim_prelaunch_waitlist_confirmation",
+    { p_token: token },
+    secretKey
+  );
   return typeof claimId === "string" && /^[0-9a-f-]{36}$/i.test(claimId) ? claimId : null;
 };
 
@@ -194,21 +209,51 @@ const finishConfirmation = async (
   token: string,
   claimId: string,
   accepted: boolean,
-  messageId: string | null
+  messageId: string | null,
+  secretKey: string
 ) =>
-  (await callWaitlistRpc("tm_finish_prelaunch_waitlist_confirmation", {
-    p_token: token,
-    p_claim_id: claimId,
-    p_accepted: accepted,
-    p_message_id: messageId
-  })) === true;
+  (await callPrivilegedWaitlistRpc(
+    "tm_finish_prelaunch_waitlist_confirmation",
+    {
+      p_token: token,
+      p_claim_id: claimId,
+      p_accepted: accepted,
+      p_message_id: messageId
+    },
+    secretKey
+  )) === true;
+
+const refreshLegacySignup = async (
+  email: string,
+  withdrawalTokenHash: string,
+  consentMetadata: WaitlistConsentMetadata,
+  secretKey: string
+) =>
+  (await callPrivilegedWaitlistRpc(
+    "tm_refresh_legacy_prelaunch_waitlist_signup",
+    {
+      p_email: email,
+      p_confirmation_token_hash: withdrawalTokenHash,
+      p_consent_version: WAITLIST_CONSENT_VERSION,
+      p_consent_metadata: consentMetadata
+    },
+    secretKey
+  )) === true;
 
 const safeErrorCode = (error: unknown) => {
   if (!(error instanceof Error)) return "UNKNOWN";
   return error.message.match(/^[A-Z0-9_]{3,180}$/)?.[0] ?? "UNCLASSIFIED";
 };
 
-export default async function handler(req: ApiRequest, res: ApiResponse) {
+type WaitlistHandlerDependencies = {
+  sendConfirmationEmail: typeof sendWaitlistConfirmationEmail;
+};
+
+export const createWaitlistHandler = (
+  dependencies: Partial<WaitlistHandlerDependencies> = {}
+) => async function handler(req: ApiRequest, res: ApiResponse) {
+  const sendConfirmationEmail =
+    dependencies.sendConfirmationEmail ?? sendWaitlistConfirmationEmail;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   if (req.method === "OPTIONS") {
@@ -271,6 +316,18 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return;
   }
 
+  let secretKey: string;
+  try {
+    // Validate this server-only capability before looking up or inserting the
+    // address. That keeps a missing/misconfigured key from becoming a way to
+    // distinguish existing waitlist members from new addresses.
+    secretKey = supabaseSecretKey();
+  } catch (error) {
+    console.error(`[waitlist] database capability rejected: ${safeErrorCode(error)}`);
+    res.status(503).json({ ok: false, code: "SERVICE_NOT_CONFIGURED" });
+    return;
+  }
+
   const record: WaitlistRecord = {
     email,
     audience,
@@ -294,16 +351,33 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
   };
 
+  let saveResult: Awaited<ReturnType<typeof saveToSupabase>>;
   try {
-    await saveToSupabase(record);
+    saveResult = await saveToSupabase(record);
   } catch {
     res.status(502).json({ ok: false, code: "DATABASE_REJECTED" });
     return;
   }
 
+  if (saveResult === "duplicate") {
+    try {
+      await refreshLegacySignup(
+        email,
+        record.withdrawal_token_hash,
+        record.metadata,
+        secretKey
+      );
+    } catch (error) {
+      // A duplicate must keep the same public response regardless of whether it is
+      // a legacy, pending, accepted or withdrawn row. The subsequent claim remains
+      // safe and lets already-pending/failed rows use their existing retry path.
+      console.error(`[waitlist] legacy consent refresh failed: ${safeErrorCode(error)}`);
+    }
+  }
+
   let claimId: string | null = null;
   try {
-    claimId = await claimConfirmation(withdrawalToken);
+    claimId = await claimConfirmation(withdrawalToken, secretKey);
   } catch (error) {
     console.error(`[waitlist] confirmation claim failed: ${safeErrorCode(error)}`);
     res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
@@ -316,9 +390,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   try {
-    const delivery = await sendWaitlistConfirmationEmail(email, withdrawalToken, mailConfig);
+    const delivery = await sendConfirmationEmail(email, withdrawalToken, mailConfig);
     try {
-      await finishConfirmation(withdrawalToken, claimId, true, delivery.messageId);
+      await finishConfirmation(
+        withdrawalToken,
+        claimId,
+        true,
+        delivery.messageId,
+        secretKey
+      );
     } catch (error) {
       console.error(`[waitlist] confirmation acknowledgement failed: ${safeErrorCode(error)}`);
     }
@@ -326,10 +406,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   } catch (error) {
     console.error(`[waitlist] confirmation delivery failed: ${safeErrorCode(error)}`);
     try {
-      await finishConfirmation(withdrawalToken, claimId, false, null);
+      await finishConfirmation(withdrawalToken, claimId, false, null, secretKey);
     } catch (finishError) {
       console.error(`[waitlist] confirmation failure state failed: ${safeErrorCode(finishError)}`);
     }
     res.status(200).json({ ok: true, stored: "supabase", confirmation: "accepted" });
   }
-}
+};
+
+export default createWaitlistHandler();

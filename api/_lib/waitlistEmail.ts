@@ -50,6 +50,13 @@ const emailValue = (value: string, key: string) => {
   return value;
 };
 
+const smtpUsernameValue = (value: string) => {
+  if (value.length > 320 || /[\u0000-\u001F\u007F]/.test(value)) {
+    throw new Error("WAITLIST_MAIL_CONFIG_INVALID_TM_SMTP_USER");
+  }
+  return value;
+};
+
 const booleanValue = (value: string | undefined, fallback: boolean) => {
   if (!value?.trim()) return fallback;
   if (value.trim().toLowerCase() === "true") return true;
@@ -81,7 +88,9 @@ export function readWaitlistMailConfig(
   const host = requiredValue(env, "TM_SMTP_HOST");
   const port = portValue(env.TM_SMTP_PORT);
   const secure = booleanValue(env.TM_SMTP_SECURE, port === 465);
-  const user = emailValue(requiredValue(env, "TM_SMTP_USER"), "TM_SMTP_USER");
+  // SMTP usernames are provider credentials and are not necessarily email
+  // addresses (Resend deliberately uses the literal username `resend`).
+  const user = smtpUsernameValue(requiredValue(env, "TM_SMTP_USER"));
   const pass = requiredValue(env, "TM_SMTP_PASS");
   const fromEmail = emailValue(env.TM_MAIL_FROM?.trim() || user, "TM_MAIL_FROM");
   const envelopeFrom = emailValue(

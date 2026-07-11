@@ -64,24 +64,33 @@ tracking eller reklame og har et tokeniseret afmeldingslink. Linkets GET-side
 ændrer ikke data; sletningen sker først ved brugerens POST-bekræftelse. En
 one-click POST fra mailklientens `List-Unsubscribe`-funktion er også understøttet.
 
-Supabase-kontrakten holder levering idempotent. Kun `pending`, `failed` eller en
-stale `sending`-række kan claim'es til udsendelse. En allerede accepteret mail
-sendes ikke igen ved en dublettilmelding. Eksisterende rækker fra før mailflowet
-forbliver `legacy` og får ikke automatisk mail. Samtykkets autoritative tidspunkt
-skrives af serveren; browserens tidspunkt gemmes kun som sekundær metadata.
+Supabase-kontrakten bruger en claim-fence. Kun `pending`, `failed` eller en stale
+`sending`-række kan claim'es til udsendelse. En allerede accepteret mail sendes
+ikke igen ved en dublettilmelding. Leveringen er dog teknisk *at-least-once*: et
+procescrash efter SMTP-accept, men før database-acknowledgement, kan medføre et
+nyt forsøg efter claim-leasens udløb. Eksisterende `legacy`-rækker får kun det
+nuværende samtykke og en kvittering, hvis personen aktivt tilmelder sig igen i
+den nye formular. Samtykkets autoritative tidspunkt skrives af serveren;
+browserens tidspunkt gemmes kun som sekundær metadata.
 
 Optional waitlist environment overrides:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`
 
+Required server-only Supabase capability:
+
+- `SUPABASE_SECRET_KEY` (`sb_secret_...`) bruges kun af server-endpointet til de
+  `service_role`-beskyttede RPC'er for confirmation claim/finish og legacy
+  refresh. Almindelig insert bruger fortsat publishable/anon-nøglen.
+
 Required server-only mail variables:
 
-- `TM_SMTP_HOST` (Nordicway: `cp13.nordicway.dk`)
+- `TM_SMTP_HOST` (production: `smtp.resend.com`)
 - `TM_SMTP_PORT` (`465`)
 - `TM_SMTP_SECURE` (`true` for port 465)
-- `TM_SMTP_USER`
-- `TM_SMTP_PASS`
+- `TM_SMTP_USER` (`resend`; SMTP usernames are not required to be emails)
+- `TM_SMTP_PASS` (server-only Resend API key)
 - `TM_SMTP_ENVELOPE_FROM`
 - `TM_MAIL_FROM`
 - `TM_MAIL_FROM_NAME`
@@ -90,17 +99,19 @@ Required server-only mail variables:
   waitlist mails can derive the same withdrawal token)
 - `PUBLIC_SITE_URL` (`https://www.traeningsmester.dk`)
 
-These variables must be configured in Vercel as server-only values. Never use a
-`VITE_` prefix for SMTP credentials or `WAITLIST_TOKEN_SECRET`.
+These variables and `SUPABASE_SECRET_KEY` must be configured in Vercel as
+server-only values. Never use a `VITE_` prefix for SMTP credentials,
+`WAITLIST_TOKEN_SECRET` or `SUPABASE_SECRET_KEY`.
 
-Delivery readiness also requires the exact MX, SPF and DKIM records supplied by
-Nordicway/cPanel plus an intentional DMARC policy on `traeningsmester.dk`. Do not
-guess these DNS values. SMTP acceptance alone does not prove inbox delivery.
+Production delivery uses Resend SMTP with the verified `traeningsmester.dk`
+sender domain. Keep its SPF/DKIM records and an intentional DMARC policy valid;
+SMTP acceptance alone does not prove inbox delivery.
 
 The endpoint keeps an in-memory burst limit and a hidden honeypot as basic abuse
-protection. The database uniqueness constraint and atomic claim prevent repeated
-mails to the same address; Vercel Firewall/Turnstile can be added if public abuse
-becomes visible.
+protection. The database uniqueness constraint and fenced claim prevent normal
+duplicate submissions from sending repeated mails; the documented crash window
+still means delivery is at-least-once. Vercel Firewall/Turnstile can be added if
+public abuse becomes visible.
 
 Run the email/template tests and the full build with:
 

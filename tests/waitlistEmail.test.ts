@@ -13,10 +13,10 @@ import {
 } from "../api/_lib/waitlistEmail.ts";
 
 const runtimeEnvironment = {
-  TM_SMTP_HOST: "cp13.nordicway.dk",
+  TM_SMTP_HOST: "smtp.resend.com",
   TM_SMTP_PORT: "465",
   TM_SMTP_SECURE: "true",
-  TM_SMTP_USER: "waitlist@traeningsmester.dk",
+  TM_SMTP_USER: "resend",
   TM_SMTP_PASS: "test-password-never-used",
   TM_SMTP_ENVELOPE_FROM: "waitlist@traeningsmester.dk",
   TM_MAIL_FROM: "waitlist@traeningsmester.dk",
@@ -40,9 +40,10 @@ test("withdrawal tokens are deterministic, normalized and opaque", () => {
 test("mail configuration keeps secrets server-side and uses bounded SMTPS", () => {
   const config = readWaitlistMailConfig(runtimeEnvironment);
 
-  assert.equal(config.smtp.host, "cp13.nordicway.dk");
+  assert.equal(config.smtp.host, "smtp.resend.com");
   assert.equal(config.smtp.port, 465);
   assert.equal(config.smtp.secure, true);
+  assert.equal(config.smtp.auth?.user, "resend");
   assert.equal(config.smtp.connectionTimeout, 8_000);
   assert.equal(config.smtp.socketTimeout, 15_000);
   assert.equal(config.smtp.debug, false);
@@ -62,6 +63,10 @@ test("mail configuration rejects missing or weak server secrets", () => {
   assert.throws(
     () => readWaitlistMailConfig({ ...runtimeEnvironment, PUBLIC_SITE_URL: "ftp://localhost" }),
     /WAITLIST_MAIL_CONFIG_INVALID_PUBLIC_SITE_URL/
+  );
+  assert.throws(
+    () => readWaitlistMailConfig({ ...runtimeEnvironment, TM_SMTP_USER: "resend\nadmin" }),
+    /WAITLIST_MAIL_CONFIG_INVALID_TM_SMTP_USER/
   );
 });
 
