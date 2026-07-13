@@ -8,11 +8,14 @@ const DEFAULT_POSTER = "/animation/bear-hat-poster.png";
 
 type SceneStatus = "fallback" | "loading" | "poster" | "ready";
 
-const INTERACTION_COPY: Record<BearInteractionTarget, string> = {
-  head: "Bjørnen læner sig glad ind i nusset.",
-  belly: "Bjørnen vrikker med maven.",
-  leftArm: "Bjørnen løfter armen til venstre.",
-  rightArm: "Bjørnen vinker med armen til højre.",
+const INTERACTION_COPY: Record<
+  BearInteractionTarget,
+  string
+> = {
+  head: "Hovedreaktion aktiveret.",
+  belly: "Mavereaktion aktiveret.",
+  leftArm: "Venstre armreaktion aktiveret.",
+  rightArm: "Højre armreaktion aktiveret.",
 };
 
 const INTERACTION_TARGETS: Array<{
@@ -163,6 +166,7 @@ export default function BearHatScene({
       {INTERACTION_TARGETS.map((item) => (
         <button
           aria-label={item.label}
+          aria-pressed={interaction === item.target}
           className={`bear-interaction-target ${item.className}`}
           data-testid={`bear-${item.target}`}
           key={item.target}
@@ -170,11 +174,10 @@ export default function BearHatScene({
           type="button"
         />
       ))}
-      <p aria-live="polite" className="bear-interaction-status" id={statusId}>
-        {interaction
-          ? INTERACTION_COPY[interaction]
-          : "Tryk på hovedet, maven eller armene."}
-      </p>
+      <span aria-live="polite" className="mk-sr-only" id={statusId}>
+        {(interaction ? INTERACTION_COPY[interaction] : undefined) ??
+          "Tryk på hovedet, maven eller armene for at få bjørnen til at reagere."}
+      </span>
     </div>
   );
 }

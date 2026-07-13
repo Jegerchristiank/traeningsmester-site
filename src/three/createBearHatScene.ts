@@ -3,7 +3,7 @@ import * as THREE from "three";
 const DURATION_SECONDS = 5.2;
 const LOOP_SECONDS = DURATION_SECONDS * 2;
 const LOOP_MILLISECONDS = LOOP_SECONDS * 1000;
-const INTERACTION_DURATION_MILLISECONDS = 900;
+const INTERACTION_DURATION_MILLISECONDS = 1400;
 const BRAND_BLUE = 0x0047ab;
 const BRAND_RED = 0xe31836;
 const INK = 0x101319;
@@ -607,34 +607,42 @@ export function createBearHatScene(
     }
 
     const envelope = Math.sin(progress * Math.PI);
-    const wiggle = Math.sin(progress * Math.PI * 6) * envelope;
+    const wiggle = Math.sin(progress * Math.PI * 8) * envelope;
 
     switch (activeInteraction.target) {
       case "head":
-        // A soft lean and side-to-side nuzzle, layered on top of the hat animation.
-        head.rotation.y += wiggle * 0.045;
-        head.rotation.z += -0.16 * envelope + wiggle * 0.035;
-        head.position.x -= 0.1 * envelope;
-        head.position.y -= 0.035 * envelope;
-        head.scale.set(1 + envelope * 0.025, 1 - envelope * 0.015, 1 + envelope * 0.025);
+        // A clearly readable nuzzle: closed eyes, a soft lean and a happy sway.
+        head.rotation.y += wiggle * 0.075;
+        head.rotation.z += -0.3 * envelope + wiggle * 0.055;
+        head.position.x -= 0.17 * envelope;
+        head.position.y -= 0.07 * envelope;
+        head.scale.set(1 + envelope * 0.05, 1 - envelope * 0.025, 1 + envelope * 0.05);
+        leftEye.scale.y *= 1 - envelope * 0.78;
+        rightEye.scale.y *= 1 - envelope * 0.78;
+        bear.rotation.z += wiggle * 0.035;
         break;
       case "belly":
-        belly.scale.x *= 1 + envelope * 0.13 + wiggle * 0.025;
-        belly.scale.y *= 1 - envelope * 0.08;
-        bear.rotation.z += wiggle * 0.025;
+        belly.scale.x *= 1 + envelope * 0.28 + wiggle * 0.065;
+        belly.scale.y *= 1 - envelope * 0.16;
+        body.scale.x *= 1 + envelope * 0.055;
+        bear.rotation.z += wiggle * 0.06;
+        bear.position.y += Math.abs(wiggle) * 0.055;
         break;
       case "leftArm":
         leftArm.shoulder.rotation.z = lerp(
           leftArm.shoulder.rotation.z,
-          -1.32,
+          -1.62,
           envelope,
         );
-        leftArm.elbow.rotation.z -= envelope * 0.24 + wiggle * 0.08;
+        leftArm.elbow.rotation.z -= envelope * 0.36 + wiggle * 0.14;
+        bear.rotation.z += envelope * 0.045;
         break;
       case "rightArm":
-        rightArm.shoulder.rotation.z += envelope * 0.16;
-        rightArm.elbow.rotation.z += envelope * 0.18 + wiggle * 0.11;
-        rightArm.paw.rotation.z += wiggle * 0.15;
+        rightArm.shoulder.rotation.z += envelope * 0.24;
+        rightArm.elbow.rotation.z += envelope * 0.28 + wiggle * 0.22;
+        rightArm.paw.rotation.z += wiggle * 0.32;
+        hat.rotation.z += wiggle * 0.24;
+        hat.position.y += Math.abs(wiggle) * 0.06;
         break;
     }
   };
