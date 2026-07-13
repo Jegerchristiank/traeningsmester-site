@@ -576,6 +576,17 @@ export function saveState(state: AppState) {
   }
 }
 
+export function clearStoredAppState(email?: string) {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+    if (email) {
+      window.localStorage.removeItem(accountStateKey(email));
+    }
+  } catch {
+    /* Local persistence can be unavailable in restricted browser contexts. */
+  }
+}
+
 export function buildSession(program: TrainingProgram, day: WorkoutDay): ActiveSession {
   return {
     id: id("session"),

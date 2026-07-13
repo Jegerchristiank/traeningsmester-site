@@ -3110,6 +3110,37 @@ p {
   text-align: center;
 }
 
+.auth-loading {
+  justify-items: center;
+}
+
+.consent-gate {
+  max-width: 560px;
+}
+
+.auth-consent {
+  align-items: flex-start;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.auth-consent input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+.auth-consent a {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.auth-consent small {
+  display: block;
+  margin-top: 4px;
+  color: var(--soft);
+}
+
 .auth-helper {
   color: var(--muted);
   font-size: 0.86rem;

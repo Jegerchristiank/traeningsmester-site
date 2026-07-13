@@ -48,9 +48,18 @@ Ved login henter webappen første gang:
 - `user_trackerlog_exercises`
 - `activity_sessions`
 
-Local storage bruges fortsat som browser-cache og fallback, når Supabase ikke er
-konfigureret. Brugerens efterfølgende redigeringer i webappen gemmes lokalt og er
-endnu ikke fuldt synkroniseret tilbage til Supabase.
+Local storage bruges fortsat som browser-cache, mens brugeren er logget ind.
+Brugerens efterfølgende redigeringer i webappen gemmes lokalt og er endnu ikke
+fuldt synkroniseret tilbage til Supabase. Logout rydder den aktuelle appkopi.
+Lokal konto-login er kun tilgængeligt i Vites udviklingsbuilds; en
+produktionsbuild uden Supabase viser en utilgængelig state i stedet for at
+oprette browserbaserede konti.
+
+Ved oprettelse af en ny Supabase-konto skal brugeren særskilt tage stilling til
+behandling af egne trænings-, kropsvægt- og aktivitetsdata. Eksisterende konti
+uden den aktuelle version møder samme valg før appens dataflader. Samtykkets
+valg, version og tidspunkt gemmes med Auth-brugeren og bruges ikke til
+authorization.
 
 ## Waitlist
 
@@ -107,6 +116,10 @@ Production delivery uses Resend SMTP with the verified `traeningsmester.dk`
 sender domain. Keep its SPF/DKIM records and an intentional DMARC policy valid;
 SMTP acceptance alone does not prove inbox delivery.
 
+Sæt `TM_MAIL_REPLY_TO` til en overvåget postkasse. Den offentlige kontaktmail er
+aktuelt `christiankristensen123@gmail.com`; opret og verificer først en branded
+adresse, før den erstatter denne.
+
 The endpoint keeps an in-memory burst limit and a hidden honeypot as basic abuse
 protection. The database uniqueness constraint and fenced claim prevent normal
 duplicate submissions from sending repeated mails; the documented crash window
@@ -119,6 +132,9 @@ Run the email/template tests and the full build with:
 npm test
 npm run build
 ```
+
+Den tekniske juridiske baseline og de fortsatte driftskrav er beskrevet i
+[`docs/legal-compliance.md`](docs/legal-compliance.md).
 
 ## Domains
 

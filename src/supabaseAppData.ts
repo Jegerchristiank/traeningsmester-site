@@ -36,7 +36,19 @@ type RemoteMatchState = {
 export type SupabaseAccountState = {
   account: LocalAccount;
   state: AppState;
+  healthDataConsentRecorded: boolean;
 };
+
+export const HEALTH_DATA_CONSENT_VERSION = "health_activity_processing_v1";
+
+function hasCurrentHealthDataConsent(user: User) {
+  const metadata = user.user_metadata;
+  return (
+    metadata?.health_data_consent === true &&
+    metadata?.health_data_consent_version === HEALTH_DATA_CONSENT_VERSION &&
+    typeof metadata?.health_data_consented_at === "string"
+  );
+}
 
 const exerciseColumns =
   "id,navn,name_da,name_en,image_url,imagine_url,beskrivelse,muskelgruppe,primary_muscle_group,equipment_raw";
@@ -569,6 +581,28 @@ async function buildSupabaseStateForUser(
   options: { onboardingCompleted?: boolean } = {}
 ): Promise<SupabaseAccountState> {
   const account = accountFromUser(user);
+  const healthDataConsentRecorded = hasCurrentHealthDataConsent(user);
+  if (!healthDataConsentRecorded) {
+    return {
+      account,
+      healthDataConsentRecorded: false,
+      state: {
+        ...defaultState,
+        auth: { loggedIn: true, onboardingCompleted: false },
+        profile: {
+          ...defaultState.profile,
+          email: account.email,
+          name: account.name
+        },
+        programs: [],
+        history: [],
+        matchQueue: [],
+        likedMatches: [],
+        skippedMatches: [],
+        activeSession: null
+      }
+    };
+  }
   const cached = loadStateForAccount(account, options);
   const settings = await fetchUserSettings(client, user.id);
   const profileMode = profileModeKey(cached.profile.mode);
@@ -581,6 +615,7 @@ async function buildSupabaseStateForUser(
 
   return {
     account,
+    healthDataConsentRecorded,
     state: {
       ...stateWithSettings,
       programs: programs.loaded ? programs.items : cached.programs,
@@ -609,16 +644,24 @@ export async function registerSupabaseAccount(input: {
   email: string;
   password: string;
   name: string;
+  healthDataConsent: boolean;
 }) {
   const client = getSupabaseClient();
   if (!client) return null;
+  if (!input.healthDataConsent) {
+    throw new Error("Du skal tage stilling til behandlingen af dine trænings- og aktivitetsdata.");
+  }
   const cleanEmail = input.email.trim().toLowerCase();
+  const consentedAt = new Date().toISOString();
   const { data, error } = await client.auth.signUp({
     email: cleanEmail,
     password: input.password,
     options: {
       data: {
-        name: input.name.trim() || cleanEmail
+        name: input.name.trim() || cleanEmail,
+        health_data_consent: true,
+        health_data_consent_version: HEALTH_DATA_CONSENT_VERSION,
+        health_data_consented_at: consentedAt
       }
     }
   });
@@ -635,6 +678,22 @@ export async function restoreSupabaseSessionState() {
   const client = getSupabaseClient();
   if (!client) return null;
   return buildSupabaseStateForUser(client, session.user);
+}
+
+export async function recordSupabaseHealthDataConsent() {
+  const client = getSupabaseClient();
+  if (!client) throw new Error("Supabase er ikke konfigureret i denne build.");
+  const { data, error } = await client.auth.updateUser({
+    data: {
+      health_data_consent: true,
+      health_data_consent_version: HEALTH_DATA_CONSENT_VERSION,
+      health_data_consented_at: new Date().toISOString()
+    }
+  });
+  if (error || !data.user) {
+    throw new Error(error?.message || "Samtykket kunne ikke gemmes sikkert.");
+  }
+  return buildSupabaseStateForUser(client, data.user);
 }
 
 export async function signOutSupabaseAccount() {

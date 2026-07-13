@@ -21,7 +21,10 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const company = {
   legalName: "KRISTENSON",
   cvr: "40679456",
-  address: "Blomstergården 13, 4700 Næstved"
+  address: "Blomstergården 13, 4700 Næstved",
+  email: "christiankristensen123@gmail.com",
+  phoneDisplay: "53 63 73 60",
+  phoneHref: "+4553637360"
 };
 
 const legalRoutes: Record<string, LegalRoute> = {
@@ -33,44 +36,65 @@ const legalRoutes: Record<string, LegalRoute> = {
 
 const legalDocuments: Record<
   LegalRoute,
-  { title: string; intro: string; sections: Array<{ title: string; body: ReactNode }> }
+  {
+    title: string;
+    intro: string;
+    updated: string;
+    sections: Array<{ title: string; body: ReactNode }>;
+  }
 > = {
   privatliv: {
     title: "Privatliv",
     intro:
-      "Her kan du se, hvilke oplysninger hjemmesiden og webappen bruger, og hvorfor de er nødvendige.",
+      "Her kan du se, hvilke oplysninger marketinghjemmesiden, ventelisten og den nuværende webapp behandler, hvorfor de bruges, og hvilke valg du har.",
+    updated: "13. juli 2026",
     sections: [
       {
         title: "Dataansvarlig",
         body: (
           <>
             {company.legalName}, CVR {company.cvr}, {company.address}, er virksomheden bag
-            Træningsmester.
+            Træningsmester. Du kan kontakte den dataansvarlige på{" "}
+            <a href={`mailto:${company.email}`}>{company.email}</a> eller{" "}
+            <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>.
           </>
         )
       },
       {
-        title: "Ventelisten",
+        title: "Ventelisten: data, formål og grundlag",
         body:
-          "Når du skriver dig op, gemmer vi din email, samtykkets version, tidspunktet og kilden til tilmeldingen. Formålet er at sende e-mails om Træningsmesters lancering og adgangsrunder. Tilmeldingen slettes, når formålet med ventelisten er afsluttet, eller straks når du bruger afmeldingslinket i en mail."
+          "Når du skriver dig op, gemmer vi din email, et generelt målgruppemærke, siden og en eventuel referrer, samtykkets tekst/version og tidspunkt samt status for bekræftelse og levering. En pseudonymiseret tokenværdi gør sikker afmelding mulig. Formålet er alene at sende e-mails om Træningsmesters lancering og adgangsrunder. Retsgrundlaget er dit samtykke efter GDPR artikel 6, stk. 1, litra a."
+      },
+      {
+        title: "Sikkerhed og misbrug",
+        body:
+          "Ved tilmelding bruges en envejs-hash af forbindelsens IP-adresse midlertidigt til at begrænse automatiseret misbrug. Den rå IP-adresse gemmes ikke i ventelistedatabasen, og den midlertidige rate-limitværdi udløber senest efter 10 minutter i den aktive serverproces. Tekniske drifts- og sikkerhedslogs kan behandles af hostingudbyderen. Grundlaget er den legitime interesse i stabil og sikker drift efter GDPR artikel 6, stk. 1, litra f."
       },
       {
         title: "Når du bruger webappen",
         body:
-          "Hvis du vælger at logge ind på webappen, behandler Supabase konto- og sessionsoplysninger. Programmer, øvelser, historik og aktivitetsdata kan blive hentet fra din Træningsmester-konto. Webappen bruger også nødvendig lokal lagring som cache og til at huske appens tilstand på din enhed."
+          "Webappen bruger Supabase til konto og session og kan hente eller gemme profiloplysninger, programmer, sæt, noter, kropsvægt samt trænings- og aktivitetshistorik. De valgte funktioner leveres på grundlag af GDPR artikel 6, stk. 1, litra b. Ved oprettelse af en ny konto indhentes et særskilt, udtrykkeligt samtykke til oplysninger, der kan afsløre helbred eller fysisk tilstand, efter GDPR artikel 9, stk. 2, litra a. Eksisterende konti uden den aktuelle samtykkeversion bliver bedt om samme valg, før appens dataflader åbnes; version, tidspunkt og valg gemmes med kontoen. Appen gemmer også en lokal kopi på din enhed, så tilstand og igangværende arbejde kan huskes. Der træffes ikke afgørelser alene ved automatiseret behandling, som har retsvirkning eller tilsvarende væsentlig betydning for dig."
       },
       {
-        title: "Retsgrundlag og modtagere",
+        title: "Databehandlere og overførsler",
         body:
-          "Ventelisten bygger på dit samtykke. Supabase bruges til database, Vercel til hjemmesiden og Nordicway til maillevering. Hvis en leverandør behandler oplysninger uden for EU/EØS, sker det på et lovligt overførselsgrundlag. Hjemmesiden og bekræftelsesmailen bruger ingen annoncepixels eller statistiktracking."
+          "Supabase bruges til database og login; Træningsmester-projektet ligger i Supabases EU-region eu-central-1 (Frankfurt). Vercel bruges til hosting og serverfunktioner, og Resend bruges til at levere ventelistemails. Hvis en leverandør eller underdatabehandler behandler oplysninger uden for EU/EØS, skal overførslen være omfattet af et gyldigt grundlag efter GDPR kapitel V, eksempelvis en tilstrækkelighedsafgørelse eller EU-Kommissionens standardkontraktbestemmelser. Du kan bede om oplysninger om det aktuelle grundlag og de relevante garantier via kontaktmailen ovenfor."
+      },
+      {
+        title: "Opbevaring",
+        body:
+          "Ventelistetilmeldingen slettes, når ventelistens formål er afsluttet, eller når du gennemfører afmelding. Webappens aktuelle lokale appkopi ryddes ved logout; data kan også fjernes via browserens indstillinger. Konto- og træningsdata opbevares, mens kontoen er aktiv, og slettes eller anonymiseres efter en gyldig sletteanmodning, medmindre oplysninger skal bevares i en begrænset periode af hensyn til dokumentation, sikkerhed eller et retskrav. Leverandørers backups og sikkerhedslogs udfases efter deres gældende slettecyklusser."
       },
       {
         title: "Dine rettigheder",
         body: (
           <>
-            Du kan bede om indsigt, rettelse eller sletning og kan altid trække samtykket
-            tilbage gratis via afmeldingslinket i mails. Du kan også skrive til virksomhedens
-            adresse ovenfor. Hvis du er utilfreds med behandlingen, kan du klage til{" "}
+            Du kan bede om indsigt, rettelse, sletning, begrænsning og dataportabilitet og kan
+            gøre indsigelse, når behandlingen bygger på en legitim interesse. Samtykke kan
+            altid trækkes tilbage med virkning for fremtiden; ventelistesamtykket trækkes
+            gratis tilbage via afmeldingslinket i mails. Skriv til{" "}
+            <a href={`mailto:${company.email}`}>{company.email}</a>. Hvis du er utilfreds med
+            behandlingen, kan du klage til{" "}
             <a href="https://www.datatilsynet.dk/borger/klage" rel="noreferrer">
               Datatilsynet
             </a>
@@ -84,6 +108,7 @@ const legalDocuments: Record<
     title: "Vilkår",
     intro:
       "Hjemmesiden er en pre-launch side. Den sælger ikke abonnementer eller andre digitale ydelser direkte.",
+    updated: "13. juli 2026",
     sections: [
       {
         title: "Ventelisten",
@@ -99,13 +124,25 @@ const legalDocuments: Record<
         title: "Fremtidige køb",
         body:
           "Hvis betalte funktioner åbner, skal pris, periode, fornyelse, opsigelse og eventuelle fortrydelsesvilkår fremgå i det konkrete betalingsflow før køb."
+      },
+      {
+        title: "Virksomhed og kontakt",
+        body: (
+          <>
+            Træningsmester drives af {company.legalName}, CVR {company.cvr},{" "}
+            {company.address}. Kontakt{" "}
+            <a href={`mailto:${company.email}`}>{company.email}</a> eller{" "}
+            <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>.
+          </>
+        )
       }
     ]
   },
   cookies: {
     title: "Cookiepolitik",
     intro:
-      "Marketinghjemmesiden bruger ingen markedsførings- eller statistikcookies.",
+      "Marketinghjemmesiden bruger ingen markedsførings- eller statistikcookies og sætter ikke unødvendig lokal lagring.",
+    updated: "13. juli 2026",
     sections: [
       {
         title: "På hjemmesiden",
@@ -113,26 +150,32 @@ const legalDocuments: Record<
           "Forsiden, produktinformationen og ventelisten kræver ikke cookies. Appskærme, logo og animation leveres fra samme website."
       },
       {
-        title: "I webappen",
+        title: "Nødvendig lagring i webappen",
         body:
-          "Webappen bruger nødvendig browserlagring til login-session, cache og lokal app-tilstand. Den lagring er nødvendig for, at login og de valgte funktioner kan virke på enheden."
+          "Webappen bruger lokal browserlagring til Supabase-login, cache og appens tilstand. Det kan omfatte konto-id/email, profil og kontaktoplysninger, indstillinger, kropsvægt, programmer, sæt, noter, historik og igangværende træning. Lagringen bruges for at holde dig logget ind og huske dit arbejde på enheden; den bruges ikke til annoncer eller statistik."
+      },
+      {
+        title: "Varighed og sletning",
+        body:
+          "Lokal appdata har ingen automatisk udløbsdato, mens du er logget ind. Logout rydder webappens aktuelle lokale appkopi og Supabase-session. Browseren kan desuden ryddes manuelt via dens indstillinger, hvilket anbefales efter brug på en delt enhed."
       },
       {
         title: "Ingen skjult tracking",
         body:
-          "Der er ikke tilføjet annoncepixels, tredjepartsanalyse eller marketingprofiler på hjemmesiden. Hvis det ændres, skal information og samtykke opdateres først."
+          "Der er ikke tilføjet annoncepixels, tredjepartsanalyse eller marketingprofiler på marketinghjemmesiden. Hvis ikke-nødvendig tracking, embeds eller lagring tilføjes senere, skal den blokeres, indtil du har fået tydelig information og har valgt den til."
       }
     ]
   },
   tilgaengelighed: {
     title: "Tilgængelighed",
     intro:
-      "Træningsmester skal kunne forstås og bruges med tastatur, hjælpemidler og reduceret bevægelse.",
+      "Træningsmester arbejder for, at siden kan forstås og bruges med tastatur, hjælpemidler og reduceret bevægelse.",
+    updated: "13. juli 2026",
     sections: [
       {
         title: "Tastatur og fokus",
         body:
-          "Navigation, formularer, FAQ og links kan nås med tastatur. Interaktive elementer har synlig fokusmarkering og tydelige navne."
+          "Navigation, formularer, FAQ og links er bygget med navngivne standardelementer og synlig fokusmarkering. Mobilmenuen lukker med Escape, låser baggrunden, mens den er åben, og fører fokus tilbage til en logisk placering."
       },
       {
         title: "Bevægelse og grafik",
@@ -141,8 +184,14 @@ const legalDocuments: Record<
       },
       {
         title: "Kontrast og tekst",
-        body:
-          "Siden bruger høj kontrast, fleksibel tekststørrelse og responsive layouts. Hvis du oplever en barriere, kan du sende en skriftlig henvendelse til virksomhedens adresse."
+        body: (
+          <>
+            Siden bruger tydelig kontrast, fleksibel tekststørrelse og responsive layouts. Hvis
+            du oplever en barriere, kan du skrive til{" "}
+            <a href={`mailto:${company.email}`}>{company.email}</a> og beskrive siden og
+            problemet.
+          </>
+        )
       }
     ]
   }
@@ -185,6 +234,12 @@ const featureRows = [
     title: "Styrke, cardio og historik",
     body: "Følg styrketræning og kondition i samme personlige historik uden at blande dine data med et offentligt feed."
   }
+];
+
+const heroSignals = [
+  { label: "Planlæg", value: "Dit eget program" },
+  { label: "Log", value: "Sæt, vægt og pauser" },
+  { label: "Følg", value: "Styrke og cardio samlet" }
 ];
 
 const faqRows = [
@@ -364,43 +419,85 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
 
 function MarketingHeader() {
   const [open, setOpen] = useState(false);
+  const brandRef = useRef<HTMLAnchorElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Escape" || !open) return;
+      setOpen(false);
+      menuRef.current?.focus();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, []);
+  }, [open]);
+
+  useEffect(() => {
+    const main = window.document.querySelector<HTMLElement>(".tm-marketing main");
+    const footer = window.document.querySelector<HTMLElement>(".tm-marketing footer");
+    const previousOverflow = window.document.body.style.overflow;
+    const background = [main, footer, brandRef.current].filter(Boolean) as HTMLElement[];
+
+    if (open) {
+      background.forEach((element) => element.setAttribute("inert", ""));
+      window.document.body.style.overflow = "hidden";
+    } else {
+      background.forEach((element) => element.removeAttribute("inert"));
+    }
+
+    return () => {
+      background.forEach((element) => element.removeAttribute("inert"));
+      window.document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  const closeForDestination = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const selector = event.currentTarget.getAttribute("href");
+    setOpen(false);
+    if (!selector?.startsWith("#")) return;
+    window.requestAnimationFrame(() => {
+      const target = window.document.querySelector<HTMLElement>(selector);
+      if (!target) return;
+      target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+    });
+  };
 
   return (
     <header className="mk-header">
-      <a className="mk-brand-link" href="#top" aria-label="Træningsmester forside">
+      <a ref={brandRef} className="mk-brand-link" href="#top" aria-label="Træningsmester forside">
         <Brand />
       </a>
-      <nav className={`mk-nav ${open ? "is-open" : ""}`} aria-label="Hovednavigation">
-        <a href="#saadan" onClick={() => setOpen(false)}>
-          Sådan virker det
-        </a>
-        <a href="#funktioner" onClick={() => setOpen(false)}>
-          Funktioner
-        </a>
-        <a href="#faq" onClick={() => setOpen(false)}>
-          FAQ
-        </a>
-        <a className="mk-nav-cta" href="#venteliste" onClick={() => setOpen(false)}>
-          Skriv mig op <Arrow />
-        </a>
-      </nav>
       <button
+        ref={menuRef}
         className="mk-menu"
         type="button"
         aria-label={open ? "Luk menu" : "Åbn menu"}
         aria-expanded={open}
+        aria-controls="mk-primary-navigation"
         onClick={() => setOpen((current) => !current)}
       >
         <span />
         <span />
       </button>
+      <nav
+        id="mk-primary-navigation"
+        className={`mk-nav ${open ? "is-open" : ""}`}
+        aria-label="Hovednavigation"
+      >
+        <a href="#saadan" onClick={closeForDestination}>
+          Sådan virker det
+        </a>
+        <a href="#funktioner" onClick={closeForDestination}>
+          Funktioner
+        </a>
+        <a href="#faq" onClick={closeForDestination}>
+          FAQ
+        </a>
+        <a className="mk-nav-cta" href="#venteliste" onClick={closeForDestination}>
+          Skriv mig op <Arrow />
+        </a>
+      </nav>
     </header>
   );
 }
@@ -419,11 +516,15 @@ function MarketingFooter() {
     <footer className="mk-footer">
       <div className="mk-footer-brand">
         <Brand />
-        <p>
+        <address>
           {company.legalName} · CVR {company.cvr}
           <br />
           {company.address}
-        </p>
+          <br />
+          <a href={`mailto:${company.email}`}>{company.email}</a>
+          <br />
+          <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>
+        </address>
       </div>
       <nav aria-label="Juridiske links">
         <a href="/privatliv">Privatliv</a>
@@ -468,6 +569,10 @@ function MarketingHome() {
       <main id="top">
         <section className="mk-hero mk-wrap" aria-labelledby="mk-hero-title">
           <div className="mk-hero-copy" data-mk-reveal>
+            <p className="mk-hero-kicker">
+              <span aria-hidden="true" />
+              Din personlige træningsapp
+            </p>
             <h1 id="mk-hero-title">Træning med retning. Uden støj.</h1>
             <p className="mk-hero-lead">
               Program før træningen. Rolig logning undervejs. Historik, cardio og progression
@@ -483,8 +588,23 @@ function MarketingHome() {
           </div>
         </section>
 
+        <section className="mk-signal-strip mk-wrap" aria-label="Kort om Træningsmester">
+          {heroSignals.map((signal, index) => (
+            <article key={signal.label}>
+              <span aria-hidden="true">0{index + 1}</span>
+              <div>
+                <small>{signal.label}</small>
+                <strong>{signal.value}</strong>
+              </div>
+            </article>
+          ))}
+        </section>
+
         <section className="mk-intro mk-wrap" id="saadan" data-mk-reveal>
-          <h2>Én træning ad gangen.</h2>
+          <div className="mk-intro-heading">
+            <p className="mk-section-kicker">Fra plan til progression</p>
+            <h2>Én træning ad gangen.</h2>
+          </div>
           <p>
             Træningsmester gør det enkelt at planlægge, gennemføre og følge din udvikling.
             Det hele bor ét sted, så næste handling er tydelig uden at fylde hele skærmen.
@@ -493,6 +613,7 @@ function MarketingHome() {
 
         <section className="mk-flow mk-wrap" aria-labelledby="mk-flow-title">
           <div className="mk-flow-copy" data-mk-reveal>
+            <p className="mk-section-kicker">Sådan hænger det sammen</p>
             <h2 id="mk-flow-title">Før, under og efter.</h2>
             <div className="mk-phase-line" aria-hidden="true" />
             <div className="mk-phases">
@@ -522,6 +643,7 @@ function MarketingHome() {
             <PhoneFrame src="/app/home-training.jpg" alt="" />
           </div>
           <div className="mk-feature-intro">
+            <p className="mk-section-kicker is-light">Dit samlede overblik</p>
             <h2>Styrke og cardio i samme rytme.</h2>
             <p>
               Træningen må gerne skifte form. Overblikket skal stadig føles som dit eget.
@@ -553,6 +675,7 @@ function MarketingHome() {
 
         <section className="mk-faq mk-wrap" id="faq" aria-labelledby="mk-faq-title">
           <div className="mk-faq-intro" data-mk-reveal>
+            <p className="mk-section-kicker">Før du skriver dig op</p>
             <h2 id="mk-faq-title">Det er fair at spørge.</h2>
             <p>Her er svar på det, vi oftest bliver spurgt om før åbningen.</p>
           </div>
@@ -582,6 +705,7 @@ function MarketingHome() {
 
         <section className="mk-final mk-wrap" id="venteliste" aria-labelledby="mk-final-title">
           <div data-mk-reveal>
+            <p className="mk-section-kicker is-light">Ventelisten er åben</p>
             <h2 id="mk-final-title">Vær med fra første træning.</h2>
             <p>Skriv dig op og få besked, når Træningsmester åbner.</p>
           </div>
@@ -631,6 +755,7 @@ function LegalPage({ route }: { route: LegalRoute }) {
         <div className="mk-legal-hero">
           <h1>{document.title}</h1>
           <p>{document.intro}</p>
+          <p className="mk-legal-updated">Senest opdateret {document.updated}</p>
         </div>
         <div className="mk-legal-content">
           {document.sections.map((section) => (
@@ -673,7 +798,7 @@ function UnsubscribePage() {
     if (!validToken || state === "submitting") return;
     setState("submitting");
     try {
-      const response = await fetch(`/api/waitlist-withdraw?token=${encodeURIComponent(token)}`, {
+      const response = await fetch("/api/waitlist-withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token })

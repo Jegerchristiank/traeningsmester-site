@@ -79,6 +79,8 @@ test("confirmation content is neutral, complete and tracking-free", () => {
   assert.match(message.html, /KRISTENSON/);
   assert.match(message.html, /CVR 40679456/);
   assert.match(message.html, /Blomstergården 13/);
+  assert.match(message.html, /christiankristensen123@gmail\.com/);
+  assert.match(message.text, /christiankristensen123@gmail\.com/);
   assert.match(message.html, /lancering og adgangsrunder/);
   assert.match(message.html, /Træk min tilmelding tilbage/);
   assert.match(message.html, /\/afmeld#token=/);

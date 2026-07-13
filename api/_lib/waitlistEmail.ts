@@ -177,6 +177,7 @@ export function buildWaitlistConfirmationEmail(
   token: string,
   siteUrl = defaultSiteUrl
 ): WaitlistMailContent {
+  const contactEmail = "christiankristensen123@gmail.com";
   const { withdrawalUrl, oneClickWithdrawalUrl } = withdrawalUrls(siteUrl, token);
   const privacyUrl = new URL("/privatliv", siteUrl).href;
   const escapedWithdrawalUrl = escapeHtml(withdrawalUrl);
@@ -196,7 +197,8 @@ export function buildWaitlistConfirmationEmail(
     `Privatliv: ${privacyUrl}`,
     "",
     "KRISTENSON · CVR 40679456",
-    "Blomstergården 13, 4700 Næstved"
+    "Blomstergården 13, 4700 Næstved",
+    contactEmail
   ].join("\n");
 
   const html = `<!doctype html>
@@ -240,7 +242,7 @@ export function buildWaitlistConfirmationEmail(
             </tr>
             <tr>
               <td style="padding:24px 36px;border-top:1px solid #e4e9f1;color:#657187;font-size:12px;line-height:1.65;">
-                <p style="margin:0 0 8px;"><strong style="color:#26344a;">KRISTENSON</strong> · CVR 40679456<br>Blomstergården 13, 4700 Næstved</p>
+                <p style="margin:0 0 8px;"><strong style="color:#26344a;">KRISTENSON</strong> · CVR 40679456<br>Blomstergården 13, 4700 Næstved<br><a href="mailto:${contactEmail}" style="color:#0047ab;text-decoration:underline;">${contactEmail}</a></p>
                 <p style="margin:0;"><a href="${escapedPrivacyUrl}" style="color:#0047ab;text-decoration:underline;">Læs privatlivspolitikken</a></p>
               </td>
             </tr>

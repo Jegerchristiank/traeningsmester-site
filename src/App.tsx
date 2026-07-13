@@ -9,6 +9,7 @@ import {
 } from "react";
 import {
   buildSession,
+  clearStoredAppState,
   createId,
   createProgramExercise,
   createTrainingProgram,
@@ -25,6 +26,8 @@ import {
 } from "./appData";
 import {
   authenticateSupabaseAccount,
+  HEALTH_DATA_CONSENT_VERSION,
+  recordSupabaseHealthDataConsent,
   registerSupabaseAccount,
   restoreSupabaseSessionState,
   signOutSupabaseAccount
@@ -376,8 +379,13 @@ function normalizeSearchText(value: string) {
 }
 
 function App() {
-  const [state, setState] = useState<AppState>(() => loadState());
   const [supabaseEnabled] = useState(() => isSupabaseConfigured());
+  const [state, setState] = useState<AppState>(() => {
+    if (!supabaseEnabled && import.meta.env.DEV) return loadState();
+    return defaultState;
+  });
+  const [authRestoring, setAuthRestoring] = useState(supabaseEnabled);
+  const [healthConsentRequired, setHealthConsentRequired] = useState(false);
   const [tab, setTab] = useState<TabId>("settings");
   const [trainingSegment, setTrainingSegment] = useState<TrainingSegment>("today");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -389,21 +397,30 @@ function App() {
   const [expandedExercises, setExpandedExercises] = useState<Record<string, boolean>>({});
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
 
-  useEffect(() => saveState(state), [state]);
+  useEffect(() => {
+    if (state.auth.loggedIn) saveState(state);
+  }, [state]);
 
   useEffect(() => {
-    if (!supabaseEnabled) return;
+    if (!supabaseEnabled) {
+      setAuthRestoring(false);
+      return;
+    }
     let cancelled = false;
     restoreSupabaseSessionState()
       .then((result) => {
         if (!result || cancelled) return;
         setState(result.state);
+        setHealthConsentRequired(!result.healthDataConsentRecorded);
         setSelectedProgramId(null);
         setTrainingSegment("today");
         setTab(result.state.auth.onboardingCompleted ? "settings" : "training");
       })
       .catch((error) => {
         console.warn("Supabase session restore fejlede", error);
+      })
+      .finally(() => {
+        if (!cancelled) setAuthRestoring(false);
       });
     return () => {
       cancelled = true;
@@ -975,6 +992,7 @@ function App() {
     email: string;
     password: string;
     name: string;
+    healthDataConsent: boolean;
   }) => {
     if (supabaseEnabled) {
       try {
@@ -984,6 +1002,7 @@ function App() {
             : await authenticateSupabaseAccount(payload.email, payload.password);
         if (!result) return "Supabase er ikke konfigureret i denne build.";
         setState(result.state);
+        setHealthConsentRequired(!result.healthDataConsentRecorded);
         setSelectedProgramId(null);
         setTrainingSegment("today");
         setTab(payload.mode === "signup" ? "training" : "settings");
@@ -993,6 +1012,10 @@ function App() {
           ? error.message
           : "Supabase-login kunne ikke gennemføres.";
       }
+    }
+
+    if (!import.meta.env.DEV) {
+      return "Login er ikke tilgængeligt, fordi denne produktionsbuild mangler Supabase-konfiguration.";
     }
 
     if (payload.mode === "signup") {
@@ -1014,8 +1037,44 @@ function App() {
     return "";
   };
 
+  const logout = () => {
+    const email = state.profile.email;
+    setMenuOpen(false);
+    clearStoredAppState(email);
+    if (supabaseEnabled) void signOutSupabaseAccount();
+    setHealthConsentRequired(false);
+    setState((current) => ({
+      ...current,
+      auth: { ...current.auth, loggedIn: false }
+    }));
+  };
+
+  if (authRestoring) {
+    return (
+      <div className="auth-screen" role="status" aria-live="polite">
+        <div className="auth-card auth-loading">
+          <img src="/brand/tm-logo.png" alt="" />
+          <p>Henter din sikre session...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!state.auth.loggedIn) {
     return <LoginScreen supabaseEnabled={supabaseEnabled} onSubmit={submitAuth} />;
+  }
+
+  if (healthConsentRequired) {
+    return (
+      <HealthDataConsentGate
+        onAccept={async () => {
+          const result = await recordSupabaseHealthDataConsent();
+          setState(result.state);
+          setHealthConsentRequired(!result.healthDataConsentRecorded);
+        }}
+        onLogout={logout}
+      />
+    );
   }
 
   if (showOnboarding || !state.auth.onboardingCompleted) {
@@ -1053,13 +1112,7 @@ function App() {
             onUpdateProfile={updateProfile}
             onHistory={openHistory}
             onOnboarding={() => setShowOnboarding(true)}
-            onLogout={() => {
-              void signOutSupabaseAccount();
-              setState((current) => ({
-                ...current,
-                auth: { ...current.auth, loggedIn: false }
-              }));
-            }}
+            onLogout={logout}
             onResetDemo={resetDemo}
           />
         ) : null}
@@ -1176,13 +1229,7 @@ function App() {
           setMenuOpen(false);
           setShowOnboarding(true);
         }}
-        onLogout={() => {
-          setMenuOpen(false);
-          setState((current) => ({
-            ...current,
-            auth: { ...current.auth, loggedIn: false }
-          }));
-        }}
+        onLogout={logout}
       />
 
       <ConfirmDialog
@@ -3800,12 +3847,14 @@ function LoginScreen({
     email: string;
     password: string;
     name: string;
+    healthDataConsent: boolean;
   }) => Promise<string>;
 }) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [healthDataConsent, setHealthDataConsent] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -3824,13 +3873,18 @@ function LoginScreen({
       setError("Adgangskoden skal være mindst 6 tegn.");
       return;
     }
+    if (mode === "signup" && !healthDataConsent) {
+      setError("Du skal tage stilling til behandlingen af dine trænings- og aktivitetsdata.");
+      return;
+    }
     setSubmitting(true);
     setError("");
     const result = await onSubmit({
       mode,
       email: cleanEmail,
       password,
-      name: name.trim()
+      name: name.trim(),
+      healthDataConsent: mode === "signup" && healthDataConsent
     });
     setSubmitting(false);
     if (result) setError(result);
@@ -3843,7 +3897,9 @@ function LoginScreen({
         <p>
           {supabaseEnabled
             ? "Log ind med din Træningsmester-konto og hent dine programmer, historik og øvelser."
-            : "Fortsæt med lokale programmer, logbog og historik i webappen."}
+            : import.meta.env.DEV
+              ? "Fortsæt med lokale programmer, logbog og historik i denne udviklingsbuild."
+              : "Login er midlertidigt utilgængeligt, fordi den sikre kontoforbindelse mangler."}
         </p>
         <div className="segmented">
           <button
@@ -3852,6 +3908,7 @@ function LoginScreen({
             onClick={() => {
               setMode("login");
               setError("");
+              setHealthDataConsent(false);
             }}
           >
             Log ind
@@ -3873,15 +3930,112 @@ function LoginScreen({
           ) : null}
           <Field label="Email" value={email} onChange={setEmail} />
           <Field label="Adgangskode" type="password" value={password} onChange={setPassword} />
+          {mode === "signup" ? (
+            <label className="check-row auth-consent">
+              <input
+                type="checkbox"
+                checked={healthDataConsent}
+                onChange={(event) => setHealthDataConsent(event.target.checked)}
+                required
+              />
+              <span>
+                Jeg giver udtrykkeligt samtykke til, at Træningsmester behandler de oplysninger
+                om træning, kropsvægt og aktivitet, som jeg selv vælger at tilføje, for at levere
+                logbog og progression. Samtykket kan trækkes tilbage. Se{" "}
+                <a href="/privatliv" target="_blank" rel="noreferrer">
+                  privatlivspolitikken
+                </a>
+                .{" "}
+                <small title={HEALTH_DATA_CONSENT_VERSION}>
+                  Samtykkeversion 1 · 13. juli 2026
+                </small>
+              </span>
+            </label>
+          ) : null}
           {error ? <p className="error-text">{error}</p> : null}
-          <button className="button primary full" type="submit" disabled={submitting}>
+          <button
+            className="button primary full"
+            type="submit"
+            disabled={submitting || (!supabaseEnabled && !import.meta.env.DEV)}
+          >
             {submitting
               ? "Arbejder..."
               : mode === "login"
                 ? "Log ind i appen"
                 : supabaseEnabled
                   ? "Opret konto"
-                  : "Opret lokal konto"}
+                  : import.meta.env.DEV
+                    ? "Opret lokal konto"
+                    : "Login er utilgængeligt"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function HealthDataConsentGate({
+  onAccept,
+  onLogout
+}: {
+  onAccept: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [accepted, setAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!accepted) {
+      setError("Du skal tage stilling, før du kan fortsætte.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      await onAccept();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Samtykket kunne ikke gemmes.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-card consent-gate">
+        <img src="/brand/tm-logo.png" alt="" />
+        <h1>Dit valg om træningsdata</h1>
+        <p>
+          Træningsmester skal bruge de oplysninger om træning, kropsvægt og aktivitet, som du
+          selv vælger at tilføje, for at levere logbog og progression.
+        </p>
+        <form className="sheet-form" onSubmit={submit}>
+          <label className="check-row auth-consent">
+            <input
+              type="checkbox"
+              checked={accepted}
+              onChange={(event) => setAccepted(event.target.checked)}
+            />
+            <span>
+              Jeg giver udtrykkeligt samtykke til denne behandling. Samtykket kan trækkes
+              tilbage med virkning for fremtiden. Se{" "}
+              <a href="/privatliv" target="_blank" rel="noreferrer">
+                privatlivspolitikken
+              </a>
+              .{" "}
+              <small title={HEALTH_DATA_CONSENT_VERSION}>
+                Samtykkeversion 1 · 13. juli 2026
+              </small>
+            </span>
+          </label>
+          {error ? <p className="error-text">{error}</p> : null}
+          <button className="button primary full" type="submit" disabled={submitting}>
+            {submitting ? "Gemmer sikkert..." : "Giv samtykke og fortsæt"}
+          </button>
+          <button className="button muted full" type="button" onClick={onLogout}>
+            Log ud uden at fortsætte
           </button>
         </form>
       </div>
