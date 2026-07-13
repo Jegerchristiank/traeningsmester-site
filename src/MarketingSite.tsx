@@ -506,7 +506,7 @@ function PhoneFrame({ src, alt, className = "" }: { src: string; alt: string; cl
   return (
     <figure className={`mk-phone ${className}`}>
       <span className="mk-phone-speaker" aria-hidden="true" />
-      <img src={src} alt={alt} loading="lazy" />
+      <img src={src} alt={alt} width="552" height="1200" loading="lazy" />
     </figure>
   );
 }
@@ -600,43 +600,48 @@ function MarketingHome() {
           ))}
         </section>
 
-        <section className="mk-intro mk-wrap" id="saadan" data-mk-reveal>
-          <div className="mk-intro-heading">
-            <p className="mk-section-kicker">Fra plan til progression</p>
-            <h2>Én træning ad gangen.</h2>
-          </div>
-          <p>
-            Træningsmester gør det enkelt at planlægge, gennemføre og følge din udvikling.
-            Det hele bor ét sted, så næste handling er tydelig uden at fylde hele skærmen.
-          </p>
-        </section>
-
-        <section className="mk-flow mk-wrap" aria-labelledby="mk-flow-title">
-          <div className="mk-flow-copy" data-mk-reveal>
-            <p className="mk-section-kicker">Sådan hænger det sammen</p>
-            <h2 id="mk-flow-title">Før, under og efter.</h2>
-            <div className="mk-phase-line" aria-hidden="true" />
-            <div className="mk-phases">
-              {phases.map((phase) => (
-                <article key={phase.number}>
-                  <span>{phase.number}</span>
-                  <small>{phase.label}</small>
-                  <h3>{phase.title}</h3>
-                  <p>{phase.body}</p>
-                </article>
-              ))}
+        <div className="mk-story-shell mk-wrap">
+          <section className="mk-flow" id="saadan" aria-labelledby="mk-flow-title">
+            <div className="mk-flow-copy" data-mk-reveal>
+              <p className="mk-section-kicker">Fra plan til progression</p>
+              <h2 id="mk-flow-title">Før, under og efter.</h2>
+              <p className="mk-flow-lead">
+                Træningsmester samler programmet, logningen og din udvikling i ét roligt
+                forløb, så næste handling altid er tydelig.
+              </p>
             </div>
-          </div>
-          <div className="mk-phone-stage" data-mk-reveal>
-            <PhoneFrame
-              src="/app/home-training.jpg"
-              alt="Dagens træning i Træningsmester"
-              className="is-back"
-            />
-            <PhoneFrame src="/app/programs.jpg" alt="Programmer i Træningsmester" className="is-main" />
-            <PhoneFrame src="/app/exercises.jpg" alt="Øvelseskatalog i Træningsmester" className="is-front" />
-          </div>
-        </section>
+            <div className="mk-phone-stage" data-mk-reveal>
+              <PhoneFrame
+                src="/app/home-training.jpg"
+                alt="Dagens træning i Træningsmester"
+                className="is-back"
+              />
+              <PhoneFrame
+                src="/app/programs.jpg"
+                alt="Programmer i Træningsmester"
+                className="is-main"
+              />
+              <PhoneFrame
+                src="/app/exercises.jpg"
+                alt="Øvelseskatalog i Træningsmester"
+                className="is-front"
+              />
+            </div>
+            <div className="mk-phase-journey" data-mk-reveal>
+              <div className="mk-phase-line" aria-hidden="true" />
+              <div className="mk-phases">
+                {phases.map((phase) => (
+                  <article key={phase.number}>
+                    <span>{phase.number}</span>
+                    <small>{phase.label}</small>
+                    <h3>{phase.title}</h3>
+                    <p>{phase.body}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
 
         <section className="mk-feature-band mk-wrap" id="funktioner" data-mk-reveal>
           <div className="mk-feature-device" aria-hidden="true">
@@ -664,10 +669,13 @@ function MarketingHome() {
 
         <aside className="mk-privacy-note mk-wrap" data-mk-reveal>
           <span aria-hidden="true">✓</span>
-          <p>
-            Dit træningsoverblik er personligt. Hjemmesiden bruger ingen markedsførings- eller
-            statistikcookies.
-          </p>
+          <div>
+            <strong>Privat som udgangspunkt</strong>
+            <p>
+              Dit træningsoverblik er personligt. Hjemmesiden bruger ingen markedsførings- eller
+              statistikcookies.
+            </p>
+          </div>
           <a href="/privatliv">
             Læs om data og privatliv <Arrow />
           </a>
