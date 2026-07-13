@@ -3,6 +3,7 @@ import * as THREE from "three";
 const DURATION_SECONDS = 5.2;
 const LOOP_SECONDS = DURATION_SECONDS * 2;
 const LOOP_MILLISECONDS = LOOP_SECONDS * 1000;
+const INTERACTION_DURATION_MILLISECONDS = 900;
 const BRAND_BLUE = 0x0047ab;
 const BRAND_RED = 0xe31836;
 const INK = 0x101319;
@@ -12,8 +13,11 @@ export type BearHatSceneController = {
   dispose: () => void;
   pause: () => void;
   play: () => void;
+  react: (target: BearInteractionTarget) => void;
   renderFinalPose: () => void;
 };
+
+export type BearInteractionTarget = "head" | "belly" | "leftArm" | "rightArm";
 
 export type BearHatSceneOptions = {
   onFallback?: (error: Error) => void;
@@ -24,6 +28,11 @@ type ArmRig = {
   shoulder: THREE.Group;
   elbow: THREE.Group;
   paw: THREE.Mesh;
+};
+
+type ActiveBearInteraction = {
+  startedAt: number;
+  target: BearInteractionTarget;
 };
 
 function asError(reason: unknown, fallbackMessage: string): Error {
@@ -526,7 +535,9 @@ export function createBearHatScene(
 
     body.scale.y = 1.02 * (1 - hop * 0.035 + breathe);
     body.scale.x = 0.86 * (1 + hop * 0.025);
+    belly.scale.x = 0.54;
     belly.scale.y = 0.68 * (1 - hop * 0.025 + breathe * 0.7);
+    belly.scale.z = 0.13;
 
     const wink = Math.sin(Math.PI * smooth(segment(time, 0.72, 0.9)));
     rightEye.scale.y = 0.135 * Math.max(0.08, 1 - wink * 0.94);
@@ -534,7 +545,8 @@ export function createBearHatScene(
     rightBrow.rotation.z = wink * -0.13;
 
     head.rotation.set(bow * 0.08, lift * -0.08, bow * 0.11 - reach * 0.035);
-    head.position.y = 1.05 + hop * 0.025;
+    head.position.set(0, 1.05 + hop * 0.025, 0.06);
+    head.scale.setScalar(1);
 
     leftArm.shoulder.rotation.set(0, 0, -0.2 + hop * 0.05);
     leftArm.elbow.rotation.set(0, 0, 0.16);
@@ -581,10 +593,56 @@ export function createBearHatScene(
   let elapsedMilliseconds = 0;
   let lastFrameMilliseconds = 0;
   let animationFrame = 0;
+  let activeInteraction: ActiveBearInteraction | null = null;
 
-  const renderAt = (seconds: number): void => {
+  const applyInteraction = (now: number): void => {
+    if (!activeInteraction) return;
+
+    const progress = clamp01(
+      (now - activeInteraction.startedAt) / INTERACTION_DURATION_MILLISECONDS,
+    );
+    if (progress >= 1) {
+      activeInteraction = null;
+      return;
+    }
+
+    const envelope = Math.sin(progress * Math.PI);
+    const wiggle = Math.sin(progress * Math.PI * 6) * envelope;
+
+    switch (activeInteraction.target) {
+      case "head":
+        // A soft lean and side-to-side nuzzle, layered on top of the hat animation.
+        head.rotation.y += wiggle * 0.045;
+        head.rotation.z += -0.16 * envelope + wiggle * 0.035;
+        head.position.x -= 0.1 * envelope;
+        head.position.y -= 0.035 * envelope;
+        head.scale.set(1 + envelope * 0.025, 1 - envelope * 0.015, 1 + envelope * 0.025);
+        break;
+      case "belly":
+        belly.scale.x *= 1 + envelope * 0.13 + wiggle * 0.025;
+        belly.scale.y *= 1 - envelope * 0.08;
+        bear.rotation.z += wiggle * 0.025;
+        break;
+      case "leftArm":
+        leftArm.shoulder.rotation.z = lerp(
+          leftArm.shoulder.rotation.z,
+          -1.32,
+          envelope,
+        );
+        leftArm.elbow.rotation.z -= envelope * 0.24 + wiggle * 0.08;
+        break;
+      case "rightArm":
+        rightArm.shoulder.rotation.z += envelope * 0.16;
+        rightArm.elbow.rotation.z += envelope * 0.18 + wiggle * 0.11;
+        rightArm.paw.rotation.z += wiggle * 0.15;
+        break;
+    }
+  };
+
+  const renderAt = (seconds: number, now = performance.now()): void => {
     if (disposed || contextLost) return;
     animateBear(seconds);
+    applyInteraction(now);
     renderer.render(scene, camera);
   };
 
@@ -598,10 +656,9 @@ export function createBearHatScene(
     ready &&
     !disposed &&
     !contextLost &&
-    !manuallyPaused &&
-    !finalPoseLocked &&
     inView &&
-    pageVisible;
+    pageVisible &&
+    (activeInteraction !== null || (!manuallyPaused && !finalPoseLocked));
 
   const tick = (now: number): void => {
     animationFrame = 0;
@@ -610,10 +667,18 @@ export function createBearHatScene(
     if (lastFrameMilliseconds === 0) lastFrameMilliseconds = now;
     const frameDelta = Math.min(100, Math.max(0, now - lastFrameMilliseconds));
     lastFrameMilliseconds = now;
-    elapsedMilliseconds = (elapsedMilliseconds + frameDelta) % LOOP_MILLISECONDS;
-    renderAt(pingPongTime(elapsedMilliseconds / 1000));
+    if (!manuallyPaused && !finalPoseLocked) {
+      elapsedMilliseconds = (elapsedMilliseconds + frameDelta) % LOOP_MILLISECONDS;
+    }
 
-    animationFrame = requestAnimationFrame(tick);
+    renderAt(
+      finalPoseLocked
+        ? DURATION_SECONDS
+        : pingPongTime(elapsedMilliseconds / 1000),
+      now,
+    );
+
+    if (shouldAnimate()) animationFrame = requestAnimationFrame(tick);
   };
 
   const updatePlayback = (): void => {
@@ -756,6 +821,13 @@ export function createBearHatScene(
     play: () => {
       manuallyPaused = false;
       finalPoseLocked = false;
+      updatePlayback();
+    },
+    react: (target) => {
+      activeInteraction = {
+        startedAt: performance.now(),
+        target,
+      };
       updatePlayback();
     },
     renderFinalPose: () => {

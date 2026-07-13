@@ -1,9 +1,30 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { BearHatSceneController } from "../three/createBearHatScene";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import type {
+  BearHatSceneController,
+  BearInteractionTarget,
+} from "../three/createBearHatScene";
 
 const DEFAULT_POSTER = "/animation/bear-hat-poster.png";
 
 type SceneStatus = "fallback" | "loading" | "poster" | "ready";
+
+const INTERACTION_COPY: Record<BearInteractionTarget, string> = {
+  head: "Bjørnen læner sig glad ind i nusset.",
+  belly: "Bjørnen vrikker med maven.",
+  leftArm: "Bjørnen løfter armen til venstre.",
+  rightArm: "Bjørnen vinker med armen til højre.",
+};
+
+const INTERACTION_TARGETS: Array<{
+  className: string;
+  label: string;
+  target: BearInteractionTarget;
+}> = [
+  { className: "is-head", label: "Nus bjørnen på hovedet", target: "head" },
+  { className: "is-belly", label: "Tryk bjørnen på maven", target: "belly" },
+  { className: "is-left-arm", label: "Tryk på armen til venstre", target: "leftArm" },
+  { className: "is-right-arm", label: "Tryk på armen til højre", target: "rightArm" },
+];
 
 export type BearHatSceneProps = {
   className?: string;
@@ -30,8 +51,8 @@ function usePrefersReducedMotion(): boolean {
 }
 
 /**
- * Decorative hero art. The poster is always present, so reduced-motion users,
- * no-JS visits and WebGL failures get the same composed final scene.
+ * Interactive hero art. The poster is always present, so reduced-motion users,
+ * no-JS visits and WebGL failures still get the same composed final scene.
  */
 export default function BearHatScene({
   className,
@@ -39,8 +60,11 @@ export default function BearHatScene({
   style,
 }: BearHatSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const controllerRef = useRef<BearHatSceneController | undefined>(undefined);
   const reducedMotion = usePrefersReducedMotion();
   const [status, setStatus] = useState<SceneStatus>("poster");
+  const [interaction, setInteraction] = useState<BearInteractionTarget>();
+  const statusId = useId();
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -66,6 +90,7 @@ export default function BearHatScene({
               if (!cancelled) setStatus("ready");
             },
           });
+          controllerRef.current = controller;
         } catch {
           if (!cancelled) setStatus("fallback");
         }
@@ -76,9 +101,15 @@ export default function BearHatScene({
 
     return () => {
       cancelled = true;
+      if (controllerRef.current === controller) controllerRef.current = undefined;
       controller?.dispose();
     };
   }, [reducedMotion]);
+
+  const handleInteraction = (target: BearInteractionTarget) => {
+    controllerRef.current?.react(target);
+    setInteraction(target);
+  };
 
   const wrapperStyle: CSSProperties = {
     aspectRatio: "1 / 1",
@@ -87,15 +118,17 @@ export default function BearHatScene({
     position: "relative",
     width: "100%",
     ...style,
-    pointerEvents: "none",
     userSelect: "none",
   };
 
   return (
     <div
-      aria-hidden="true"
+      aria-describedby={statusId}
+      aria-label="Interaktiv træningsbjørn"
       className={className}
+      data-bear-reaction={interaction ?? "idle"}
       data-bear-scene-status={status}
+      role="group"
       style={wrapperStyle}
     >
       <img
@@ -127,6 +160,21 @@ export default function BearHatScene({
           zIndex: 1,
         }}
       />
+      {INTERACTION_TARGETS.map((item) => (
+        <button
+          aria-label={item.label}
+          className={`bear-interaction-target ${item.className}`}
+          data-testid={`bear-${item.target}`}
+          key={item.target}
+          onClick={() => handleInteraction(item.target)}
+          type="button"
+        />
+      ))}
+      <p aria-live="polite" className="bear-interaction-status" id={statusId}>
+        {interaction
+          ? INTERACTION_COPY[interaction]
+          : "Tryk på hovedet, maven eller armene."}
+      </p>
     </div>
   );
 }

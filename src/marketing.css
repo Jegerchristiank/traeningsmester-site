@@ -511,6 +511,79 @@ body {
   filter: blur(45px);
 }
 
+.bear-interaction-target {
+  position: absolute;
+  z-index: 3;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.bear-interaction-target.is-head {
+  top: 23%;
+  left: 35%;
+  width: 30%;
+  height: 28%;
+}
+
+.bear-interaction-target.is-belly {
+  top: 51%;
+  left: 39%;
+  width: 22%;
+  height: 25%;
+}
+
+.bear-interaction-target.is-left-arm {
+  top: 47%;
+  left: 23%;
+  width: 18%;
+  height: 34%;
+  transform: rotate(-8deg);
+}
+
+.bear-interaction-target.is-right-arm {
+  top: 34%;
+  left: 64%;
+  width: 19%;
+  height: 40%;
+  transform: rotate(10deg);
+}
+
+.bear-interaction-status {
+  position: absolute;
+  z-index: 4;
+  bottom: 2.5%;
+  left: 50%;
+  width: max-content;
+  max-width: 88%;
+  padding: 6px 10px;
+  border: 1px solid rgba(193, 209, 229, 0.82);
+  border-radius: 10px;
+  color: #35445a;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8px 24px rgba(38, 68, 108, 0.08);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  pointer-events: none;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+@media (hover: hover) {
+  .bear-interaction-target:hover {
+    border-color: rgba(0, 71, 171, 0.2);
+    background: rgba(222, 237, 255, 0.16);
+    box-shadow: 0 0 0 7px rgba(222, 237, 255, 0.14);
+  }
+}
+
 .mk-signal-strip {
   position: relative;
   z-index: 5;
