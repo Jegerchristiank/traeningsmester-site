@@ -94,8 +94,9 @@ function dateValue(value: unknown) {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
 
-function profileModeKey(mode: ProfileMode) {
-  return mode === "Træner" ? "trainer" : "personal";
+function profileModeKey(_mode: ProfileMode) {
+  // Legacy trainer values may still exist remotely, but the active product is personal-only.
+  return "personal";
 }
 
 function profileModeTitle(value: unknown, fallback: ProfileMode): ProfileMode {
@@ -561,7 +562,7 @@ function applySettingsToState(
       email: account.email,
       name: text(row?.username) || account.name || state.profile.name,
       phone: text(row?.phone_number, state.profile.phone),
-      mode: state.profile.mode,
+      mode: "Personlig",
       bodyweight: bodyweight > 0 ? String(bodyweight) : state.profile.bodyweight,
       trainingFlow: row ? boolValue(row.FLOW, state.profile.trainingFlow) : state.profile.trainingFlow,
       trackerLogging: row
@@ -603,7 +604,10 @@ async function buildSupabaseStateForUser(
       }
     };
   }
-  const cached = loadStateForAccount(account, options);
+  const cached = loadStateForAccount(account, {
+    ...options,
+    requireRemoteVerified: true
+  });
   const settings = await fetchUserSettings(client, user.id);
   const profileMode = profileModeKey(cached.profile.mode);
   const [programs, history, matchState] = await Promise.all([

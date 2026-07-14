@@ -3,16 +3,22 @@
   "short_name": "Træningsmester",
   "description": "Dansk app til personlig træning, træningslog og historik.",
   "lang": "da-DK",
-  "id": "/app",
-  "start_url": "/app",
-  "scope": "/",
+  "id": "/app/",
+  "start_url": "/app/",
+  "scope": "/app/",
   "display": "standalone",
   "background_color": "#f4f7fc",
   "theme_color": "#f4f7fc",
   "icons": [
     {
-      "src": "/brand/app-icon.png",
-      "sizes": "1024x1024",
+      "src": "/brand/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/brand/app-icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

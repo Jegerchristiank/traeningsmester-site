@@ -12,6 +12,8 @@ import type {
 
 export const STORAGE_KEY = "tm-react-workbench-state-v1";
 export const AUTH_STORAGE_KEY = "tm-react-workbench-auth-v1";
+const REMOTE_CACHE_MARKER_SUFFIX = ":remote-verified";
+const isDevelopmentBuild = import.meta.env?.DEV === true;
 
 const id = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -309,7 +311,43 @@ const seedHistory: HistoryEntry[] = [
   }
 ];
 
-export const defaultState: AppState = {
+const productionState: AppState = {
+  auth: {
+    loggedIn: false,
+    onboardingCompleted: false
+  },
+  profile: {
+    name: "",
+    email: "",
+    phone: "",
+    mode: "Personlig",
+    theme: "system",
+    bodyweight: "",
+    trainingFlow: true,
+    trackerLogging: true,
+    restTimer: true,
+    countdown: true,
+    deloadSuggestions: true,
+    liveActivity: true,
+    keepScreenAwake: true,
+    helperText: true,
+    cardioShortcut: true,
+    trainingForms: ["Styrketræning"],
+    onboardingStartMode: "starter"
+  },
+  programs: [],
+  activeSession: null,
+  history: [],
+  matchQueue: [],
+  likedMatches: [],
+  skippedMatches: [],
+  social: {
+    friendCode: "",
+    hiddenHistoryIds: []
+  }
+};
+
+const developmentState: AppState = {
   auth: {
     loggedIn: false,
     onboardingCompleted: true
@@ -345,7 +383,15 @@ export const defaultState: AppState = {
   }
 };
 
-const defaultAccounts: LocalAccount[] = [
+/**
+ * Production always starts from an honest empty account. Fixtures are available
+ * only in Vite development builds and can never become a production fallback.
+ */
+export const defaultState: AppState = isDevelopmentBuild
+  ? developmentState
+  : productionState;
+
+const developmentAccounts: LocalAccount[] = [
   {
     email: "christian@example.com",
     name: "Christian",
@@ -360,6 +406,10 @@ const defaultAccounts: LocalAccount[] = [
   }
 ];
 
+const defaultAccounts: LocalAccount[] = isDevelopmentBuild
+  ? developmentAccounts
+  : [];
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -368,8 +418,13 @@ function accountStateKey(email: string) {
   return `${STORAGE_KEY}:${normalizeEmail(email)}`;
 }
 
+function remoteCacheMarkerKey(email: string) {
+  return `${accountStateKey(email)}${REMOTE_CACHE_MARKER_SUFFIX}`;
+}
+
 function mergeState(parsed: Partial<AppState>): AppState {
   const programs = (parsed.programs ?? defaultState.programs).map((program) =>
+    isDevelopmentBuild &&
     program.id === starterProgram.id &&
     (program.name === "Push Pull Legs" ||
       program.days[0]?.exercises.length < starterProgram.days[0]?.exercises.length)
@@ -502,7 +557,7 @@ export function loadState(): AppState {
 
 export function loadStateForAccount(
   account: Pick<LocalAccount, "email" | "name">,
-  options: { onboardingCompleted?: boolean } = {}
+  options: { onboardingCompleted?: boolean; requireRemoteVerified?: boolean } = {}
 ): AppState {
   if (typeof window === "undefined") {
     return {
@@ -519,13 +574,18 @@ export function loadStateForAccount(
       },
       social: {
         ...defaultState.social,
-        friendCode: stableFriendCode(account.email)
+        friendCode: isDevelopmentBuild ? stableFriendCode(account.email) : ""
       }
     };
   }
   try {
     const raw = window.localStorage.getItem(accountStateKey(account.email));
-    const parsed = raw ? mergeState(JSON.parse(raw) as Partial<AppState>) : defaultState;
+    const remoteCacheVerified =
+      window.localStorage.getItem(remoteCacheMarkerKey(account.email)) === "1";
+    const canUseCache = !options.requireRemoteVerified || remoteCacheVerified;
+    const parsed = raw && canUseCache
+      ? mergeState(JSON.parse(raw) as Partial<AppState>)
+      : defaultState;
     return {
       ...parsed,
       auth: {
@@ -537,11 +597,14 @@ export function loadStateForAccount(
       profile: {
         ...parsed.profile,
         email: normalizeEmail(account.email),
-        name: account.name || parsed.profile.name
+        name: account.name || parsed.profile.name,
+        mode: "Personlig"
       },
       social: {
         ...parsed.social,
-        friendCode: parsed.social.friendCode || stableFriendCode(account.email)
+        friendCode:
+          parsed.social.friendCode ||
+          (isDevelopmentBuild ? stableFriendCode(account.email) : "")
       }
     };
   } catch {
@@ -559,17 +622,23 @@ export function loadStateForAccount(
       },
       social: {
         ...defaultState.social,
-        friendCode: stableFriendCode(account.email)
+        friendCode: isDevelopmentBuild ? stableFriendCode(account.email) : ""
       }
     };
   }
 }
 
-export function saveState(state: AppState) {
+export function saveState(
+  state: AppState,
+  options: { remoteVerified?: boolean } = {}
+) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     if (state.profile.email) {
       window.localStorage.setItem(accountStateKey(state.profile.email), JSON.stringify(state));
+      if (options.remoteVerified) {
+        window.localStorage.setItem(remoteCacheMarkerKey(state.profile.email), "1");
+      }
     }
   } catch {
     /* Local persistence can be unavailable in restricted browser contexts. */
@@ -581,6 +650,7 @@ export function clearStoredAppState(email?: string) {
     window.localStorage.removeItem(STORAGE_KEY);
     if (email) {
       window.localStorage.removeItem(accountStateKey(email));
+      window.localStorage.removeItem(remoteCacheMarkerKey(email));
     }
   } catch {
     /* Local persistence can be unavailable in restricted browser contexts. */

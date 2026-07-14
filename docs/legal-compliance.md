@@ -1,6 +1,6 @@
 # Juridisk driftscheck
 
-Senest gennemgået: 13. juli 2026.
+Senest gennemgået: 14. juli 2026.
 
 Dette dokument beskriver den tekniske baseline for Træningsmesters offentlige
 pre-launch-side og webappen. Det er et driftsdokument, ikke en juridisk
@@ -13,8 +13,9 @@ garanti eller erstatning for konkret rådgivning.
 - Ventelisten kræver et aktivt og specifikt emailsamtykke. Version, tekst,
   tidspunkt, kanal og formål gemmes server-side. Afmelding er gratis,
   tokenbundet og idempotent.
-- Den interaktive afmeldingsside sender token i POST-body. Token i querystring
-  bruges kun til mailklienters standardiserede one-click-afmelding.
+- Den interaktive afmeldingsside accepterer kun token i URL-fragmentet og
+  sender det videre i POST-body. Query-token bruges kun på API-endpointet til
+  mailklienters standardiserede one-click-afmelding.
 - Privatlivspolitikken beskriver formål, retsgrundlag, datatyper, modtagere,
   internationale overførsler, opbevaring, rettigheder og klageadgang.
 - Nye webappkonti kræver særskilt udtrykkeligt samtykke til de trænings-,
@@ -22,13 +23,16 @@ garanti eller erstatning for konkret rådgivning.
   og tidspunkt skrives til Supabase Auth-metadata. Eksisterende konti uden den
   aktuelle samtykkeversion møder samme valg, før appens dataflader eller lokale
   appkopi indlæses.
-- Produktionsbuilds kan ikke falde tilbage til lokal browserkonto, hvis
-  Supabase mangler. Logout rydder den aktuelle lokale appkopi.
+- Produktionsbuilds kan ikke falde tilbage til lokal browserkonto eller
+  DEBUG-fixtures, hvis Supabase mangler. Kun en tidligere markeret, verificeret
+  remote-cache kan bruges ved en midlertidig læsefejl. Logout rydder den
+  aktuelle lokale appkopi og cachemarkøren.
 - Marketingforsiden indeholder ingen annoncepixels, tredjepartsanalyse eller
   ikke-nødvendig lokal lagring. Derfor vises der ikke et tomt, vildledende
   cookiebanner. Nye ikke-nødvendige teknologier skal blokeres indtil samtykke.
-- Mobilnavigationen har fokusretur, Escape-lukning, baggrundslås og navngivne
-  standardelementer.
+- Mobilnavigationen har fokusretur, Escape-lukning, baggrundslås, scroll på
+  lave skærme og navngivne standardelementer. Webappens menu og modaler har
+  fokusfælde, Escape-lukning og inert baggrund.
 
 ## Driftskrav før og efter deployment
 

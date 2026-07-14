@@ -276,9 +276,17 @@ function Arrow({ direction = "right" }: { direction?: "right" | "left" }) {
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <span className="mk-brand">
-      <img src="/brand/tm-logo.png" alt="" width="46" height="46" />
+      <img src="/brand/tm-logo-256.webp" alt="" width="46" height="46" />
       {!compact ? <strong>Træningsmester</strong> : null}
     </span>
+  );
+}
+
+function SkipLink() {
+  return (
+    <a className="mk-skip-link" href="#main-content">
+      Gå til hovedindhold
+    </a>
   );
 }
 
@@ -375,7 +383,7 @@ function WaitlistForm({ idPrefix, dark = false }: { idPrefix: string; dark?: boo
           <Arrow />
         </button>
       </div>
-      <div className="mk-honeypot" aria-hidden="true">
+      <div className="mk-honeypot" aria-hidden="true" hidden inert>
         <label htmlFor={`${idPrefix}-website`}>Lad dette felt stå tomt</label>
         <input
           id={`${idPrefix}-website`}
@@ -435,8 +443,9 @@ function MarketingHeader() {
   useEffect(() => {
     const main = window.document.querySelector<HTMLElement>(".tm-marketing main");
     const footer = window.document.querySelector<HTMLElement>(".tm-marketing footer");
+    const skipLink = window.document.querySelector<HTMLElement>(".mk-skip-link");
     const previousOverflow = window.document.body.style.overflow;
-    const background = [main, footer, brandRef.current].filter(Boolean) as HTMLElement[];
+    const background = [main, footer, skipLink, brandRef.current].filter(Boolean) as HTMLElement[];
 
     if (open) {
       background.forEach((element) => element.setAttribute("inert", ""));
@@ -565,8 +574,10 @@ function MarketingHome() {
 
   return (
     <div className="tm-marketing" ref={rootRef}>
+      <SkipLink />
       <MarketingHeader />
-      <main id="top">
+      <main id="main-content">
+        <div id="top" />
         <section className="mk-hero mk-wrap" aria-labelledby="mk-hero-title">
           <div className="mk-hero-copy" data-mk-reveal>
             <p className="mk-hero-kicker">
@@ -588,17 +599,17 @@ function MarketingHome() {
           </div>
         </section>
 
-        <section className="mk-signal-strip mk-wrap" aria-label="Kort om Træningsmester">
+        <ol className="mk-signal-strip mk-wrap" aria-label="Kort om Træningsmester">
           {heroSignals.map((signal, index) => (
-            <article key={signal.label}>
+            <li key={signal.label}>
               <span aria-hidden="true">0{index + 1}</span>
               <div>
                 <small>{signal.label}</small>
                 <strong>{signal.value}</strong>
               </div>
-            </article>
+            </li>
           ))}
-        </section>
+        </ol>
 
         <div className="mk-story-shell mk-wrap">
           <section className="mk-flow" id="saadan" aria-labelledby="mk-flow-title">
@@ -612,17 +623,17 @@ function MarketingHome() {
             </div>
             <div className="mk-phone-stage" data-mk-reveal>
               <PhoneFrame
-                src="/app/home-training.jpg"
+                src="/app/home-training.webp"
                 alt="Dagens træning i Træningsmester"
                 className="is-back"
               />
               <PhoneFrame
-                src="/app/programs.jpg"
+                src="/app/programs.webp"
                 alt="Programmer i Træningsmester"
                 className="is-main"
               />
               <PhoneFrame
-                src="/app/exercises.jpg"
+                src="/app/exercises.webp"
                 alt="Øvelseskatalog i Træningsmester"
                 className="is-front"
               />
@@ -645,7 +656,7 @@ function MarketingHome() {
 
         <section className="mk-feature-band mk-wrap" id="funktioner" data-mk-reveal>
           <div className="mk-feature-device" aria-hidden="true">
-            <PhoneFrame src="/app/home-training.jpg" alt="" />
+            <PhoneFrame src="/app/home-training.webp" alt="" />
           </div>
           <div className="mk-feature-intro">
             <p className="mk-section-kicker is-light">Dit samlede overblik</p>
@@ -693,15 +704,17 @@ function MarketingHome() {
               const answerId = `faq-answer-${index}`;
               return (
                 <article className={open ? "is-open" : ""} key={row.question}>
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    aria-controls={answerId}
-                    onClick={() => setOpenFaq(open ? null : index)}
-                  >
-                    <span>{row.question}</span>
-                    <i aria-hidden="true" />
-                  </button>
+                  <h3>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      aria-controls={answerId}
+                      onClick={() => setOpenFaq(open ? null : index)}
+                    >
+                      <span>{row.question}</span>
+                      <i aria-hidden="true" />
+                    </button>
+                  </h3>
                   <div id={answerId} className="mk-faq-answer" hidden={!open}>
                     <p>{row.answer}</p>
                   </div>
@@ -751,6 +764,7 @@ function LegalPage({ route }: { route: LegalRoute }) {
 
   return (
     <div className="tm-marketing mk-legal-page">
+      <SkipLink />
       <header className="mk-legal-header">
         <a href="/" aria-label="Tilbage til Træningsmester">
           <Brand />
@@ -759,7 +773,7 @@ function LegalPage({ route }: { route: LegalRoute }) {
           <Arrow direction="left" /> Tilbage
         </a>
       </header>
-      <main>
+      <main id="main-content">
         <div className="mk-legal-hero">
           <h1>{document.title}</h1>
           <p>{document.intro}</p>
@@ -781,9 +795,10 @@ function LegalPage({ route }: { route: LegalRoute }) {
 
 function UnsubscribePage() {
   const fragmentToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token");
-  const token = fragmentToken ?? new URLSearchParams(window.location.search).get("token") ?? "";
+  const token = fragmentToken ?? "";
   const validToken = /^[A-Za-z0-9_-]{43}$/.test(token);
   const [state, setState] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -800,6 +815,11 @@ function UnsubscribePage() {
     const canonical = window.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (canonical) canonical.href = new URL("/afmeld", siteUrl).href;
   }, []);
+
+  useEffect(() => {
+    if (state !== "success") return;
+    window.requestAnimationFrame(() => headingRef.current?.focus());
+  }, [state]);
 
   const withdraw = async (event: FormEvent) => {
     event.preventDefault();
@@ -829,6 +849,7 @@ function UnsubscribePage() {
 
   return (
     <div className="tm-marketing mk-legal-page mk-unsubscribe-page">
+      <SkipLink />
       <header className="mk-legal-header">
         <a href="/" aria-label="Tilbage til Træningsmester">
           <Brand />
@@ -837,10 +858,12 @@ function UnsubscribePage() {
           <Arrow direction="left" /> Tilbage
         </a>
       </header>
-      <main>
+      <main id="main-content">
         <div className="mk-legal-hero">
           <p className="mk-eyebrow">Samtykke</p>
-          <h1>{heading}</h1>
+          <h1 ref={headingRef} tabIndex={state === "success" ? -1 : undefined}>
+            {heading}
+          </h1>
           <p>{body}</p>
         </div>
         <div className="mk-unsubscribe-action">

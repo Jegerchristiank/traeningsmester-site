@@ -7,7 +7,7 @@ const INTERACTION_DURATION_MILLISECONDS = 1400;
 const BRAND_BLUE = 0x0047ab;
 const BRAND_RED = 0xe31836;
 const INK = 0x101319;
-const LOGO_URL = "/brand/tm-logo.png";
+const LOGO_URL = "/brand/tm-logo-256.webp";
 
 export type BearHatSceneController = {
   dispose: () => void;

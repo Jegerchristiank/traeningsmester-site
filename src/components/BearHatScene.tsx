@@ -4,7 +4,9 @@ import type {
   BearInteractionTarget,
 } from "../three/createBearHatScene";
 
-const DEFAULT_POSTER = "/animation/bear-hat-poster.png";
+const DEFAULT_POSTER = "/animation/bear-hat-poster-540.webp";
+const MOTION_STORAGE_KEY = "tm-bear-motion-paused";
+const INTERACTION_DURATION_MILLISECONDS = 1_400;
 
 type SceneStatus = "fallback" | "loading" | "poster" | "ready";
 
@@ -53,6 +55,32 @@ function usePrefersReducedMotion(): boolean {
   return reducedMotion;
 }
 
+function connectionSavesData(): boolean {
+  if (typeof navigator === "undefined") return true;
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean };
+  }).connection;
+  return connection?.saveData === true;
+}
+
+function readStoredPause(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(MOTION_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function storePause(paused: boolean) {
+  try {
+    if (paused) window.sessionStorage.setItem(MOTION_STORAGE_KEY, "1");
+    else window.sessionStorage.removeItem(MOTION_STORAGE_KEY);
+  } catch {
+    /* Session storage can be unavailable in restricted browser contexts. */
+  }
+}
+
 /**
  * Interactive hero art. The poster is always present, so reduced-motion users,
  * no-JS visits and WebGL failures still get the same composed final scene.
@@ -64,14 +92,24 @@ export default function BearHatScene({
 }: BearHatSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<BearHatSceneController | undefined>(undefined);
+  const interactionTimeoutRef = useRef<number | undefined>(undefined);
   const reducedMotion = usePrefersReducedMotion();
+  const [saveData] = useState(connectionSavesData);
   const [status, setStatus] = useState<SceneStatus>("poster");
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [paused, setPaused] = useState(readStoredPause);
   const [interaction, setInteraction] = useState<BearInteractionTarget>();
+  const pausedRef = useRef(paused);
   const statusId = useId();
+  const canAnimate = !reducedMotion && !saveData;
+
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   useEffect(() => {
     const mount = mountRef.current;
-    if (!mount || reducedMotion) {
+    if (!mount || !canAnimate || !shouldLoad) {
       setStatus("poster");
       return;
     }
@@ -90,7 +128,9 @@ export default function BearHatScene({
               if (!cancelled) setStatus("fallback");
             },
             onReady: () => {
-              if (!cancelled) setStatus("ready");
+              if (cancelled) return;
+              if (pausedRef.current) controller?.pause();
+              setStatus("ready");
             },
           });
           controllerRef.current = controller;
@@ -107,12 +147,62 @@ export default function BearHatScene({
       if (controllerRef.current === controller) controllerRef.current = undefined;
       controller?.dispose();
     };
-  }, [reducedMotion]);
+  }, [canAnimate, shouldLoad]);
+
+  useEffect(
+    () => () => {
+      if (interactionTimeoutRef.current) {
+        window.clearTimeout(interactionTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   const handleInteraction = (target: BearInteractionTarget) => {
-    controllerRef.current?.react(target);
+    const controller = controllerRef.current;
+    if (!controller || status !== "ready") return;
+    controller.react(target);
     setInteraction(target);
+    if (interactionTimeoutRef.current) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+    interactionTimeoutRef.current = window.setTimeout(
+      () => setInteraction(undefined),
+      INTERACTION_DURATION_MILLISECONDS
+    );
   };
+
+  const handlePlayback = () => {
+    if (!canAnimate) return;
+    if (status === "poster") {
+      storePause(false);
+      setPaused(false);
+      setShouldLoad(true);
+      return;
+    }
+    const controller = controllerRef.current;
+    if (!controller || status !== "ready") return;
+    if (paused) controller.play();
+    else controller.pause();
+    storePause(!paused);
+    setPaused((current) => !current);
+  };
+
+  const playbackLabel =
+    status === "loading"
+      ? "Henter animation…"
+      : status === "ready" && !paused
+        ? "Pause animation"
+        : "Afspil animation";
+  const statusMessage = interaction
+    ? INTERACTION_COPY[interaction]
+    : status === "ready"
+      ? paused
+        ? "Bjørneanimationen er sat på pause."
+        : "Bjørneanimationen afspilles. Tryk på bjørnen for en reaktion."
+      : canAnimate
+        ? "Animationen starter kun, hvis du vælger Afspil animation."
+        : "En statisk træningsbjørn vises uden animation.";
 
   const wrapperStyle: CSSProperties = {
     aspectRatio: "1 / 1",
@@ -127,7 +217,7 @@ export default function BearHatScene({
   return (
     <div
       aria-describedby={statusId}
-      aria-label="Interaktiv træningsbjørn"
+      aria-label={canAnimate ? "Træningsbjørn med valgfri animation" : "Træningsbjørn"}
       className={className}
       data-bear-reaction={interaction ?? "idle"}
       data-bear-scene-status={status}
@@ -138,7 +228,10 @@ export default function BearHatScene({
         alt=""
         decoding="async"
         draggable={false}
+        fetchPriority="high"
+        height="540"
         src={posterSrc}
+        width="540"
         style={{
           display: "block",
           height: "100%",
@@ -163,20 +256,39 @@ export default function BearHatScene({
           zIndex: 1,
         }}
       />
-      {INTERACTION_TARGETS.map((item) => (
+      {status === "ready" ? (
+        <>
+          <span aria-hidden="true" className="bear-interaction-hint">
+            Tryk på bjørnen
+          </span>
+          {INTERACTION_TARGETS.map((item) => (
+            <button
+              aria-label={item.label}
+              aria-pressed={interaction === item.target}
+              className={`bear-interaction-target ${item.className}`}
+              data-testid={`bear-${item.target}`}
+              key={item.target}
+              onClick={() => handleInteraction(item.target)}
+              type="button"
+            />
+          ))}
+        </>
+      ) : null}
+      {canAnimate && status !== "fallback" ? (
         <button
-          aria-label={item.label}
-          aria-pressed={interaction === item.target}
-          className={`bear-interaction-target ${item.className}`}
-          data-testid={`bear-${item.target}`}
-          key={item.target}
-          onClick={() => handleInteraction(item.target)}
+          className="bear-motion-control"
+          disabled={status === "loading"}
+          onClick={handlePlayback}
           type="button"
-        />
-      ))}
+        >
+          <span aria-hidden="true">
+            {status === "ready" && !paused ? "Ⅱ" : "▶"}
+          </span>
+          {playbackLabel}
+        </button>
+      ) : null}
       <span aria-live="polite" className="mk-sr-only" id={statusId}>
-        {(interaction ? INTERACTION_COPY[interaction] : undefined) ??
-          "Tryk på hovedet, maven eller armene for at få bjørnen til at reagere."}
+        {statusMessage}
       </span>
     </div>
   );

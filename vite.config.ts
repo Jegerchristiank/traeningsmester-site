@@ -11,7 +11,7 @@ export default defineConfig({
     hmr: { clientPort: 443, protocol: "wss" }
   },
   build: {
-    chunkSizeWarningLimit: 1800,
+    chunkSizeWarningLimit: 550,
     sourcemap: false
   }
 });

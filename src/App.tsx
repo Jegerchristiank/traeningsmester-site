@@ -2,6 +2,7 @@ import {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type PointerEvent,
@@ -94,7 +95,6 @@ type ConfirmRequest = NonNullable<ConfirmState>;
 type ProgramWizardStep = "basics" | "details" | "review";
 type OnboardingStepId =
   | "start"
-  | "role"
   | "profile"
   | "importProgram"
   | "startPath"
@@ -131,13 +131,6 @@ const onboardingSteps: OnboardingStepConfig[] = [
     subtitle: "Vælg hurtig start, importér dit program eller tilpas opsætningen.",
     badge: "Start",
     icon: "✦"
-  },
-  {
-    id: "role",
-    title: "Hvordan vil du bruge Træningsmester?",
-    subtitle: "Vælg profil. Du kan ændre den senere.",
-    badge: "Profil",
-    icon: "◉"
   },
   {
     id: "profile",
@@ -368,6 +361,91 @@ function classNames(...items: Array<string | false | null | undefined>) {
   return items.filter(Boolean).join(" ");
 }
 
+const modalFocusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])'
+].join(",");
+
+function useModalFocus(open: boolean, onClose: () => void) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const restoreFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const siblings = dialog.parentElement
+      ? Array.from(dialog.parentElement.children).filter(
+          (element): element is HTMLElement =>
+            element instanceof HTMLElement && element !== dialog
+        )
+      : [];
+    const previousInert = siblings.map((element) => [element, element.hasAttribute("inert")] as const);
+    const previousOverflow = document.body.style.overflow;
+    siblings.forEach((element) => element.setAttribute("inert", ""));
+    document.body.style.overflow = "hidden";
+
+    const focusable = () =>
+      Array.from(dialog.querySelectorAll<HTMLElement>(modalFocusableSelector)).filter(
+        (element) =>
+          !element.matches(".modal-backdrop, .side-backdrop") &&
+          !element.hidden &&
+          element.getAttribute("aria-hidden") !== "true"
+      );
+
+    const initialFocus =
+      dialog.querySelector<HTMLElement>("[data-modal-initial-focus]") ?? focusable()[0] ?? dialog;
+    window.requestAnimationFrame(() => initialFocus.focus());
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      if (!elements.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousInert.forEach(([element, wasInert]) => {
+        if (!wasInert) element.removeAttribute("inert");
+      });
+      document.body.style.overflow = previousOverflow;
+      window.requestAnimationFrame(() => restoreFocus?.focus());
+    };
+  }, [open]);
+
+  return dialogRef;
+}
+
 function normalizeSearchText(value: string) {
   return value
     .toLocaleLowerCase("da-DK")
@@ -398,8 +476,15 @@ function App() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
 
   useEffect(() => {
-    if (state.auth.loggedIn) saveState(state);
-  }, [state]);
+    if (!state.auth.loggedIn) return;
+    const persist = () => saveState(state, { remoteVerified: supabaseEnabled });
+    const timeout = window.setTimeout(persist, 250);
+    window.addEventListener("pagehide", persist, { once: true });
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("pagehide", persist);
+    };
+  }, [state, supabaseEnabled]);
 
   useEffect(() => {
     if (!supabaseEnabled) {
@@ -1053,7 +1138,7 @@ function App() {
     return (
       <div className="auth-screen" role="status" aria-live="polite">
         <div className="auth-card auth-loading">
-          <img src="/brand/tm-logo.png" alt="" />
+          <img src="/brand/tm-logo-256.webp" alt="" />
           <p>Henter din sikre session...</p>
         </div>
       </div>
@@ -1113,7 +1198,7 @@ function App() {
             onHistory={openHistory}
             onOnboarding={() => setShowOnboarding(true)}
             onLogout={logout}
-            onResetDemo={resetDemo}
+            onResetDemo={import.meta.env.DEV ? resetDemo : undefined}
           />
         ) : null}
 
@@ -1192,7 +1277,7 @@ function App() {
             onLike={() => swipeMatch(true)}
             onSkip={() => swipeMatch(false)}
             onUndo={undoMatch}
-            onReset={resetMatches}
+            onReset={import.meta.env.DEV ? resetMatches : undefined}
           />
         ) : null}
 
@@ -1274,11 +1359,11 @@ function AppHeader({
         <span />
       </button>
       <div className="brand-center" aria-label="Træningsmester">
-        <img src="/brand/tm-logo.png" alt="" />
+        <img src="/brand/tm-logo-256.webp" alt="" />
         <strong>{title}</strong>
       </div>
-      <div className="profile-chip" title={profile.mode}>
-        {profile.mode === "Træner" ? "TR" : "P"}
+      <div className="profile-chip" title="Personlig">
+        P
       </div>
     </header>
   );
@@ -1392,9 +1477,17 @@ function SideMenu({
   onOnboarding: () => void;
   onLogout: () => void;
 }) {
+  const dialogRef = useModalFocus(open, onClose);
   if (!open) return null;
   return (
-    <div className="side-menu" role="dialog" aria-modal="true" aria-label="Menu">
+    <div
+      ref={dialogRef}
+      className="side-menu"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+      tabIndex={-1}
+    >
       <button className="side-backdrop" aria-label="Luk menu" onClick={onClose} />
       <aside className="side-panel">
         <div className="side-head">
@@ -1402,7 +1495,12 @@ function SideMenu({
             <p>Menu</p>
             <strong>{profile.name}</strong>
           </div>
-          <button className="plain-icon" onClick={onClose} aria-label="Luk">
+          <button
+            className="plain-icon"
+            onClick={onClose}
+            aria-label="Luk"
+            data-modal-initial-focus
+          >
             ×
           </button>
         </div>
@@ -1467,7 +1565,7 @@ function SettingsScreen({
   onHistory: () => void;
   onOnboarding: () => void;
   onLogout: () => void;
-  onResetDemo: () => void;
+  onResetDemo?: () => void;
 }) {
   const profile = state.profile;
   const [panel, setPanel] = useState<SettingsPanel>("training");
@@ -1508,7 +1606,7 @@ function SettingsScreen({
             <div>
               <h2>{profile.name}</h2>
               <p>{profile.email}</p>
-              <span>{profile.mode}</span>
+              <span>Personlig</span>
             </div>
           </section>
 
@@ -1525,9 +1623,11 @@ function SettingsScreen({
             <button className="button muted full" onClick={onLogout}>
               Log ud
             </button>
-            <button className="button danger full" onClick={onResetDemo}>
-              Nulstil lokal testdata
-            </button>
+            {import.meta.env.DEV && onResetDemo ? (
+              <button className="button danger full" onClick={onResetDemo}>
+                Nulstil lokal testdata
+              </button>
+            ) : null}
           </div>
         </>
       ) : null}
@@ -1550,18 +1650,7 @@ function SettingsScreen({
             value={profile.phone}
             onChange={(value) => onUpdateProfile({ phone: value })}
           />
-          <div className="segmented">
-            {(["Personlig", "Træner"] as const).map((mode) => (
-              <button
-                type="button"
-                key={mode}
-                className={profile.mode === mode ? "active" : ""}
-                onClick={() => onUpdateProfile({ mode })}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
+          <p className="section-copy">Træningsmester er din personlige træningsapp.</p>
         </section>
       ) : null}
 
@@ -1675,7 +1764,7 @@ function SettingsScreen({
           </p>
           <div className="summary-grid">
             <Metric label="Plan" value="Free" />
-            <Metric label="Profil" value={profile.mode} />
+            <Metric label="Profil" value="Personlig" />
             <Metric label="Status" value="Ikke aktiv" />
           </div>
           <button className="button muted full" type="button" disabled>
@@ -2717,7 +2806,7 @@ function ProgramsNativeTopBar({
         <span aria-hidden="true">+</span>
         Nyt program
       </button>
-      <img src="/brand/tm-logo.png" alt="Træningsmester" />
+      <img src="/brand/tm-logo-256.webp" alt="Træningsmester" />
       <div className="programs-more-wrap">
         <button
           type="button"
@@ -2762,7 +2851,7 @@ function MatchScreen({
   onLike: () => void;
   onSkip: () => void;
   onUndo: () => void;
-  onReset: () => void;
+  onReset?: () => void;
 }) {
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [dragX, setDragX] = useState(0);
@@ -2830,8 +2919,12 @@ function MatchScreen({
           <div className="match-empty-card">
             <EmptyState
               title="Kortkøen er tom"
-              body="Du har gennemgået øvelserne i den lokale testkø."
-              action="Start forfra"
+              body={
+                import.meta.env.DEV && onReset
+                  ? "Du har gennemgået øvelserne i den lokale testkø."
+                  : "Der er ingen nye øvelser at gennemgå lige nu."
+              }
+              action={import.meta.env.DEV && onReset ? "Start forfra" : undefined}
               onAction={onReset}
             />
           </div>
@@ -2953,15 +3046,23 @@ function SocialScreen({
     <ScreenShell eyebrow="Social" title="Social">
       <section className="form-section">
         <h3>Din vennekode</h3>
-        <div className="friend-code">
-          <strong>{social.friendCode}</strong>
-          <button className="small-button" onClick={copyFriendCode}>
-            {copyState === "copied" ? "Kopieret" : "Kopiér"}
-          </button>
-        </div>
-        {copyState === "failed" ? (
-          <p className="error-text">Kopiering blev blokeret af browseren.</p>
-        ) : null}
+        {social.friendCode ? (
+          <>
+            <div className="friend-code">
+              <strong>{social.friendCode}</strong>
+              <button className="small-button" onClick={copyFriendCode}>
+                {copyState === "copied" ? "Kopieret" : "Kopiér"}
+              </button>
+            </div>
+            {copyState === "failed" ? (
+              <p className="error-text">Kopiering blev blokeret af browseren.</p>
+            ) : null}
+          </>
+        ) : (
+          <p className="section-copy">
+            Vennekode er ikke tilgængelig i webappen endnu.
+          </p>
+        )}
       </section>
       {visible.length ? (
         <section className="history-list">
@@ -3020,16 +3121,29 @@ function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const dialogRef = useModalFocus(Boolean(confirm), onCancel);
   if (!confirm) return null;
   return (
-    <div className="modal-layer" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div
+      ref={dialogRef}
+      className="modal-layer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      tabIndex={-1}
+    >
       <button className="modal-backdrop" aria-label="Annuller" onClick={onCancel} />
       <section className="sheet confirm-sheet">
         <span>Bekræft handling</span>
         <h2 id="confirm-title">{confirm.title}</h2>
         <p>{confirm.body}</p>
         <div className="form-actions">
-          <button className="button muted" type="button" onClick={onCancel}>
+          <button
+            className="button muted"
+            type="button"
+            onClick={onCancel}
+            data-modal-initial-focus
+          >
             {confirm.cancelLabel ?? "Annuller"}
           </button>
           <button
@@ -3067,12 +3181,25 @@ function CrudModal({
   ) => void;
   onSaveHistory: (entry: HistoryEntry) => void;
 }) {
+  const dialogRef = useModalFocus(Boolean(modal), onClose);
   if (!modal) return null;
   return (
-    <div className="modal-layer" role="dialog" aria-modal="true">
+    <div
+      ref={dialogRef}
+      className="modal-layer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Rediger"
+      tabIndex={-1}
+    >
       <button className="modal-backdrop" aria-label="Luk" onClick={onClose} />
       <section className="sheet">
-        <button className="plain-icon sheet-close" onClick={onClose} aria-label="Luk">
+        <button
+          className="plain-icon sheet-close"
+          onClick={onClose}
+          aria-label="Luk"
+          data-modal-initial-focus
+        >
           ×
         </button>
         {modal.type === "program" ? (
@@ -3409,7 +3536,7 @@ function ProgramForm({
   return (
     <form className="program-wizard" onSubmit={submit}>
       <div className="program-wizard-header">
-        <img src="/brand/tm-logo.png" alt="" />
+        <img src="/brand/tm-logo-256.webp" alt="" />
         <span>Træningsprogram</span>
         <h2>Opret program</h2>
         <p>Start med navnet. Beskrivelse og billede kan tilføjes bagefter.</p>
@@ -3465,7 +3592,7 @@ function ProgramForm({
           <div className="program-image-picker">
             <div className="program-image-thumb" aria-hidden="true">
               {trimmedImage ? (
-                <SafeImage key={trimmedImage} src={trimmedImage} fallbackSrc="/brand/tm-logo.png" alt="" />
+                <SafeImage key={trimmedImage} src={trimmedImage} fallbackSrc="/brand/tm-logo-256.webp" alt="" />
               ) : (
                 <span>Foto</span>
               )}
@@ -3892,7 +4019,7 @@ function LoginScreen({
   return (
     <div className="auth-screen">
       <div className="auth-card">
-        <img src="/brand/tm-logo.png" alt="" />
+        <img src="/brand/tm-logo-256.webp" alt="" />
         <h1>Velkommen tilbage</h1>
         <p>
           {supabaseEnabled
@@ -4005,7 +4132,7 @@ function HealthDataConsentGate({
   return (
     <div className="auth-screen">
       <div className="auth-card consent-gate">
-        <img src="/brand/tm-logo.png" alt="" />
+        <img src="/brand/tm-logo-256.webp" alt="" />
         <h1>Dit valg om træningsdata</h1>
         <p>
           Træningsmester skal bruge de oplysninger om træning, kropsvægt og aktivitet, som du
@@ -4055,7 +4182,6 @@ function OnboardingFlow({
   type OnboardingPath = UserProfile["onboardingStartMode"] | "import" | "ai";
   const [introDone, setIntroDone] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const [role, setRole] = useState<UserProfile["mode"]>(profile.mode);
   const [name, setName] = useState(profile.name);
   const [bodyweight, setBodyweight] = useState(profile.bodyweight);
   const [selectedPath, setSelectedPath] = useState<OnboardingPath>(
@@ -4099,7 +4225,7 @@ function OnboardingFlow({
     onUpdateProfile({
       name: name.trim() || profile.name,
       bodyweight: bodyweight.trim() || profile.bodyweight,
-      mode: role,
+      mode: "Personlig",
       trainingForms: forms,
       onboardingStartMode: savedStartMode,
       restTimer,
@@ -4162,27 +4288,10 @@ function OnboardingFlow({
             <button
               type="button"
               className="button muted full subtle"
-              onClick={() => goToStep("role")}
+              onClick={() => goToStep("profile")}
             >
               Tilpas setup først
             </button>
-          </div>
-        );
-      case "role":
-        return (
-          <div className="onboarding-step-content">
-            <OnboardingChoiceRow
-              title="Personlig"
-              body="Træn, track og byg egne programmer."
-              selected={role === "Personlig"}
-              onClick={() => setRole("Personlig")}
-            />
-            <OnboardingChoiceRow
-              title="Træner"
-              body="Arbejd med klienter og coach-værktøjer."
-              selected={role === "Træner"}
-              onClick={() => setRole("Træner")}
-            />
           </div>
         );
       case "profile":
@@ -4409,7 +4518,7 @@ function OnboardingFlow({
               </div>
             </div>
             <div className="onboarding-summary-list">
-              <OnboardingSummaryRow label="Role" value={role} />
+              <OnboardingSummaryRow label="Profil" value="Personlig" />
               <OnboardingSummaryRow label="Startvej" value={selectedPath === "starter" ? "Gratis startprogram" : selectedPath === "ai" ? "AI-udkast" : selectedPath === "import" ? "Import" : "Udforsk selv"} />
               <OnboardingSummaryRow label="Match" value={`${matchLikes} gemt · ${matchSkips} skip`} />
               <OnboardingSummaryRow label="Træningsformer" value={forms.join(", ")} />
@@ -4461,7 +4570,7 @@ function OnboardingIntro({ onStart }: { onStart: () => void }) {
       <div className="onboarding-intro">
         <PhoneStatusBar />
         <div className="onboarding-bear" aria-hidden="true">
-          <img src="/brand/app-icon.png" alt="" />
+          <img src="/brand/app-icon-192.png" alt="" />
         </div>
         <div className="onboarding-intro-copy">
           <h1>Velkommen</h1>
@@ -4484,7 +4593,7 @@ function OnboardingProgressHeader({
 }) {
   return (
     <header className="onboarding-progress-head">
-      <img src="/brand/tm-logo.png" alt="" />
+      <img src="/brand/tm-logo-256.webp" alt="" />
       <h1>Kom i gang</h1>
       <p>
         Trin {stepIndex + 1} af {totalSteps}

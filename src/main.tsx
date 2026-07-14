@@ -38,7 +38,7 @@ function LoadingScreen() {
         background: "#f4f7fb"
       }}
     >
-      <img src="/brand/tm-logo.png" alt="" width="64" height="64" />
+      <img src="/brand/tm-logo-256.webp" alt="" width="64" height="64" />
     </div>
   );
 }
