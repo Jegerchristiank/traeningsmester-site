@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
+    <script>
+      // Start the hero request before React, without adding image traffic to /app.
+      if (location.pathname === "/") {
+        const hero = document.createElement("link");
+        hero.rel = "preload";
+        hero.as = "image";
+        hero.href = "/product/revision-full-set.webp";
+        hero.imageSrcset =
+          "/product/revision-full-set-640.webp 640w, /product/revision-full-set.webp 960w";
+        hero.imageSizes =
+          "(max-width: 480px) 170px, (max-width: 899px) 224px, 274px";
+        hero.fetchPriority = "high";
+        document.head.append(hero);
+      }
+    </script>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rbplnybmjwcoigiwtkuh.supabase.co https://eu.i.posthog.com ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"

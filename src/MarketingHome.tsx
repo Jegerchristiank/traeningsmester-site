@@ -6,22 +6,30 @@ import "./training-story.css";
 
 const frames = {
   program: {
-    src: "program",
+    src: "revision-program",
+    width: 960,
+    height: 1250,
     title: "Dit program er klar.",
     alt: "Eksempel: Overkrop A med Bænkpres Med Stang, 3 sæt med 8 gentagelser.",
   },
   set: {
-    src: "set",
+    src: "revision-set",
+    width: 960,
+    height: 1083,
     title: "Et sæt ad gangen.",
     alt: "Eksempel: Bænkpres Med Stang. Sidste gang 60 kg, nu 62,5 kg og 8 gentagelser.",
   },
   rest: {
-    src: "rest",
+    src: "revision-rest",
+    width: 960,
+    height: 1403,
     title: "Plads til en pause.",
     alt: "Eksempel: Første sæt er registreret med 62,5 kg og 8 gentagelser. Pausen har 1 minut og 42 sekunder tilbage.",
   },
   history: {
-    src: "history",
+    src: "revision-history",
+    width: 960,
+    height: 939,
     title: "Tag det med til næste gang.",
     alt: "Eksempel: Den samme træning, Overkrop A, genfindes i historikken med Bænkpres Med Stang og 62,5 kg.",
   },
@@ -80,9 +88,9 @@ function RawScreen({ frame }: { frame: Frame }) {
   return (
     <figure className={`chapter-mobile-screen mobile-${frame}`}>
       <img
-        src={`/product/screen-${frames[frame].src}.webp`}
-        width="1206"
-        height="2622"
+        src={`/product/${frames[frame].src}.webp`}
+        width={frames[frame].width}
+        height={frames[frame].height}
         loading="lazy"
         decoding="async"
         alt={frames[frame].alt}
@@ -193,7 +201,9 @@ function ProductStory() {
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth",
-      block: "center",
+      block: window.matchMedia("(min-width: 900px)").matches
+        ? "center"
+        : "start",
     });
   }
   return (
@@ -203,16 +213,15 @@ function ProductStory() {
       aria-labelledby="story-title"
     >
       <div className="section-heading">
-        <p className="section-kicker">Én træning. Hele vejen.</p>
+        <p className="section-kicker">Et forløb i Træningsmester</p>
         <h2 id="story-title">
           Fra sidste sæt
           <br />
           til næste træning.
         </h2>
         <p className="section-intro">
-          Følg en træning med Overkrop A.
-          <br />
-          Samme program. Samme øvelse. Noget at bygge videre på.
+          Fra planen for bænkpres til det sæt, du kan finde igen. Følg Overkrop
+          A gennem én træning.
         </p>
       </div>
       <nav className="chapter-nav" aria-label="Træningsforløbets kapitler">
@@ -251,12 +260,23 @@ function ProductStory() {
               er klar.
             </h3>
             <p>
-              Åbn træningsdagen, og find den øvelse, du skal i gang med. Sæt,
-              gentagelser og rækkefølge er samlet.
+              Åbn Overkrop A. Bænkpres ligger klar med de sæt, gentagelser og
+              pauser, du har planlagt.
             </p>
-            <p className="chapter-detail">
-              Overkrop A <span aria-hidden="true">/</span> Bænkpres Med Stang
-            </p>
+            <dl className="chapter-fact">
+              <div>
+                <dt>Bænkpres Med Stang</dt>
+                <dd>
+                  3 <span>×</span> 8
+                </dd>
+              </div>
+              <div>
+                <dt>Planlagt pause</dt>
+                <dd>
+                  2:00 <span>min.</span>
+                </dd>
+              </div>
+            </dl>
             <RawScreen frame="program" />
           </article>
           <article className="story-chapter" id="dit-saet" data-chapter="set">
@@ -268,8 +288,8 @@ function ProductStory() {
             </h3>
             <p>Registrér sættet. Hold styr på pausen.</p>
             <p>
-              De tidligere værdier giver dig et udgangspunkt. Nu er det dit
-              næste sæt, der tæller.
+              Sidst løftede du 60 kg. I dette eksempel registrerer du 62,5 kg ×
+              8. Sættet markeres som udført, og pausen starter.
             </p>
             <div className="state-actions">
               <button
@@ -301,9 +321,17 @@ function ProductStory() {
             </h3>
             <p>Se dine tidligere træninger, når du skal videre.</p>
             <p>
-              Det, du registrerede i dag, er der også, når du står klar til
-              næste træning.
+              Åbn “Tidligere” ved bænkpres. Her ligger de 62,5 kg × 8 fra
+              træningen, så du har noget konkret at tage udgangspunkt i.
             </p>
+            <dl className="chapter-fact history-fact">
+              <div>
+                <dt>Registreret i eksemplet</dt>
+                <dd>
+                  62,5 <span>kg ×</span> 8
+                </dd>
+              </div>
+            </dl>
             <RawScreen frame="history" />
           </article>
         </div>
@@ -318,11 +346,11 @@ function ProductStory() {
               <img
                 key={frame}
                 className={`stage-image ${active === frame ? "is-active" : ""}`}
-                src={`/product/${frame}.webp`}
+                src={`/product/${frames[frame].src}.webp`}
                 alt={active === frame ? frames[frame].alt : ""}
                 aria-hidden={active !== frame}
-                width="1024"
-                height="1280"
+                width={frames[frame].width}
+                height={frames[frame].height}
                 loading="lazy"
                 decoding="async"
               />
@@ -444,36 +472,53 @@ export default function MarketingHome() {
         >
           <div className="hero-copy">
             <h1 id="hero-title">
-              Træn videre
-              <br />
-              fra sidste
-              <br /> <span>gang.</span>
+              <span>Træn videre</span>
+              <span>fra sidste gang.</span>
             </h1>
             <p className="hero-intro">
               Dit program, dine sæt og dine pauser samlet i én app. Se, hvad du
               løftede sidst, og hold fokus på den træning, du er i gang med.
             </p>
+            <div className="hero-mobile-action">
+              <AccessLink className="primary-link" />
+              <p>Under udvikling. Få besked, når der er nyt om adgang.</p>
+            </div>
+          </div>
+          <figure className="hero-product">
+            <div className="hero-product-composition">
+              <img
+                className="hero-full-screen"
+                src="/product/revision-full-set.webp"
+                srcSet="/product/revision-full-set-640.webp 640w, /product/revision-full-set.webp 960w"
+                sizes="(max-width: 480px) 170px, (max-width: 899px) 224px, 274px"
+                width="960"
+                height="2088"
+                fetchPriority="high"
+                alt="Overkrop A i Træningsmester. Bænkpres Med Stang er åben med tre planlagte sæt."
+              />
+              <div className="hero-detail">
+                <p>Sidste gang. Næste sæt.</p>
+                <div className="hero-detail-crop">
+                  <img
+                    src="/product/revision-detail-set.webp"
+                    width="1200"
+                    height="510"
+                    alt="Forstørret udsnit: Sidste sæt var 60 kg × 8. Første sæt er nu indstillet til 62,5 kg × 8."
+                  />
+                </div>
+              </div>
+            </div>
+            <figcaption>
+              Overkrop A · Bænkpres Med Stang
+              <span>Eksempeldata · rekonstrueret appvisning</span>
+            </figcaption>
+          </figure>
+          <div className="hero-signup">
             <AccessForm />
             <a className="story-text-link" href="#traeningsforloeb">
               Se et træningsforløb <Arrow down />
             </a>
           </div>
-          <figure className="hero-product">
-            <img
-              src="/product/hero.webp"
-              width="1280"
-              height="1280"
-              fetchPriority="high"
-              alt="Eksempel fra Træningsmester: Overkrop A og Bænkpres Med Stang. Sæt, vægt, gentagelser og tidligere værdier samlet ved øvelsen."
-            />
-            <figcaption>
-              <span>
-                Bænkpres Med Stang <span className="figure-divider">/</span>{" "}
-                Overkrop A
-              </span>
-              <span>Eksempeldata</span>
-            </figcaption>
-          </figure>
         </section>
         <ProductStory />
         <section
@@ -482,7 +527,17 @@ export default function MarketingHome() {
           aria-labelledby="possibilities-title"
         >
           <div className="possibilities-heading">
-            <p className="section-kicker">Plads til din træning</p>
+            <figure className="training-photo">
+              <img
+                src="/product/athlete.webp"
+                width="1000"
+                height="1000"
+                alt="En atlet gør sig klar ved vægtstangen i træningscenteret."
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Træningsfoto: Victor Freitas / Unsplash</figcaption>
+            </figure>
             <h2 id="possibilities-title">
               Til din måde
               <br />
@@ -505,10 +560,11 @@ export default function MarketingHome() {
               </p>
             </div>
             <div className="feature-row">
-              <h3>Forbundet, når du vil</h3>
+              <h3>Apple Sundhed og Strava</h3>
               <p>
-                Relevante enheder og tjenester kan kobles til. Du vælger
-                integrationerne og giver de nødvendige tilladelser.
+                Apple Sundhed er knyttet til iPhone. Strava er en valgfri
+                forbindelse under udvikling. Tilgængelighed afhænger af platform
+                og release.
               </p>
             </div>
             <details className="all-features">
@@ -536,24 +592,15 @@ export default function MarketingHome() {
           className="human-section section-shell"
           aria-labelledby="human-title"
         >
-          <figure className="training-photo">
-            <img
-              src="/product/athlete.webp"
-              width="1000"
-              height="1000"
-              alt="En atlet gør sig klar ved vægtstangen i træningscenteret."
-              loading="lazy"
-              decoding="async"
-            />
-            <figcaption>Træningsfoto: Victor Freitas / Unsplash</figcaption>
-          </figure>
-          <div className="human-copy">
+          <div className="human-heading">
             <p className="section-kicker">Bag Træningsmester</p>
             <h2 id="human-title">
               Udviklet af
               <br />
-              Christian.
+              Christian Kristensen.
             </h2>
+          </div>
+          <div className="human-copy">
             <p>
               Træningsmester udvikles af Christian Kristensen under KRISTENSON i
               Næstved.
@@ -573,11 +620,7 @@ export default function MarketingHome() {
           className="questions section-shell"
           aria-labelledby="questions-title"
         >
-          <h2 id="questions-title">
-            Inden du
-            <br />
-            skriver dig op.
-          </h2>
+          <h2 id="questions-title">Inden du skriver dig op.</h2>
           <div className="question-list">
             {questions.map(([question, answer], index) => (
               <div className="question" key={question}>
@@ -609,7 +652,7 @@ export default function MarketingHome() {
           </div>
         </section>
         <section className="closing section-shell">
-          <p>Den næste træning starter med den sidste.</p>
+          <p>Dit program. Din næste træning.</p>
           <h2>Træn videre.</h2>
           <AccessLink className="closing-action" />
           <span>Under udvikling · Ingen offentlig adgangsdato endnu</span>

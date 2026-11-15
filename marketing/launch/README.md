@@ -1,5 +1,9 @@
 # Træn videre fra sidste gang
 
+## Visuel revision
+
+Den reviderede hjemmeside, still, delingsbillede og filmens åbning/slutning bruger nu et frontalt helt appviewport og ét læsbart udsnit fra samme skærm. De nye Center Stage-eksporter og reproduktionsindstillinger er beskrevet i [revision-center-stage-origin.md](revision-center-stage-origin.md). Den oprindelige kildefaste produktsekvens i filmen er bevaret. Billedernes skyggeplan er fjernet i studiet, så der ikke opstår grå canvas-kanter. Heleframe leveres også i en optimeret 640-pixelvariant til responsiv indlæsning på hjemmesiden.
+
 Materiale til egen publicering efter godkendelse. Intet er sendt eller publiceret af produktionen.
 
 - `traen-videre.mp4`: lodret lanceringsklip, 1080 × 1920, 30 fps, uden lyd. Åbning: »Hvad løftede jeg sidst?«. Slutning: »Få besked om adgang«.

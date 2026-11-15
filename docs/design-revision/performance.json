@@ -1,0 +1,83 @@
+{
+  "conditions": "Chromium,390×844,DPR1,4×CPU,150mslatency,1.6Mbpsdownload,cacheoff;3interleavedruns;localproductionbuildsservedwiththesameVitepreviewgzipserver;noanalyticsconsent;initialviewportonly",
+  "rows": [
+    {
+      "version": "before",
+      "run": 1,
+      "lcp": 1176,
+      "cls": 0,
+      "fcp": 1176,
+      "bytes": 318085,
+      "requests": 8,
+      "productTop": 845.953125
+    },
+    {
+      "version": "after",
+      "run": 1,
+      "lcp": 1480,
+      "cls": 0,
+      "fcp": 1480,
+      "bytes": 300936,
+      "requests": 9,
+      "productTop": 399.3125
+    },
+    {
+      "version": "before",
+      "run": 2,
+      "lcp": 1180,
+      "cls": 0,
+      "fcp": 1180,
+      "bytes": 318085,
+      "requests": 8,
+      "productTop": 845.953125
+    },
+    {
+      "version": "after",
+      "run": 2,
+      "lcp": 1468,
+      "cls": 0,
+      "fcp": 1468,
+      "bytes": 300936,
+      "requests": 9,
+      "productTop": 399.3125
+    },
+    {
+      "version": "before",
+      "run": 3,
+      "lcp": 1172,
+      "cls": 0,
+      "fcp": 1172,
+      "bytes": 318085,
+      "requests": 8,
+      "productTop": 845.953125
+    },
+    {
+      "version": "after",
+      "run": 3,
+      "lcp": 1472,
+      "cls": 0,
+      "fcp": 1472,
+      "bytes": 300936,
+      "requests": 9,
+      "productTop": 399.3125
+    }
+  ],
+  "medians": {
+    "before": {
+      "lcp": 1176,
+      "fcp": 1176,
+      "cls": 0,
+      "bytes": 318085,
+      "requests": 8,
+      "productTop": 845.953125
+    },
+    "after": {
+      "lcp": 1472,
+      "fcp": 1472,
+      "cls": 0,
+      "bytes": 300936,
+      "requests": 9,
+      "productTop": 399.3125
+    }
+  }
+}

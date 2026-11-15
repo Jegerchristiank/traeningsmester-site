@@ -1,8 +1,8 @@
 Hvad løftede jeg sidst?
 
-Jeg bygger Træningsmester til dig, der gerne vil have program, sæt og pauser samlet ét sted. Du kan se dine tidligere registreringer, logge det næste sæt og holde styr på pausen undervejs.
+Jeg bygger Træningsmester, så du kan tage udgangspunkt i din sidste træning. Åbn programmet, se hvad du løftede sidst, registrér næste sæt og hold styr på pausen.
 
-Appen er stadig under udvikling. Vil du have besked om adgang — eller kender du en træningsmakker, der vil være med til at afprøve den?
+Appen er under udvikling. Vil du afprøve den, når der bliver åbnet for adgang? Skriv dig op, så giver jeg besked. Du er også velkommen til at sende linket til en træningsmakker.
 
 Skriv dig op på https://www.traeningsmester.dk/
 
