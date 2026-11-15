@@ -27,7 +27,17 @@ test("first screen is readable, single signup, images load and no runtime errors
   await page.evaluate(() => document.fonts.ready);
   await page
     .locator(".hero-product img")
-    .evaluate((img: HTMLImageElement) => img.decode());
+    .evaluateAll((images) =>
+      Promise.all(images.map((img) => (img as HTMLImageElement).decode())),
+    );
+  if (testInfo.project.name === "mobile") {
+    // The product must be visible before asking visitors to read the full form.
+    const product = await page.locator(".hero-product").boundingBox();
+    expect(product!.y).toBeLessThan(page.viewportSize()!.height * 0.65);
+    await page.locator(".hero-mobile-action a").click();
+    await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  }
   await page.screenshot({
     path: `/tmp/tm-site-evidence/${testInfo.project.name}-hero-final.png`,
   });
@@ -181,7 +191,7 @@ test("chapter buttons retain context and pause is inspectable", async ({
     );
     await expect(page.locator(".story-stage img.is-active")).toHaveAttribute(
       "src",
-      "/product/rest.webp",
+      "/product/revision-rest.webp",
     );
   } else {
     await expect(page.locator(".mobile-rest")).toBeVisible();
