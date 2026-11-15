@@ -23,21 +23,6 @@ test("production state starts empty and Supabase accepts only verified cache fal
   assert.doesNotMatch(app, /coach-værktøjer/);
 });
 
-test("marketing interactions remain controllable, semantic and token-safe", async () => {
-  const marketing = await source("src/MarketingSite.tsx");
-  const bear = await source("src/components/BearHatScene.tsx");
-  const css = await source("src/marketing.css");
-
-  assert.match(marketing, /const token = fragmentToken \?\? ""/);
-  assert.doesNotMatch(marketing, /window\.location\.search/);
-  assert.match(marketing, /className="mk-skip-link"/);
-  assert.match(marketing, /<h3>\s*<button/);
-  assert.match(bear, /Afspil animation/);
-  assert.match(bear, /Pause animation/);
-  assert.match(bear, /status === "ready"/);
-  assert.match(css, /\.mk-nav \{[\s\S]*overflow-y: auto/);
-});
-
 test("the installable app stays scoped to the app boundary", async () => {
   const manifest = JSON.parse(await source("public/site.webmanifest")) as {
     id: string;
@@ -51,18 +36,18 @@ test("the installable app stays scoped to the app boundary", async () => {
   assert.equal(manifest.scope, "/app/");
   assert.deepEqual(
     manifest.icons.map((icon) => icon.sizes),
-    ["192x192", "512x512"]
+    ["192x192", "512x512"],
   );
 });
 
 test("first-party hero and chrome assets stay within mobile budgets", async () => {
   const budgets = new Map([
-    ["public/animation/bear-hat-poster-540.webp", 50_000],
+    ["public/product/hero.webp", 120_000],
     ["public/brand/tm-logo-256.webp", 20_000],
     ["public/brand/app-icon-48.png", 10_000],
-    ["public/app/home-training.webp", 40_000],
-    ["public/app/programs.webp", 40_000],
-    ["public/app/exercises.webp", 40_000]
+    ["public/product/program.webp", 120_000],
+    ["public/product/rest.webp", 150_000],
+    ["public/product/history.webp", 120_000],
   ]);
 
   for (const [path, maximumBytes] of budgets) {

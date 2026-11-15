@@ -7,8 +7,7 @@ export default defineConfig({
     host: true,
     port: 3000,
     strictPort: true,
-    allowedHosts: true,
-    hmr: { clientPort: 443, protocol: "wss" }
+    allowedHosts: true
   },
   build: {
     chunkSizeWarningLimit: 550,
