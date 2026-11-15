@@ -1,0 +1,51 @@
+{
+  "app": "center-stage",
+  "version": 1,
+  "shot": {
+    "aspect": "9:16",
+    "devices": [
+      {
+        "slot": 4,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rx": 0,
+        "ry": 0,
+        "rz": 0,
+        "scale": 1,
+        "type": "card",
+        "finish": "clean",
+        "radius": 0.05,
+        "viewport": "9:19.5"
+      }
+    ],
+    "camera": {
+      "fov": 24,
+      "pad": 0.3
+    },
+    "background": {
+      "colors": [
+        "#f6f5f1",
+        "#ffffff",
+        "#ffffff",
+        "#ffffff"
+      ]
+    },
+    "light": {
+      "angle": -8,
+      "height": 70,
+      "shadow": 0.18,
+      "softness": 0.75,
+      "distance": 0.08
+    },
+    "motion": {
+      "kind": "sway",
+      "duration": 12,
+      "intensity": 0.06
+    },
+    "finish": {
+      "grain": 0,
+      "vignette": 0
+    }
+  }
+}

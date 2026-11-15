@@ -6,45 +6,93 @@
     <meta name="color-scheme" content="light" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rbplnybmjwcoigiwtkuh.supabase.co ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rbplnybmjwcoigiwtkuh.supabase.co https://eu.i.posthog.com ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <meta
       name="description"
-      content="Træningsmester er en dansk app til personlig træning, hvor du kan planlægge din træning, logge dine sæt og følge din historik. Skriv dig på ventelisten."
+      content="Dit program, dine sæt og dine pauser samlet i én app. Træningsmester er under udvikling. Få besked om adgang."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#f4f7fc" />
+    <meta name="theme-color" content="#f6f5f1" />
     <meta name="application-name" content="Træningsmester" />
     <meta name="apple-mobile-web-app-title" content="Træningsmester" />
     <link rel="canonical" href="https://www.traeningsmester.dk/" />
     <meta property="og:site_name" content="Træningsmester" />
-    <meta property="og:title" content="Træningsmester | Personlig træningsapp" />
+    <meta
+      property="og:title"
+      content="Træningsmester — Træn videre fra sidste gang."
+    />
     <meta
       property="og:description"
-      content="Planlæg din træning, log dine sæt og følg din historik med Træningsmester. Skriv dig på ventelisten."
+      content="Se, hvad du løftede sidst. Følg dit program, registrér dine sæt, og tag det med til næste træning. Få besked om adgang."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.traeningsmester.dk/" />
     <meta property="og:locale" content="da_DK" />
-    <meta property="og:image" content="https://www.traeningsmester.dk/brand/og-image.png" />
-    <meta property="og:image:secure_url" content="https://www.traeningsmester.dk/brand/og-image.png" />
+    <meta
+      property="og:image"
+      content="https://www.traeningsmester.dk/product/og-image.jpg"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://www.traeningsmester.dk/product/og-image.jpg"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Træningsmester – personlig træning samlet ét sted" />
+    <meta
+      property="og:image:alt"
+      content="Træn videre fra sidste gang. Træningsmester med eksempel fra samme træning."
+    />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Træningsmester | Personlig træningsapp" />
+    <meta
+      name="twitter:title"
+      content="Træningsmester — Træn videre fra sidste gang."
+    />
     <meta
       name="twitter:description"
-      content="Planlæg din træning, log dine sæt og følg din historik med Træningsmester. Skriv dig på ventelisten."
+      content="Se, hvad du løftede sidst. Følg dit program, registrér dine sæt, og tag det med til næste træning. Få besked om adgang."
     />
-    <meta name="twitter:image" content="https://www.traeningsmester.dk/brand/og-image.png" />
-    <meta name="twitter:image:alt" content="Træningsmester – personlig træning samlet ét sted" />
-    <link rel="icon" href="/brand/app-icon-48.png" sizes="48x48" type="image/png" />
-    <link rel="apple-touch-icon" href="/brand/app-icon-180.png" sizes="180x180" />
+    <meta
+      name="twitter:image"
+      content="https://www.traeningsmester.dk/product/og-image.jpg"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Træn videre fra sidste gang. Træningsmester med eksempel fra samme træning."
+    />
+    <link
+      rel="icon"
+      href="/brand/app-icon-48.png"
+      sizes="48x48"
+      type="image/png"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="/brand/app-icon-180.png"
+      sizes="180x180"
+    />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="preload" href="/fonts/CabinetGrotesk-900.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
-    <link rel="preload" href="/fonts/Satoshi-400.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
-    <link rel="preload" href="/fonts/Satoshi-700.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link
+      rel="preload"
+      href="/fonts/CabinetGrotesk-800.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Satoshi-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Satoshi-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -84,7 +132,7 @@
             "name": "Træningsmester",
             "url": "https://www.traeningsmester.dk/",
             "applicationCategory": "HealthApplication",
-            "operatingSystem": "iOS, watchOS",
+            "operatingSystem": "iOS, Android, watchOS",
             "inLanguage": "da-DK",
             "description": "En dansk app til personlig træning, hvor brugeren kan planlægge træning, logge sæt og følge sin historik.",
             "publisher": {
@@ -94,7 +142,7 @@
         ]
       }
     </script>
-    <title>Træningsmester | Personlig træningsapp</title>
+    <title>Træningsmester — Træn videre fra sidste gang.</title>
   </head>
   <body>
     <div id="root"></div>

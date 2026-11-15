@@ -40,6 +40,12 @@
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
       ]
+    },
+    {
+      "source": "/slet-konto",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
     }
   ],
   "redirects": [
@@ -93,6 +99,14 @@
     },
     {
       "source": "/tilgaengelighed",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/slet-konto",
       "destination": "/index.html"
     },
     {
