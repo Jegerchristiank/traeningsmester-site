@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "traeningsmester": {
+      "type": "streamable-http",
+      "url": "https://www.traeningsmester.dk/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth",
+            "client": {
+              "mode": "dcr"
+            },
+            "registrationUrl": "https://www.traeningsmester.dk/oauth/reg",
+            "resource": "https://www.traeningsmester.dk/mcp",
+            "defaultScopes": [
+              "training:read",
+              "plans:write",
+              "exercises:write",
+              "workouts:write",
+              "history:write",
+              "preferences:write",
+              "data:transfer"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

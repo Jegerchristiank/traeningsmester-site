@@ -22,7 +22,10 @@ export default async function mcp(req: Request, res: Response) {
     const parsed = req.method === 'POST' ? await body(req, 2 * 1024 * 1024) : undefined;
     const discovery = parsed && ['initialize','notifications/initialized','server/discover','tools/list','ping'].includes(String(parsed.method));
     const auth = discovery ? undefined : await authorize(req);
-    const server = new McpServer({ name: 'traeningsmester', version: '1.0.0' }, { instructions: 'Manage only this connected account’s synchronized training data. Preserve explicit units and revisions. Writes need a stable operationId UUID; retry the same operation after an unknown outcome. Never claim phone-only drafts are included. Complete plans do not activate automatically. Workout control transfer must be acknowledged by the current writer; an offline phone cannot be taken over.' });
+    const server = new McpServer({ name: 'traeningsmester', title: 'Træningsmester', version: '1.0.0',
+      description: 'Plan your training, record workouts and follow your progress with your Træningsmester account.',
+      websiteUrl: `${c.origin}/ai/help`, icons: [{ src: `${c.origin}/brand/tm-logo-mark.png`, mimeType: 'image/png', sizes: ['1024x1024'] }],
+    }, { instructions: 'Manage only this connected account’s synchronized training data. Preserve explicit units and revisions. Writes need a stable operationId UUID; retry the same operation after an unknown outcome. Never claim phone-only drafts are included. Complete plans do not activate automatically. Workout control transfer must be acknowledged by the current writer; an offline phone cannot be taken over.' });
     for (const tool of tools) {
       server.registerTool(tool.name, { title: tool.title, description: tool.description, inputSchema: tool.schema,
         _meta: { securitySchemes: [{ type:'oauth2',scopes:[tool.scope] }] },

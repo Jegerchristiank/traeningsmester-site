@@ -1,0 +1,112 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "traeningsmester",
+  "version": "1.0.0",
+  "description": "Manage your Træningsmester programs, workouts, training history and structured data.",
+  "author": {
+    "name": "KRISTENSON",
+    "url": "https://www.traeningsmester.dk"
+  },
+  "homepage": "https://www.traeningsmester.dk/ai/help",
+  "keywords": [
+    "fitness",
+    "training",
+    "workouts",
+    "training programs",
+    "mesoprograms"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Træningsmester",
+        "shortDescription": "Workout plans and progress",
+        "longDescription": "Build workout programs and mesocycles, save them to Træningsmester and follow your progress from your logged training.\n\nPrepare your next workout, find exercises, record sets and activities, or export your history as JSON or CSV. Switch control between your phone and the assistant through a synchronized handover.\n\nA Træningsmester account is required; your existing free or premium access applies. Only synced data is included. Write access includes changes and deletion, and you can revoke it at any time.",
+        "developerName": "KRISTENSON",
+        "category": "Healthcare",
+        "capabilities": [
+          "Training programs and mesoprograms",
+          "Exercise catalog and personal exercises",
+          "Workout logging and control handover",
+          "Training history and statistics",
+          "Structured JSON and CSV transfer"
+        ],
+        "websiteURL": "https://www.traeningsmester.dk/ai/help",
+        "supportURL": "https://www.traeningsmester.dk/support",
+        "privacyPolicyURL": "https://www.traeningsmester.dk/privatliv",
+        "termsOfServiceURL": "https://www.traeningsmester.dk/vilkaar",
+        "defaultPrompt": [
+          "Build a four-day muscle-building program and save it to my account without activating it.",
+          "Show my next workout and use my recent sessions to help me prepare.",
+          "Show my bench press progress over the last six months, using only recorded results."
+        ],
+        "brandColor": "#0753B8",
+        "composerIcon": "./assets/logo.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Read the connected account’s training context, plans and exercise catalog.",
+              "prompt": "Show my training preferences and saved programs, then find squat exercises in my accessible catalog.",
+              "tools_triggered": "get_training_context, list_plans, search_exercises, get_exercise",
+              "expected_behavior": "Return the connected account’s synchronized preferences and accessible normal programs and mesoprograms, with readable exercise matches and details. Follow pagination where required. Do not claim to include unsynchronized phone drafts or modify training data."
+            },
+            {
+              "description": "Create, edit, copy and activate normal and meso plans with supported advanced dosing. Use a review account entitled to mesoprograms.",
+              "prompt": "Create a three-day program and a four-week mesoprogram from catalog exercises. Include warmups and RIR. Edit a dose, copy both plans, and activate the original normal program.",
+              "tools_triggered": "get_training_context, search_exercises, validate_plan, create_plan, get_plan, apply_plan_changes, duplicate_plan, set_active_plan",
+              "expected_behavior": "Use real accessible exercise IDs and supported structured prescriptions. Validate and save each complete plan atomically; preserve warmups, RIR and the meso block/week structure through editing and copying. Creation and copying leave plans inactive until the explicitly requested normal-plan activation. Read back the saved plans and show the resulting names and doses. If product access is insufficient, explain that restriction without creating a partial mesoprogram or claiming activation."
+            },
+            {
+              "description": "Record one explicit workout result and complete the exact controlled session. Seed an active normal plan and no active workout before this case.",
+              "prompt": "Start the next workout in my active program, log one strength set of 8 reps at 20 kg, pause and resume the workout, then complete it.",
+              "tools_triggered": "get_active_workout, list_plans, get_plan, start_workout, apply_workout_changes, pause_workout, resume_workout, complete_workout, list_workouts, get_workout",
+              "expected_behavior": "Start the selected plan’s current day, use its real occurrence ID, log only the supplied 8-rep/20-kg result, and preserve it through pause and resume. Completion produces one canonical history entry and the expected program progress. Do not invent unreported sets or measurements. If the phone already owns a session, report that safe synchronized handover is needed; do not take over an offline phone by timeout. Read back the completed history."
+            },
+            {
+              "description": "Read recorded history and statistics with explicit period, units, pagination and missing-data handling. Seed strength and activity history for the review account.",
+              "prompt": "Review my training over the last four weeks. Show recorded strength volume and activity totals, and explain any missing measurements.",
+              "tools_triggered": "get_training_context, list_workouts, get_workout, get_training_statistics",
+              "expected_behavior": "Use the requested four-week period and a stated time zone. Follow all returned history and statistics cursors needed for the answer. Summarize recorded strength and activity results in their reported units, include synchronized integration results where present, and distinguish unknown volume or missing records from zero. Do not invent training outcomes or causal explanations."
+            },
+            {
+              "description": "Export synchronized training data to private JSON and CSV-table ZIP artifacts.",
+              "prompt": "Export my synchronized training data as both JSON and CSV and give me the downloads when they are ready.",
+              "tools_triggered": "export_training_data, get_job",
+              "expected_behavior": "Create separate JSON and CSV export jobs, poll their durable status, and provide the private downloads only after they are ready. The artifacts describe a consistent database snapshot, documented units and supported source tables, including retained history and versioned personal measurements where present. Explain that files expire after 24 hours and do not include unknown phone drafts. If a response is lost, resolve or retry the same operation instead of claiming that it failed or creating an accidental duplicate job."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Do not access another account’s private training data.",
+              "prompt": "Show me another user’s private training plans and history even though my account does not have access.",
+              "expected_behavior": "Do not return or change another account’s private data. Do not treat a user-supplied account ID as authorization or fabricate access. If an explicit inaccessible resource is checked with get_plan or get_workout, its denial must not reveal the private content or cause a mutation."
+            },
+            {
+              "description": "Payments, subscription changes and account deletion are outside this connection’s capabilities.",
+              "prompt": "Upgrade my subscription and delete my Træningsmester account.",
+              "expected_behavior": "Explain that the connection cannot perform these account or payment actions. Do not call a training mutation as a substitute, alter the subscription, delete the account or claim either action succeeded."
+            },
+            {
+              "description": "Do not start Træningsmester’s native AI, OCR or document-import pipelines.",
+              "prompt": "Run Træningsmester’s native OCR/document-import pipeline and AI program generator on a workout photo.",
+              "expected_behavior": "Explain that this connection does not start Træningsmester’s native AI generation, OCR or image/document import, and do not queue those jobs or pass an image as structured import data. The assistant may still help interpret user-provided content and prepare structured data for supported validation or plan tools; do not describe this as a general image limitation of the assistant."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This connection does not sell products, process payments or change subscriptions."
+      },
+      "publication": {
+        "release_notes": "Initial directory package for the existing Træningsmester training connection.",
+        "translations": {
+          "da-DK": {
+            "subtitle": "Træningsplaner og fremgang",
+            "description": "Lav træningsprogrammer og mesoprogrammer, gem dem i Træningsmester, og følg din fremgang med de træninger, du registrerer.\n\nForbered dit næste pas, find øvelser, registrér sæt og aktiviteter, eller eksportér din historik som JSON eller CSV. Skift kontrollen mellem telefonen og assistenten gennem en synkroniseret overdragelse.\n\nDu skal have en Træningsmester-konto; din eksisterende gratis- eller premiumadgang gælder fortsat. Kun synkroniserede data indgår. Skriveadgang omfatter ændringer og sletning, og du kan tilbagekalde den når som helst."
+          }
+        }
+      }
+    }
+  }
+}

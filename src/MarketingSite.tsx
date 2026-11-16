@@ -48,7 +48,7 @@ const legalDocuments: Record<
     title: "Privatliv",
     intro:
       "Her kan du se, hvilke oplysninger hjemmesiden, ventelisten, webappen og Træningsmester til iPhone, Apple Watch og Android behandler, hvorfor de bruges, og hvilke valg du har.",
-    updated: "15. november 2026",
+    updated: "16. november 2026",
     sections: [
       {
         title: "Valgfri statistik på hjemmesiden",
@@ -98,6 +98,21 @@ const legalDocuments: Record<
         title: "AI, integrationer og køb",
         body:
           "Valgfrie AI- og importfunktioner kan sende programtekst, træningsintention, programsnapshots, importtekst og billedreferencer gennem Supabase til OpenAI for at analysere eller omskrive det indhold, du selv vælger. API-anmodningen bruger indstillingen store: false; OpenAI behandler fortsat det valgte input og det genererede svar for at levere funktionen. Hvis du vælger Apple- eller Google-login, Strava, Apple Sundhed, Health Connect, App Store- eller Google Play-køb, udveksles de nødvendige konto-, token-, aktivitets- eller transaktionsoplysninger med den valgte tjeneste. Træningsmester modtager ikke dine fulde betalingskortoplysninger."
+      },
+      {
+        title: "Når du forbinder en AI-assistent",
+        body:
+          "Du kan selv forbinde din konto til eksempelvis ChatGPT, Claude eller Codex. Forbindelsen giver den valgte assistent adgang til synkroniserede træningsoplysninger inden for de viste rettigheder: programmer, øvelser, præferencer, træningspas, resultater, noter, statistik og struktureret import eller eksport. Med skriverettigheder kan assistenten også ændre og slette det tilknyttede indhold uden en ekstra godkendelse fra Træningsmester. Telefonen og assistenten skifter kontrollen over en igangværende træning gennem en bekræftet overdragelse. Usynkroniserede kladder på telefonen følger først med efter synkronisering."
+      },
+      {
+        title: "AI-forbindelsens modtagere og opbevaring",
+        body:
+          "Oplysninger, som assistenten henter eller sender, behandles også af den AI-udbyder, du vælger, eksempelvis OpenAI eller Anthropic, efter udbyderens egne vilkår og privatlivspolitik. Indstillingen store: false for Træningsmesters indbyggede AI-funktioner er ikke et løfte om opbevaring i din eksterne assistents samtaler. Assistenten får et særskilt adgangstoken, ikke din Supabase-session eller adgangskode. Adgangstokens gælder i 15 minutter; fornyelsesadgang er begrænset til højst 30 dage. Træningsmester gemmer forbindelsens identitet, rettigheder, oprettelse, seneste brug, udløb og tilbagekaldelse samt krypteret protokoltilstand. Udløbet protokoltilstand ryddes automatisk, mens forbindelsesoplysninger beholdes til kontoens forbindelsesadministration. Midlertidige eksportfiler og snapshots udløber efter 24 timer og ryddes automatisk. Driftslogs for MCP-kald indeholder operationstype, udfald og korrelations-ID, ikke tokens, træningsfritekst eller komplette datapayloads."
+      },
+      {
+        title: "Tilbagekald AI-adgang",
+        body:
+          "Du kan se og tilbagekalde forbindelser under Forbundne AI-assistenter i appen eller på sitet. Tilbagekaldelse stopper også allerede udstedte MCP-adgangstokens. Træninger og andre ændringer, som allerede er gemt på din konto, bevares. Oplysninger, der allerede er afleveret til en assistent eller downloadet som eksport, slettes ikke automatisk hos modtageren, når forbindelsen tilbagekaldes; brug den valgte tjenestes kontroller til at administrere dem."
       },
       {
         title: "Databehandlere og overførsler",
