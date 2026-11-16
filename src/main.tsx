@@ -2,8 +2,10 @@ import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 
 const WebApp = lazy(() => import("./App"));
+const AiAssistants = lazy(() => import("./AiAssistants"));
 import MarketingSite from "./MarketingSite";
 
+const isAiRoute = ["/ai/connect", "/ai/connections", "/ai/help"].includes(window.location.pathname);
 const isWebAppRoute =
   window.location.pathname === "/app" ||
   window.location.pathname.startsWith("/app/");
@@ -54,7 +56,7 @@ function LoadingScreen() {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Suspense fallback={<LoadingScreen />}>
-      {isWebAppRoute ? <WebApp /> : <MarketingSite />}
+      {isAiRoute ? <AiAssistants /> : isWebAppRoute ? <WebApp /> : <MarketingSite />}
     </Suspense>
   </StrictMode>,
 );

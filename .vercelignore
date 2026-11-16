@@ -1,0 +1,7 @@
+tests
+docs
+memory
+test_reports
+node_modules
+.env*
+!.env.example

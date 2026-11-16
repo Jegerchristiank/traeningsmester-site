@@ -47,7 +47,7 @@ const legalDocuments: Record<
   privatliv: {
     title: "Privatliv",
     intro:
-      "Her kan du se, hvilke oplysninger marketinghjemmesiden, ventelisten og den nuværende webapp behandler, hvorfor de bruges, og hvilke valg du har.",
+      "Her kan du se, hvilke oplysninger hjemmesiden, ventelisten, webappen og Træningsmester til iPhone, Apple Watch og Android behandler, hvorfor de bruges, og hvilke valg du har.",
     updated: "15. november 2026",
     sections: [
       {
@@ -75,16 +75,39 @@ const legalDocuments: Record<
         body: "Ved tilmelding bruges en envejs-hash af forbindelsens IP-adresse midlertidigt til at begrænse automatiseret misbrug. Den rå IP-adresse gemmes ikke i ventelistedatabasen, og den midlertidige rate-limitværdi udløber senest efter 10 minutter i den aktive serverproces. Tekniske drifts- og sikkerhedslogs kan behandles af hostingudbyderen. Grundlaget er den legitime interesse i stabil og sikker drift efter GDPR artikel 6, stk. 1, litra f.",
       },
       {
-        title: "Når du bruger webappen",
-        body: "Webappen bruger Supabase til konto og session og kan hente eller gemme profiloplysninger, programmer, sæt, noter, kropsvægt samt trænings- og aktivitetshistorik. De valgte funktioner leveres på grundlag af GDPR artikel 6, stk. 1, litra b. Ved oprettelse af en ny konto indhentes et særskilt, udtrykkeligt samtykke til oplysninger, der kan afsløre helbred eller fysisk tilstand, efter GDPR artikel 9, stk. 2, litra a. Eksisterende konti uden den aktuelle samtykkeversion bliver bedt om samme valg, før appens dataflader åbnes; version, tidspunkt og valg gemmes med kontoen. Appen gemmer også en lokal kopi på din enhed, så tilstand og igangværende arbejde kan huskes. Der træffes ikke afgørelser alene ved automatiseret behandling, som har retsvirkning eller tilsvarende væsentlig betydning for dig.",
+        title: "Når du bruger Træningsmester",
+        body:
+          "Træningsmester bruger Supabase til konto og session og kan hente eller gemme email, profil- og appindstillinger, programmer, øvelser, sæt, gentagelser, vægt, intensitet, noter, kropsvægt, personlige rekorder samt trænings- og aktivitetshistorik. Oplysningerne bruges til login, synkronisering, historik, progression, abonnementstilstand og de funktioner, du vælger. Kernefunktionerne leveres på grundlag af GDPR artikel 6, stk. 1, litra b. Appen kan også gemme en lokal kopi på din enhed, så session og igangværende arbejde kan huskes. Der træffes ikke afgørelser alene ved automatiseret behandling, som har retsvirkning eller tilsvarende væsentlig betydning for dig."
+      },
+      {
+        title: "Sundheds-, sensor- og lokationsdata",
+        body:
+          "Hvis du selv aktiverer de relevante funktioner og enhedstilladelser, kan iPhone-appen læse eller skrive kropsvægt, workouts, rute, distance, energi, puls, kadence og power via Apple Sundhed. Android-appen kan eksportere gennemførte aktiviteter til Health Connect. Kompatible Bluetooth-sensorer kan levere puls, kadence eller power under en aktivitet. Ved udendørs aktiviteter kan appen bruge omtrentlig eller præcis lokation, afhængigt af den tilladelse du vælger, også mens en aktiv session fortsætter i baggrunden. Det bruges til løbende tid, distance og din private GPS-rute og stopper, når sessionen afsluttes eller kasseres. Lokation kan desuden bruges til at foreslå eller skifte træningscenter, hvis du har slået det til. Disse funktioner er valgfrie; du kan tilbagekalde samtykke og systemtilladelser med virkning for fremtiden. Oplysninger, der kan afsløre helbred eller fysisk tilstand, behandles på grundlag af dit udtrykkelige valg efter GDPR artikel 6, stk. 1, litra a, og artikel 9, stk. 2, litra a. Sundhedsdata og importer deles ikke automatisk i Social."
+      },
+      {
+        title: "Social, beskeder og brugerindhold",
+        body:
+          "Hvis du bruger Social, behandles vennekoder og -anmodninger, relationer, valgte profilnavne, buddy-invitationer, delte træningsresuméer, likes, kommentarer og direkte beskeder. Billeder eller videoer, som du selv uploader til en øvelse eller profilfunktion, gemmes som brugerindhold. Delte træningsopslag er enten private eller synlige for de venner, du vælger efter appens aktuelle delingsindstillinger. Et delt aktivitetsresumé kan indeholde en beskåret rutevisning, hvis du aktivt deler aktiviteten. Behandlingen sker for at levere de sociale funktioner, du har valgt, efter GDPR artikel 6, stk. 1, litra b."
+      },
+      {
+        title: "Drift, diagnostik og produktanalyse",
+        body:
+          "For at holde appen stabil og forbedre centrale flows kan Træningsmester gemme bruger-ID, app- og buildversion, operativsystem, enhedsmodel, seneste aktivitet samt tekniske fejl med den aktive fane eller rute og relevante program-, workout- eller øvelses-ID'er. Førsteparts produktevents kan beskrive onboarding, træningsflow, import, progression, paywall og køb. De bruges ikke til annoncering eller sporing på tværs af andre virksomheders apps og websites, og appen bruger ikke IDFA eller annonce-SDK'er. Grundlaget er den legitime interesse i sikker drift og produktforbedring efter GDPR artikel 6, stk. 1, litra f; du kan gøre indsigelse via kontaktmailen."
+      },
+      {
+        title: "AI, integrationer og køb",
+        body:
+          "Valgfrie AI- og importfunktioner kan sende programtekst, træningsintention, programsnapshots, importtekst og billedreferencer gennem Supabase til OpenAI for at analysere eller omskrive det indhold, du selv vælger. API-anmodningen bruger indstillingen store: false; OpenAI behandler fortsat det valgte input og det genererede svar for at levere funktionen. Hvis du vælger Apple- eller Google-login, Strava, Apple Sundhed, Health Connect, App Store- eller Google Play-køb, udveksles de nødvendige konto-, token-, aktivitets- eller transaktionsoplysninger med den valgte tjeneste. Træningsmester modtager ikke dine fulde betalingskortoplysninger."
       },
       {
         title: "Databehandlere og overførsler",
-        body: "Supabase bruges til database og login; Træningsmester-projektet ligger i Supabases EU-region eu-central-1 (Frankfurt). Vercel bruges til hosting og serverfunktioner, og Resend bruges til at levere ventelistemails. Hvis en leverandør eller underdatabehandler behandler oplysninger uden for EU/EØS, skal overførslen være omfattet af et gyldigt grundlag efter GDPR kapitel V, eksempelvis en tilstrækkelighedsafgørelse eller EU-Kommissionens standardkontraktbestemmelser. Du kan bede om oplysninger om det aktuelle grundlag og de relevante garantier via kontaktmailen ovenfor.",
+        body:
+          "Supabase bruges til database, filer, realtime og login; Træningsmester-projektet ligger i Supabases EU-region eu-central-1 (Frankfurt). Vercel bruges til hosting og serverfunktioner, Resend til ventelistemails og OpenAI til de valgfrie AI-funktioner. Apple, Google og Strava behandler oplysninger, når du vælger deres login-, sundheds-, aktivitets- eller betalingstjenester, og kan i den forbindelse være selvstændigt dataansvarlige efter deres egne vilkår. Hvis en leverandør eller underdatabehandler behandler oplysninger uden for EU/EØS, skal overførslen være omfattet af et gyldigt grundlag efter GDPR kapitel V, eksempelvis en tilstrækkelighedsafgørelse eller EU-Kommissionens standardkontraktbestemmelser. Du kan bede om oplysninger om det aktuelle grundlag og de relevante garantier via kontaktmailen ovenfor."
       },
       {
         title: "Opbevaring",
-        body: "Ventelistetilmeldingen slettes, når ventelistens formål er afsluttet, eller når du gennemfører afmelding. Webappens aktuelle lokale appkopi ryddes ved logout; data kan også fjernes via browserens indstillinger. Konto- og træningsdata opbevares, mens kontoen er aktiv, og slettes eller anonymiseres efter en gyldig sletteanmodning, medmindre oplysninger skal bevares i en begrænset periode af hensyn til dokumentation, sikkerhed eller et retskrav. Leverandørers backups og sikkerhedslogs udfases efter deres gældende slettecyklusser.",
+        body:
+          "Ventelistetilmeldingen slettes, når ventelistens formål er afsluttet, eller når du gennemfører afmelding. Logout afslutter din session, men fjerner ikke nødvendigvis enhver lokal cache. Lokale kopier kan ryddes via appens kontosletning, enhedens eller browserens lagerindstillinger eller ved at afinstallere appen. Konto-, profil-, trænings-, aktivitets-, rute-, social-, besked-, diagnostik- og produkteventdata opbevares, mens de er nødvendige for den aktive konto og de valgte funktioner, og slettes eller anonymiseres efter kontosletning eller en gyldig sletteanmodning, medmindre oplysninger skal bevares i en begrænset periode af hensyn til dokumentation, sikkerhed, køb eller et retskrav. Data, du har valgt at eksportere til Apple Sundhed, Health Connect eller Strava, er også under den pågældende tjenestes kontrol og skal eventuelt slettes dér. Indhold, du selv sletter i appen, fjernes fra de aktive produktflader. Leverandørers backups, transaktionsoplysninger og sikkerhedslogs udfases efter deres gældende slettecyklusser."
       },
       {
         title: "Dine rettigheder",

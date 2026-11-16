@@ -4,47 +4,93 @@
     {
       "source": "/",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" }
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/:path*",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "no-referrer" }
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/app",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
       ]
     },
     {
       "source": "/app/",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
       ]
     },
     {
       "source": "/app/:path*",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
       ]
     },
     {
       "source": "/afmeld",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
       ]
     },
     {
       "source": "/slet-konto",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/ai/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     }
   ],
@@ -111,6 +157,34 @@
     },
     {
       "source": "/afmeld",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/api/mcp"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/mcp-metadata"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/mcp",
+      "destination": "/api/mcp-metadata"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server/oauth",
+      "destination": "/api/mcp-metadata?kind=authorization"
+    },
+    {
+      "source": "/oauth/.well-known/oauth-authorization-server",
+      "destination": "/api/mcp-metadata?kind=authorization"
+    },
+    {
+      "source": "/oauth/:path*",
+      "destination": "/api/oauth?route=:path*"
+    },
+    {
+      "source": "/ai/:path*",
       "destination": "/index.html"
     }
   ]
