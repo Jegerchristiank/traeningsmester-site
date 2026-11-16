@@ -1,6 +1,6 @@
 # Træningsmester directory package
 
-This is the portable, tool-only directory package for the existing Træningsmester training connection. Package version **1.0.1** is independent of the native app version. It connects to the hosted service; it contains no server implementation, credentials, skills or lifecycle hooks.
+This is the portable, tool-only directory package for the existing Træningsmester training connection. Package version **1.0.2** is independent of the native app version. It connects to the hosted service; it contains no server implementation, credentials, skills or lifecycle hooks.
 
 ## Package layout
 

@@ -1,8 +1,11 @@
 import * as z from 'zod/v4';
-export const uuid = z.uuid();
+// PostgreSQL entity IDs may have legacy version/variant bits. Preserve their
+// canonical text and publish a string pattern rather than the RFC UUID format.
+export const uuid = z.string().length(36).regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+const operationId = z.uuid();
 export const revision = z.string().min(1).max(200);
 export const kind = z.enum(['program', 'mesocycle']);
-export const write = { operationId: uuid.describe('Stable UUID for one intended operation. Reuse after timeout; never reuse with different content.') };
+export const write = { operationId: operationId.describe('Stable UUID for one intended operation. Reuse after timeout; never reuse with different content.') };
 export const page = { limit: z.number().int().min(1).max(100).optional(), cursor: uuid.optional() };
 const n = z.number().finite();
 const nonnegative = n.min(0).max(1_000_000_000);

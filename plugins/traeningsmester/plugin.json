@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "traeningsmester",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Manage your Træningsmester programs, workouts, training history and structured data.",
   "author": {
     "name": "KRISTENSON",
@@ -60,9 +60,9 @@
             },
             {
               "description": "Record one explicit workout result and complete the exact controlled session. Seed an active normal plan and no active workout before this case.",
-              "prompt": "Start the next workout in my active program, log one strength set of 8 reps at 20 kg, pause and resume the workout, then complete it.",
+              "prompt": "Start the next workout in my active program, log one strength set of 8 reps at 20 kg, pause and resume the workout, then complete it and move to the next program day.",
               "tools_triggered": "get_active_workout, list_plans, get_plan, start_workout, apply_workout_changes, pause_workout, resume_workout, complete_workout, list_workouts, get_workout",
-              "expected_behavior": "Start the selected plan’s current day, use its real occurrence ID, log only the supplied 8-rep/20-kg result, and preserve it through pause and resume. Completion produces one canonical history entry and the expected program progress. Do not invent unreported sets or measurements. If the phone already owns a session, report that safe synchronized handover is needed; do not take over an offline phone by timeout. Read back the completed history."
+              "expected_behavior": "Start the selected plan’s current day, use its real occurrence ID, log only the supplied 8-rep/20-kg result, and preserve it through pause and resume. Completion produces one canonical history entry. Apply the explicitly requested normal-program advancement through the native completion-choice contract, either atomically with completion or by resolving its returned pending choice using the current choice revision. An omitted choice remains pending. Do not invent unreported sets or measurements. If the phone already owns a session, report that safe synchronized handover is needed; do not take over an offline phone by timeout. Read back the completed history and resulting program day."
             },
             {
               "description": "Read recorded history and statistics with explicit period, units, pagination and missing-data handling. Seed strength and activity history for the review account.",
