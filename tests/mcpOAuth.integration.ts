@@ -45,15 +45,14 @@ before(async()=>{
  process.env.NODE_ENV='test';process.env.MCP_DATABASE_URL=`postgres://tm_mcp_test@127.0.0.1:${pgPort}/postgres`;
  process.env.MCP_STATE_ENCRYPTION_KEY=randomBytes(32).toString('base64');process.env.MCP_COOKIE_KEYS=randomBytes(48).toString('base64');
  const keys=generateKeyPairSync('rsa',{modulusLength:2048});process.env.MCP_OAUTH_JWKS=JSON.stringify({keys:[{...keys.privateKey.export({format:'jwk'}),kid:'local-fixture',use:'sig',alg:'RS256'}]});
- server=createServer((req,res)=>{const path=new URL(req.url||'/','http://test').pathname;void (path.startsWith('/oauth/')?oauth(req,res):path==='/api/ai-connect'?connect(req,res):path==='/mcp'?mcp(req,res):path==='/api/mcp-download'?download(req,res):metadata(req,res));});
+ server=createServer((req,res)=>{const path=new URL(req.url||'/','http://test').pathname;void (path.startsWith('/oauth/')||path==='/api/oauth'?oauth(req,res):path==='/api/ai-connect'?connect(req,res):path==='/mcp'?mcp(req,res):path==='/api/mcp-download'?download(req,res):metadata(req,res));});
  await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${(server.address() as {port:number}).port}`;process.env.MCP_PUBLIC_ORIGIN=origin;
 });
 after(async()=>{
  if(server)await new Promise<void>(resolve=>server.close(()=>resolve()));await closeDatabase();if(admin)await admin.end();
  if(directory){try{execFileSync(join(pgBin,'pg_ctl'),['-D',join(directory,'data'),'-m','immediate','stop'],{stdio:'ignore'});}finally{rmSync(directory,{recursive:true,force:true});}}
 });
-async function begin(scopes='training:read plans:write'){
- const jar:Jar=new Map();
+async function begin(scopes='training:read plans:write',jar:Jar=new Map()){
  const registration=await request('/oauth/reg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_name:'MCP protocol fixture',application_type:'native',redirect_uris:['http://127.0.0.1:34001/callback'],token_endpoint_auth_method:'none',grant_types:['authorization_code','refresh_token'],response_types:['code']})});
  const client=await registration.json() as {client_id:string};assert.equal(registration.status,201,JSON.stringify(client));
  const verifier=randomBytes(48).toString('base64url');const challenge=createHash('sha256').update(verifier).digest('base64url');
@@ -97,6 +96,28 @@ test('browser binding, one-time challenge, denial, expiry and account-safe revoc
  const expired=await begin();await admin.query('update mcp.approval_challenges set expires_at=clock_timestamp()-interval \'1 second\' where interaction_uid=$1',[expired.detail.uid]);await assert.rejects(()=>db('mcp.challenge_decide',[createHash('sha256').update(expired.detail.challenge).digest('hex'),owner,'approve']));
  const connection=await admin.query('select id from mcp.connections where user_id=$1 limit 1',[owner]);await assert.rejects(()=>db('mcp.connection_revoke',[other,connection.rows[0].id]),/connection_missing/);
  const table=await admin.query("select has_table_privilege('tm_mcp_test','mcp.connections','select') permitted");assert.equal(table.rows[0].permitted,false);
+});
+test('account switching and logout reach provider confirmation through the OAuth mount',async()=>{
+ const first=await begin();await approve(first);
+ const second=await begin('training:read',first.jar);
+ await db('mcp.challenge_decide',[createHash('sha256').update(second.detail.challenge).digest('hex'),other,'approve']);
+ const finished=await request('/api/ai-connect?action=finish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:second.detail.uid,csrf:second.detail.csrf})},second.jar);
+ const result=await finished.json() as {returnTo:string};assert.equal(finished.status,200,JSON.stringify(result));
+ const switching=await request(result.returnTo,{},second.jar);const switchHtml=await switching.text();assert.equal(switching.status,200,switchHtml);
+ const action=switchHtml.match(/action="([^"]+)"/)?.[1];const xsrf=switchHtml.match(/name="xsrf" value="([^"]+)"/)?.[1];
+ assert.equal(new URL(action!,origin).pathname,'/oauth/session/end/confirm');assert.ok(xsrf);
+ const confirmPath='/api/oauth?route=session%2Fend%2Fconfirm';
+ const invalid=await request(confirmPath,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({xsrf:'invalid',logout:'yes'})},second.jar);assert.equal(invalid.status,400,await invalid.text());
+ const confirmed=await request(confirmPath,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({xsrf:xsrf!,logout:'yes'})},second.jar);assert.equal(confirmed.status,303,await confirmed.text());
+ const resumed=await request(confirmed.headers.get('location')!,{},second.jar);assert.equal(resumed.status,303,await resumed.text());
+ const callback=new URL(resumed.headers.get('location')!,origin);const issued=await token(second,callback.searchParams.get('code')!);assert.equal(issued.response.status,200,JSON.stringify(issued.value));
+ const access=await provider().AccessToken.find(String(issued.value.access_token));assert.equal(access?.accountId,other);
+ const logout=await request('/oauth/session/end',{},second.jar);const logoutHtml=await logout.text();assert.equal(logout.status,200,logoutHtml);
+ const logoutXsrf=logoutHtml.match(/name="xsrf" value="([^"]+)"/)?.[1];assert.ok(logoutXsrf);
+ const ended=await request('/oauth/session/end/confirm',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({xsrf:logoutXsrf!,logout:'yes'})},second.jar);assert.equal(ended.status,303,await ended.text());
+ const success=await request(ended.headers.get('location')!,{},second.jar);assert.equal(success.status,200,await success.text());
+ assert.equal(await provider().AccessToken.find(String(issued.value.access_token)),undefined);
+ const unknown=await request('/oauth/session/end/anything',{},second.jar);assert.equal(unknown.status,404);
 });
 test('official transport exposes all strict tools to current and 2025 clients without private data',async()=>{
  for(const protocolVersion of ['2025-11-25','2025-06-18']){

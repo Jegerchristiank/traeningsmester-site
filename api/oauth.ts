@@ -9,7 +9,7 @@ export default async function oauth(req: Request, res: Response) {
     const c = settings(); const url = new URL(req.url || '/', c.origin);
     const route = url.searchParams.get('route'); url.searchParams.delete('route');
     const path = route !== null ? `/${route}` : url.pathname.replace(/^\/oauth/, '');
-    if (!/^\/(?:auth(?:\/[^/]+)?|token|reg(?:\/[^/]+)?|token\/revocation|jwks|\.well-known\/openid-configuration)$/.test(path)) { res.statusCode = 404; res.end(); return; }
+    if (!/^\/(?:auth(?:\/[^/]+)?|token|reg(?:\/[^/]+)?|token\/revocation|session\/end(?:\/(?:confirm|success))?|jwks|\.well-known\/openid-configuration)$/.test(path)) { res.statusCode = 404; res.end(); return; }
     // Rate state is PostgreSQL-backed, shared across Vercel instances.
     await limit(`oauth:${path.split('/')[1]}:${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`, path === '/reg' ? 20 : 120);
     req.originalUrl = `/oauth${path}${url.search}`; req.baseUrl = '/oauth'; req.url = `${path}${url.search}`;
