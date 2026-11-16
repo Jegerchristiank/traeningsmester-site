@@ -1,6 +1,6 @@
 # Træningsmester directory package
 
-This is the portable, tool-only directory package for the existing Træningsmester training connection. Package version **1.0.0** is independent of the native app version. It connects to the hosted service; it contains no server implementation, credentials, skills or lifecycle hooks.
+This is the portable, tool-only directory package for the existing Træningsmester training connection. Package version **1.0.1** is independent of the native app version. It connects to the hosted service; it contains no server implementation, credentials, skills or lifecycle hooks.
 
 ## Package layout
 
@@ -38,13 +38,7 @@ The manifest contains **five proposed positive cases and three proposed negative
 
 The ZIP deliberately omits `demo_recording_url`: add it only when a real reviewer-accessible walkthrough exists. Review-account credentials, access arrangements and execution evidence belong in the private submission material, never in this directory or ZIP.
 
-Before submission, the submission owner still needs to:
-
-- Confirm the selected publishing identity in the portal. `KRISTENSON` identifies the publisher in the package; it is not a claim that the portal has verified that identity.
-- Confirm that **Healthcare** is the exact available dashboard category. It is the proposed category; the public documentation does not publish a complete category enum.
-- Complete the portal’s actual domain-verification challenge, OAuth connection and tool scan; resolve any findings.
-- Supply the private review account and real demo recording, and record the observed outcomes of the proposed cases after release-owner checks are complete.
-- Choose publication availability in the dashboard. This package does not set a country allowlist or claim approval, submission or publication.
+For a submission or package update, the submission owner should check the imported publishing identity, category and authentication settings, complete the applicable domain and tool checks, and resolve portal findings. Supply the private review account and real demo recording separately, and record the observed outcomes of the proposed cases. Publication availability and approval remain dashboard decisions; this package does not set a country allowlist or claim publication.
 
 A local package check does not prove portal acceptance, runtime behavior or catalogue publication.
 
@@ -54,7 +48,7 @@ Python 3 standard-library tooling is sufficient; no dependencies are installed. 
 
 ```sh
 python3 scripts/package.py validate
-python3 scripts/package.py build --output /absolute/path/outside-git/traeningsmester-plugin-1.0.0.zip
+python3 scripts/package.py build --output /absolute/path/outside-git/traeningsmester-plugin-1.0.1.zip
 ```
 
 Optionally compare the test-case tool names with the owning site's tool registry:

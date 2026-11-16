@@ -133,7 +133,7 @@
     },
     {
       "source": "/privatliv",
-      "destination": "/index.html"
+      "destination": "/privatliv.html"
     },
     {
       "source": "/vilkaar",

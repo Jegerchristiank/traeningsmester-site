@@ -154,7 +154,7 @@ def validate(tools_file: Path | None = None) -> dict:
     keys(manifest, {"$schema", "name", "version", "description", "author", "homepage", "extensions"}, {"keywords", "repository", "license"}, "plugin.json")
     require(manifest["$schema"] == PLUGIN_SCHEMA, "plugin.json: wrong schema version")
     require(manifest["name"] == "traeningsmester", "plugin.json: unexpected stable name")
-    require(manifest["version"] == "1.0.0", "plugin.json: expected catalog package version 1.0.0")
+    require(isinstance(manifest["version"], str) and re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", manifest["version"]), "plugin.json: expected MAJOR.MINOR.PATCH without leading zeros")
     text(manifest["description"], "description", 4000)
     author = keys(manifest["author"], {"name", "url"}, {"email"}, "author")
     require(author["name"] == "KRISTENSON", "author: unexpected publisher")

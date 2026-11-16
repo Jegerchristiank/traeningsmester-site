@@ -16,7 +16,7 @@ type LegalRoute =
   | "support"
   | "slet-konto";
 
-const siteUrl = "https://www.traeningsmester.dk/";
+export const siteUrl = "https://www.traeningsmester.dk/";
 const company = {
   legalName: "KRISTENSON",
   cvr: "40679456",
@@ -35,7 +35,7 @@ const legalRoutes: Record<string, LegalRoute> = {
   "/slet-konto": "slet-konto",
 };
 
-const legalDocuments: Record<
+export const legalDocuments: Record<
   LegalRoute,
   {
     title: string;
@@ -377,7 +377,7 @@ function MarketingFooter() {
   );
 }
 
-function LegalPage({ route }: { route: LegalRoute }) {
+export function LegalPage({ route }: { route: LegalRoute }) {
   const document = legalDocuments[route];
   useEffect(() => {
     window.scrollTo(0, 0);

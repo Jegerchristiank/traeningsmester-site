@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "traeningsmester",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Manage your Træningsmester programs, workouts, training history and structured data.",
   "author": {
     "name": "KRISTENSON",
@@ -20,7 +20,7 @@
       "interface": {
         "displayName": "Træningsmester",
         "shortDescription": "Workout plans and progress",
-        "longDescription": "Build workout programs and mesocycles, save them to Træningsmester and follow your progress from your logged training.\n\nPrepare your next workout, find exercises, record sets and activities, or export your history as JSON or CSV. Switch control between your phone and the assistant through a synchronized handover.\n\nA Træningsmester account is required; your existing free or premium access applies. Only synced data is included. Write access includes changes and deletion, and you can revoke it at any time.",
+        "longDescription": "Build workout programs and mesocycles, save them to Træningsmester and follow your progress from your logged training.\n\nPrepare your next workout, find exercises, record sets and activities, or export your history as JSON or CSV. Switch control between your phone and the assistant through a synchronized handover.\n\nA Træningsmester account is required. Only synced data is included. Write access includes changes and deletion, and you can revoke it at any time.",
         "developerName": "KRISTENSON",
         "category": "Healthcare",
         "capabilities": [
@@ -103,7 +103,7 @@
         "translations": {
           "da-DK": {
             "subtitle": "Træningsplaner og fremgang",
-            "description": "Lav træningsprogrammer og mesoprogrammer, gem dem i Træningsmester, og følg din fremgang med de træninger, du registrerer.\n\nForbered dit næste pas, find øvelser, registrér sæt og aktiviteter, eller eksportér din historik som JSON eller CSV. Skift kontrollen mellem telefonen og assistenten gennem en synkroniseret overdragelse.\n\nDu skal have en Træningsmester-konto; din eksisterende gratis- eller premiumadgang gælder fortsat. Kun synkroniserede data indgår. Skriveadgang omfatter ændringer og sletning, og du kan tilbagekalde den når som helst."
+            "description": "Lav træningsprogrammer og mesoprogrammer, gem dem i Træningsmester, og følg din fremgang med de træninger, du registrerer.\n\nForbered dit næste pas, find øvelser, registrér sæt og aktiviteter, eller eksportér din historik som JSON eller CSV. Skift kontrollen mellem telefonen og assistenten gennem en synkroniseret overdragelse.\n\nDu skal have en Træningsmester-konto. Kun synkroniserede data indgår. Skriveadgang omfatter ændringer og sletning, og du kan tilbagekalde den når som helst."
           }
         }
       }
