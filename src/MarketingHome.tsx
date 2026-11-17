@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import AccessForm, { focusAccessForm } from "./components/AccessForm";
 import AnalyticsConsent from "./components/AnalyticsConsent";
+import SiteBrand from "./components/SiteBrand";
 import { recordMarketingVisit } from "./marketingAnalytics";
 import "./training-story.css";
 
@@ -45,20 +46,6 @@ function Arrow({ down = false }: { down?: boolean }) {
         strokeWidth="1.6"
       />
     </svg>
-  );
-}
-
-export function SiteBrand() {
-  return (
-    <a className="story-brand" href="/" aria-label="Træningsmester forside">
-      <img
-        src="/brand/tm-logo-256.webp"
-        width="42"
-        height="42"
-        alt="Træningsmester"
-      />
-      <span aria-hidden="true">Træningsmester</span>
-    </a>
   );
 }
 
@@ -115,14 +102,17 @@ function ProductStory() {
   const switchFrame = useRef<(frame: Frame) => void>(() => undefined);
   const [active, setActive] = useState<Frame>("program");
   const activeRef = useRef<Frame>("program");
+  const setDetail = useRef<"set" | "rest">("set");
   const selectFrame = (next: Frame) => {
+    if (next === "set" || next === "rest") setDetail.current = next;
     if (next === activeRef.current) return;
     activeRef.current = next;
     switchFrame.current(next);
     setActive(next);
   };
-  const selectRef = useRef(selectFrame);
-  selectRef.current = selectFrame;
+  const selectChapter = useRef(selectFrame);
+  // A scroll into chapter two can finish after the visitor has selected the pause.
+  selectChapter.current = (chapter) => selectFrame(chapter === "set" ? setDetail.current : chapter);
 
   useEffect(() => {
     let disposed = false;
@@ -164,9 +154,9 @@ function ProductStory() {
                 start: "top 55%",
                 end: "bottom 55%",
                 onEnter: () =>
-                  selectRef.current(chapter.dataset.chapter as Frame),
+                  selectChapter.current(chapter.dataset.chapter as Frame),
                 onEnterBack: () =>
-                  selectRef.current(chapter.dataset.chapter as Frame),
+                  selectChapter.current(chapter.dataset.chapter as Frame),
               }),
             );
             return () => {
@@ -462,6 +452,7 @@ export default function MarketingHome() {
         <nav aria-label="Hovednavigation">
           <a href="#traeningsforloeb">Se træningen</a>
           <a href="#funktioner">Funktioner</a>
+          <a className="header-login" href="/app">Log ind</a>
           <AccessLink className="header-access" />
         </nav>
       </header>
@@ -662,7 +653,7 @@ export default function MarketingHome() {
         <div className="footer-top">
           <SiteBrand />
           <a href="/app">
-            Har du allerede adgang? Log ind <Arrow />
+            Log ind på din konto <Arrow />
           </a>
         </div>
         <div className="footer-bottom">

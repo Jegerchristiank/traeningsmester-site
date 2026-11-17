@@ -1,12 +1,14 @@
-# Træningsmester hjemmeside og webapp
+# Træningsmesters hjemmeside og kontoadgang
 
-React/Vite-projektet indeholder både Træningsmesters offentlige pre-launch-side
-og en separat webapp til det personlige træningsflow.
+Her findes Træningsmesters offentlige hjemmeside, kontologin og MCP-server til
+eksterne værktøjer. Træningsforløbet på forsiden viser eksempeldata fra mobilappen.
 
 ## Ruter
 
 - `/` — offentlig marketing- og ventelisteside
-- `/app` — loginbeskyttet webapp
+- `/app` og `/app/*` — kontologin, kontooprettelse og adgang til forbundne værktøjer
+- `/ai/connect`, `/ai/connections`, `/ai/help` — godkendelse, administration og vejledning til AI-assistenter
+- `/mcp` og `/oauth/*` — MCP-server og OAuth til værktøjer
 - `/privatliv`, `/vilkaar`, `/cookies`, `/tilgaengelighed` — juridiske sider
 - `/afmeld#token=...` — sikker bekræftelsesside til tilbagetrækning af ventelistesamtykke
 
@@ -26,10 +28,10 @@ npm run build
 The app is static and Vercel-ready. No private runtime credentials are shipped
 in the client.
 
-## Supabase app data
+## Kontologin
 
-The React app uses the Træningsmester Supabase project for auth and first-load
-app data when these public Vite variables are present:
+Kontosiden og godkendelsen af AI-assistenter bruger samme Supabase-session.
+Disse offentlige Vite-variabler konfigurerer login:
 
 ```bash
 VITE_SUPABASE_URL=https://rbplnybmjwcoigiwtkuh.supabase.co
@@ -39,27 +41,16 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key_here
 `VITE_SUPABASE_ANON_KEY` is supported as a legacy fallback, but new local builds
 should use `VITE_SUPABASE_PUBLISHABLE_KEY`.
 
-Ved login henter webappen første gang:
+Login henter kun Supabase-sessionen. Kontosiden læser hverken træningstabeller
+eller tidligere træningskopier i browseren. Udlogning på kontosiden afslutter
+sessionen på enheden og rydder den tidligere webapps aktuelle lokale kopi og
+den pågældende kontos cache. Deaktivering af en assistents adgang sker særskilt
+under `/ai/connections`.
 
-- `user_settings`
-- `plan`, `plan_workouts`, `workout`, `workout_exercises`
-- `exercises`
-- `match`
-- `user_trackerlog_exercises`
-- `activity_sessions`
-
-Local storage bruges fortsat som browser-cache, mens brugeren er logget ind.
-Brugerens efterfølgende redigeringer i webappen gemmes lokalt og er endnu ikke
-fuldt synkroniseret tilbage til Supabase. Logout rydder den aktuelle appkopi.
-Lokal konto-login er kun tilgængeligt i Vites udviklingsbuilds; en
-produktionsbuild uden Supabase viser en utilgængelig state i stedet for at
-oprette browserbaserede konti.
-
-Ved oprettelse af en ny Supabase-konto skal brugeren særskilt tage stilling til
-behandling af egne trænings-, kropsvægt- og aktivitetsdata. Eksisterende konti
-uden den aktuelle version møder samme valg før appens dataflader. Samtykkets
-valg, version og tidspunkt gemmes med Auth-brugeren og bruges ikke til
-authorization.
+Ved kontooprettelse giver brugeren særskilt udtrykkeligt samtykke til behandling
+af de trænings-, kropsvægt- og aktivitetsdata, vedkommende vælger at tilføje.
+Valg, version og tidspunkt gemmes i Supabase Auth. Et eksternt værktøj får
+adgang gennem en særskilt OAuth-godkendelse af de viste rettigheder.
 
 ## Waitlist
 

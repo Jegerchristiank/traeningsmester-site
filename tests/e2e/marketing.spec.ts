@@ -265,7 +265,7 @@ test("public support, deletion and withdrawal routes and app boundary remain ava
     ).toBeVisible();
   }
   await page.goto("/app");
-  await expect(page).toHaveTitle("Træningsmester webapp");
+  await expect(page).toHaveTitle("Din konto · Træningsmester");
   await expect(page.locator(".story-hero")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: /Log ind/i }).first(),

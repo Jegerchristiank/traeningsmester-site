@@ -892,18 +892,11 @@ body {
     width: 32px;
     height: 32px;
   }
-  .story-header nav > a:not(.header-access) {
+  .story-header nav > a:not(.header-login) {
     display: none;
   }
   .story-header nav {
-    font-size: 12px;
-  }
-  .header-access {
-    gap: 8px !important;
-    border: 0;
-  }
-  .header-access svg {
-    width: 16px;
+    font-size: 14px;
   }
   .story-hero {
     grid-template-columns: 1fr;
@@ -1135,12 +1128,6 @@ body {
   .story-brand img {
     width: 30px;
     height: 30px;
-  }
-  .header-access {
-    font-size: 11px;
-  }
-  .header-access svg {
-    display: none;
   }
   .story-hero {
     padding-top: 28px;

@@ -1,9 +1,9 @@
 # Juridisk driftscheck
 
-Senest gennemgået: 14. juli 2026.
+Gennemgået 14. juli 2026. Konto- og værktøjsadgang opdateret 17. november 2026.
 
 Dette dokument beskriver den tekniske baseline for Træningsmesters offentlige
-pre-launch-side og webappen. Det er et driftsdokument, ikke en juridisk
+pre-launch-side og kontologin på web. Det er et driftsdokument, ikke en juridisk
 garanti eller erstatning for konkret rådgivning.
 
 ## Implementeret baseline
@@ -18,21 +18,18 @@ garanti eller erstatning for konkret rådgivning.
   mailklienters standardiserede one-click-afmelding.
 - Privatlivspolitikken beskriver formål, retsgrundlag, datatyper, modtagere,
   internationale overførsler, opbevaring, rettigheder og klageadgang.
-- Nye webappkonti kræver særskilt udtrykkeligt samtykke til de trænings-,
+- Konti oprettet på hjemmesiden kræver særskilt udtrykkeligt samtykke til de trænings-,
   kropsvægt- og aktivitetsdata, brugeren selv vælger at tilføje. Valg, version
-  og tidspunkt skrives til Supabase Auth-metadata. Eksisterende konti uden den
-  aktuelle samtykkeversion møder samme valg, før appens dataflader eller lokale
-  appkopi indlæses.
-- Produktionsbuilds kan ikke falde tilbage til lokal browserkonto eller
-  DEBUG-fixtures, hvis Supabase mangler. Kun en tidligere markeret, verificeret
-  remote-cache kan bruges ved en midlertidig læsefejl. Logout rydder den
-  aktuelle lokale appkopi og cachemarkøren.
-- Marketingforsiden indeholder ingen annoncepixels, tredjepartsanalyse eller
-  ikke-nødvendig lokal lagring. Derfor vises der ikke et tomt, vildledende
-  cookiebanner. Nye ikke-nødvendige teknologier skal blokeres indtil samtykke.
+  og tidspunkt skrives til Supabase Auth-metadata. Adgang for eksterne
+  assistenter kræver særskilt OAuth-godkendelse og kan tilbagekaldes.
+- Kontosiden læser kun loginoplysninger fra Supabase. Den henter ingen
+  træningsdata og bruger ingen gammel appkopi til login. Udlogning på
+  kontosiden afslutter sessionen i browseren og rydder den tidligere webapps
+  aktuelle lokale kopi samt cachen for den pågældende konto.
+- Login og godkendelse af værktøjer fungerer uafhængigt af frivillig
+  statistik på forsiden. PostHog aktiveres først ved tilvalg af Statistik.
 - Mobilnavigationen har fokusretur, Escape-lukning, baggrundslås, scroll på
-  lave skærme og navngivne standardelementer. Webappens menu og modaler har
-  fokusfælde, Escape-lukning og inert baggrund.
+  lave skærme og navngivne standardelementer.
 
 ## Driftskrav før og efter deployment
 

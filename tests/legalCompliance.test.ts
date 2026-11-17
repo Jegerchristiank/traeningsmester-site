@@ -36,26 +36,6 @@ test("privacy policy covers native health, location, social and diagnostics data
   assert.match(marketing, /OpenAI behandler fortsat/);
 });
 
-test("new app accounts record explicit health-data consent and production cannot fall back to local auth", async () => {
-  const app = await source("src/App.tsx");
-  const supabase = await source("src/supabaseAppData.ts");
-
-  assert.match(app, /Jeg giver udtrykkeligt samtykke/);
-  assert.match(app, /if \(!import\.meta\.env\.DEV\)/);
-  assert.match(app, /clearStoredAppState\(email\)/);
-  assert.match(app, /HealthDataConsentGate/);
-  assert.match(supabase, /health_data_consent: true/);
-  assert.match(supabase, /health_data_consent_version/);
-  assert.match(supabase, /health_data_consented_at/);
-  assert.match(supabase, /client\.auth\.updateUser/);
-  assert.match(supabase, /if \(!healthDataConsentRecorded\)/);
-  assert.ok(
-    supabase.indexOf("if (!healthDataConsentRecorded)") <
-      supabase.indexOf("const cached = loadStateForAccount"),
-    "personal app cache must not be read before current consent is recorded"
-  );
-});
-
 test("interactive withdrawal keeps its token out of the request URL", async () => {
   const marketing = await source("src/MarketingSite.tsx");
 

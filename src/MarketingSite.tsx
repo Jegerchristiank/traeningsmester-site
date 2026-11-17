@@ -47,8 +47,8 @@ export const legalDocuments: Record<
   privatliv: {
     title: "Privatliv",
     intro:
-      "Her kan du se, hvilke oplysninger hjemmesiden, ventelisten, webappen og Træningsmester til iPhone, Apple Watch og Android behandler, hvorfor de bruges, og hvilke valg du har.",
-    updated: "16. november 2026",
+      "Her kan du se, hvordan vi behandler dine oplysninger på hjemmesiden, på ventelisten og i Træningsmester til iPhone, Apple Watch og Android, og hvilke valg du har.",
+    updated: "17. november 2026",
     sections: [
       {
         title: "Valgfri statistik på hjemmesiden",
@@ -75,7 +75,11 @@ export const legalDocuments: Record<
         body: "Ved tilmelding bruges en envejs-hash af forbindelsens IP-adresse midlertidigt til at begrænse automatiseret misbrug. Den rå IP-adresse gemmes ikke i ventelistedatabasen, og den midlertidige rate-limitværdi udløber senest efter 10 minutter i den aktive serverproces. Tekniske drifts- og sikkerhedslogs kan behandles af hostingudbyderen. Grundlaget er den legitime interesse i stabil og sikker drift efter GDPR artikel 6, stk. 1, litra f.",
       },
       {
-        title: "Når du bruger Træningsmester",
+        title: "Når du logger ind på hjemmesiden",
+        body: "Vi bruger Supabase til at oprette din konto og holde dig logget ind. På kontosiden kan du gå til dine forbundne AI-assistenter og se den adgang, du har givet dem. Når du logger ind, henter kontosiden ingen programmer, træningshistorik eller sociale oplysninger.",
+      },
+      {
+        title: "Når du bruger mobilappen",
         body:
           "Træningsmester bruger Supabase til konto og session og kan hente eller gemme email, profil- og appindstillinger, programmer, øvelser, sæt, gentagelser, vægt, intensitet, noter, kropsvægt, personlige rekorder samt trænings- og aktivitetshistorik. Oplysningerne bruges til login, synkronisering, historik, progression, abonnementstilstand og de funktioner, du vælger. Kernefunktionerne leveres på grundlag af GDPR artikel 6, stk. 1, litra b. Appen kan også gemme en lokal kopi på din enhed, så session og igangværende arbejde kan huskes. Der træffes ikke afgørelser alene ved automatiseret behandling, som har retsvirkning eller tilsvarende væsentlig betydning for dig."
       },
@@ -148,15 +152,23 @@ export const legalDocuments: Record<
     title: "Vilkår",
     intro:
       "Hjemmesiden er en pre-launch side. Den sælger ikke abonnementer eller andre digitale ydelser direkte.",
-    updated: "13. juli 2026",
+    updated: "17. november 2026",
     sections: [
       {
         title: "Ventelisten",
         body: "En tilmelding er gratis og forpligter ikke til køb. Der er endnu ingen offentlig lanceringsdato, og en plads på ventelisten er ikke en garanti for adgang på et bestemt tidspunkt.",
       },
       {
-        title: "Webappen",
-        body: "Webappen er en separat produktflade. Funktioner kan ændre sig under udvikling, og lokale ændringer er ikke nødvendigvis synkroniseret til serveren.",
+        title: "Din konto og dine forbindelser",
+        body: (
+          <>
+            På <a href="/app">din kontoside</a> kan du logge ind og gå til dine
+            forbundne AI-assistenter. Du vælger selv, om du vil give et værktøj
+            adgang til dine træningsdata. Du kan til enhver tid tilbagekalde
+            adgangen. Dine programmer, træningspas og sociale funktioner finder
+            du i mobilappen.
+          </>
+        ),
       },
       {
         title: "Fremtidige køb",
@@ -178,20 +190,20 @@ export const legalDocuments: Record<
   cookies: {
     title: "Cookiepolitik",
     intro:
-      "Hjemmesiden kan bruges uden statistik. Dit valg om frivillig statistik gemmes i browseren; webappen har særskilt nødvendig lagring.",
-    updated: "15. november 2026",
+      "Hjemmesiden kan bruges uden statistik. Browseren gemmer dit valg. Login og godkendelse af værktøjer bruger særskilt nødvendig lagring.",
+    updated: "17. november 2026",
     sections: [
       {
         title: "På hjemmesiden",
         body: "Forsiden, produktinformationen og ventelisten kræver ikke cookies. Appskærme, logo og animation leveres fra samme website.",
       },
       {
-        title: "Nødvendig lagring i webappen",
-        body: "Webappen bruger lokal browserlagring til Supabase-login, cache og appens tilstand. Det kan omfatte konto-id/email, profil og kontaktoplysninger, indstillinger, kropsvægt, programmer, sæt, noter, historik og igangværende træning. Lagringen bruges for at holde dig logget ind og huske dit arbejde på enheden; den bruges ikke til annoncer eller statistik.",
+        title: "Login og godkendelse af værktøjer",
+        body: "Browseren gemmer din Supabase-session, så du kan forblive logget ind på din konto. Når du forbinder et værktøj, bruger vi nødvendige cookies til at knytte din godkendelse til den rigtige anmodning. Kontosiden gemmer ingen træningspas, programmer eller sociale oplysninger.",
       },
       {
         title: "Varighed og sletning",
-        body: "Lokal appdata har ingen automatisk udløbsdato, mens du er logget ind. Logout rydder webappens aktuelle lokale appkopi og Supabase-session. Browseren kan desuden ryddes manuelt via dens indstillinger, hvilket anbefales efter brug på en delt enhed.",
+        body: "Når du logger ud på kontosiden, afsluttes din session i denne browser. Hvis du tidligere har brugt webappen, rydder udlogningen også den aktuelle lokale træningskopi og den pågældende kontos gamle cache. Du kan selv rydde webstedets øvrige data i browserens indstillinger. Adgang, som du har givet et værktøj, kan du tilbagekalde under Forbundne AI-assistenter.",
       },
       {
         title: "Valgfri statistik",
@@ -230,7 +242,7 @@ export const legalDocuments: Record<
     title: "Support",
     intro:
       "Få hjælp til Træningsmester på iPhone og Android, eller kontakt os om din konto og dine data.",
-    updated: "15. juli 2026",
+    updated: "17. november 2026",
     sections: [
       {
         title: "Kontakt",
@@ -248,7 +260,17 @@ export const legalDocuments: Record<
       },
       {
         title: "Konto og login",
-        body: "Hvis du ikke kan logge ind, skal du bruge den samme email og loginmetode, som kontoen blev oprettet med. Du kan bede om yderligere hjælp via kontaktmailen ovenfor. Træningsmester vil aldrig bede om din adgangskode.",
+        body: (
+          <>
+            På <a href="/app">kontosiden</a> logger du ind med e-mail og
+            adgangskode. I mobilappen skal du bruge den loginmetode, du
+            oprettede kontoen med. Du kan også godkende en AI-assistent fra
+            mobilappen. Følg <a href="/ai/help">vejledningen til AI-assistenter</a> eller
+            se <a href="/ai/connections">dine forbindelser</a>. Har du brug
+            for hjælp til login, kan du skrive til os på kontaktmailen ovenfor.
+            Træningsmester vil aldrig bede dig sende din adgangskode.
+          </>
+        ),
       },
       {
         title: "Slet konto og data",

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import type { Session } from '@supabase/supabase-js';
 import { getSupabaseClient } from './supabaseClient';
+import AccountForm from './components/AccountForm';
 import { scopeLabels, type TrainingScope } from '../api/_lib/mcp/config';
 import './styles.css';
 import './ai-assistants.css';
@@ -14,7 +15,7 @@ const date=(value:string|null)=>value?new Date(value).toLocaleString('da-DK'):'E
 export default function AiAssistants(){
   const client=getSupabaseClient();
   const [session,setSession]=useState<Session|null>(null);const account=useRef<string|null>(null);
-  const [ready,setReady]=useState(false);const [email,setEmail]=useState('');const [password,setPassword]=useState('');
+  const [ready,setReady]=useState(false);
   const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [connections,setConnections]=useState<Connection[]|null>(null);
   const [interaction,setInteraction]=useState<Interaction|null>(null);const [qr,setQr]=useState('');
   const params=new URLSearchParams(window.location.search);const uid=params.get('uid');
@@ -47,10 +48,9 @@ export default function AiAssistants(){
     void poll();return()=>{active=false;clearTimeout(timer);};
   },[uid,help]);
   useEffect(()=>{let active=true;if(interaction?.deepLink)void QRCode.toDataURL(interaction.deepLink,{width:224,margin:2,errorCorrectionLevel:'M'}).then(value=>{if(active)setQr(value);});return()=>{active=false;};},[interaction?.deepLink]);
-  async function login(event:FormEvent){event.preventDefault();if(!client)return;setBusy(true);setError('');try{const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;setPassword('');}catch{setError('Login blev ikke godkendt. Kontrollér email og adgangskode.');}finally{setBusy(false);}}
   async function decide(decision:'approve'|'deny'){if(!interaction)return;setBusy(true);setError('');try{await api(decision,'POST',{challenge:interaction.challenge},true);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   async function revoke(id:string){setBusy(true);setError('');try{await api('revoke','POST',{connectionId:id},true);const data=await api('connections','GET',undefined,true);setConnections(data.connections);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
-  const loginForm=ready&&!session&&<form className="ai-login" onSubmit={login}><h2>Log ind på Træningsmester</h2><label>Email<input type="email" autoComplete="username" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Adgangskode<input type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)}/></label><button className="ai-primary" disabled={busy||!client}>Log ind</button>{!client&&<p>Web-login er ikke konfigureret på denne installation.</p>}</form>;
+  const loginForm = ready && !session && <AccountForm client={client} inAssistant />;
   return <main className="ai-page"><header><a href="/" aria-label="Træningsmester forside"><img src="/brand/tm-logo-mark.svg" alt="Træningsmester" width="48" height="48"/></a><a href={help?'/ai/connections':'/ai/help'}>{help?'Dine forbindelser':'Tilslutningsvejledning'}</a></header>
     {help?<><h1>Din træning. Din assistent.</h1><p>Forbind din Træningsmester-konto, og arbejd med programmer, træning og historik i din AI-assistent.</p><p className="ai-endpoint">Serveradresse <code>{endpoint}</code></p>
       <section><h2>ChatGPT</h2><ol><li>Åbn Plugins i ChatGPT på web, vælg plus og derefter <strong>Add custom MCP server</strong>.</li><li>Angiv Træningsmester og serveradressen ovenfor. Vælg OAuth.</li><li>Godkend din konto gennem web-login eller mobilappen, og vælg forbindelsen i samtalen.</li></ol><p>Adgangen til egne MCP-forbindelser afhænger af din ChatGPT-plan og arbejdsområdets tilladelser. <a href="https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt" target="_blank" rel="noreferrer">Se OpenAI’s aktuelle krav</a>.</p></section>
