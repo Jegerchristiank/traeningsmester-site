@@ -102,7 +102,6 @@ function WorkoutCover() {
           fetchPriority="high"
           alt="En atlet holder vægtstangen over hovedet i træningscenteret."
         />
-        <span className="photo-credit">Foto · Victor Freitas</span>
       </div>
       <div className="cover-sheet">
         <div className="sheet-heading">
@@ -117,7 +116,10 @@ function WorkoutCover() {
           alt="Appens sætrække. Sidste gang 60 kg × 8. Dagens første arbejdssæt er indstillet til 62,5 kg og 8 gentagelser."
         />
       </div>
-      <figcaption>Eksempeldata · rekonstrueret appvisning</figcaption>
+      <figcaption>
+        <span>Eksempeldata · rekonstrueret appvisning</span>
+        <span>Foto · Victor Freitas</span>
+      </figcaption>
     </figure>
   );
 }

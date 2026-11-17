@@ -101,8 +101,7 @@
 }
 .edition-label,
 .exercise-plate figcaption span,
-.cover-sheet + figcaption,
-.photo-credit {
+.cover-sheet + figcaption {
   font: 400 0.7rem/1.4 var(--tm-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
@@ -190,14 +189,7 @@
   object-position: 54% 40%;
   filter: grayscale(1) contrast(1.07);
 }
-.photo-credit {
-  position: absolute;
-  inset: 0.8rem 0.9rem auto auto;
-  padding: 0.15rem 0.38rem;
-  color: #fff;
-  background: rgba(20, 23, 22, 0.8);
-  font-size: 0.59rem;
-}
+
 .cover-sheet {
   position: relative;
   margin: clamp(-5.2rem, -5.2vw, -3.8rem) clamp(1.15rem, 2.5vw, 2.65rem) 0;
@@ -231,10 +223,14 @@
   height: auto;
 }
 .cover-sheet + figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.2rem 1rem;
   margin: 0.65rem clamp(1.15rem, 2.5vw, 2.65rem) 0;
   color: var(--tm-muted);
-  font-size: 0.65rem;
-  letter-spacing: 0.015em;
+  font-size: 0.7rem;
+  letter-spacing: 0;
 }
 .hero-signup {
   grid-area: form;
@@ -749,12 +745,14 @@ details[open] > summary .toggle-mark::after {
 @media (max-width: 759px) {
   .edition-header {
     min-height: 4.05rem;
+    gap: 0.5rem;
   }
   .edition-header nav .header-chapter {
     display: none;
   }
   .edition-header .header-login {
-    padding-left: 0.7rem;
+    white-space: nowrap;
+    padding-left: 0.25rem;
     border: 0;
   }
   .edition-header .story-brand {
@@ -787,13 +785,19 @@ details[open] > summary .toggle-mark::after {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem 1.15rem;
+    gap: 0.25rem 0.85rem;
     margin-top: 1rem;
+  }
+  .hero-mobile-action .edition-text-link {
+    font-size: 0.92rem;
+    gap: 0.4rem;
   }
   .access-button {
     width: fit-content;
+    font-size: 0.95rem;
+    padding-inline: 0.85rem;
     min-height: 2.85rem;
-    gap: 1rem;
+    gap: 0.55rem;
   }
   .hero-product {
     margin-top: 1.55rem;
@@ -817,7 +821,7 @@ details[open] > summary .toggle-mark::after {
   }
   .cover-sheet + figcaption {
     margin: 0.45rem 0.75rem 0;
-    font-size: 0.61rem;
+    font-size: 0.67rem;
   }
   .hero-signup {
     max-width: none;
@@ -914,7 +918,7 @@ details[open] > summary .toggle-mark::after {
 }
 @media (max-width: 490px) {
   .hero-intro h1 {
-    font-size: clamp(3.5rem, 14.7vw, 4.5rem);
+    font-size: clamp(2.95rem, 14.7vw, 4.5rem);
   }
   .access-input-row {
     display: grid;
@@ -931,5 +935,14 @@ details[open] > summary .toggle-mark::after {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+@media (max-width: 354px) {
+  .sheet-heading {
+    gap: 0.5rem;
+  }
+  .sheet-exercise {
+    font-size: 1rem;
   }
 }
