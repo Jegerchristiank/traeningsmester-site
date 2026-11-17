@@ -80,7 +80,7 @@ export default function Account() {
           </nav>
         </div>
       ) : (
-        <div className="account-desk">
+        <div className="account-desk account-login-layout">
           <div className="account-login">
             <AccountForm client={client} />
           </div>

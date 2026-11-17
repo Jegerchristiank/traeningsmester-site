@@ -64,12 +64,7 @@ export function focusAccessForm() {
   const section = document.getElementById("adgang");
   const target = document.getElementById("access-email") ?? section;
   target?.focus({ preventScroll: true });
-  section?.scrollIntoView({
-    block: "center",
-    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? "auto"
-      : "smooth",
-  });
+  section?.scrollIntoView({ block: "center", behavior: "instant" });
 }
 
 export default function AccessForm() {
@@ -85,8 +80,14 @@ export default function AccessForm() {
   const consentRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (state.type === "success")
-      successRef.current?.focus({ preventScroll: true });
+    if (state.type === "success") {
+      const title = successRef.current;
+      title?.focus({ preventScroll: true });
+      title?.closest(".access-success")?.scrollIntoView({
+        block: "nearest",
+        behavior: "instant",
+      });
+    }
     if (state.type !== "error") return;
     if (state.reason === "email") emailRef.current?.focus();
     if (state.reason === "consent") consentRef.current?.focus();
@@ -206,10 +207,7 @@ export default function AccessForm() {
           noValidate
           aria-busy={submitting}
         >
-          <p className="access-intro">
-            Træningsmester er under udvikling. Skriv dig op, og få besked om
-            adgang.
-          </p>
+          <p className="access-intro">Træningsmester er under udvikling.</p>
           <label className="access-label" htmlFor="access-email">
             Din e-mail
           </label>
@@ -273,9 +271,8 @@ export default function AccessForm() {
               }}
             />
             <span>
-              Jeg giver KRISTENSON (CVR 40679456) samtykke til at sende mig
-              e-mails om Træningsmesters lancering og adgangsrunder. Jeg kan
-              altid afmelde mig gratis via linket i mails.
+              Ja, KRISTENSON (CVR 40679456) må sende mig e-mails om
+              Træningsmesters lancering og adgangsrunder.
             </span>
           </label>
           {error?.reason === "consent" && (
@@ -284,7 +281,8 @@ export default function AccessForm() {
             </p>
           )}
           <p className="access-support" id="access-support">
-            Vi skriver, når der er nyt om adgang. Du kan afmelde dig igen.
+            Vi skriver, når der er nyt om adgang. Du kan afmelde dig gratis i
+            hver mail.
           </p>
           <a className="access-privacy" href="/privatliv">
             Se privatlivspolitikken

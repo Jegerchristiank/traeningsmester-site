@@ -5,8 +5,7 @@
   --service-muted: var(--tm-muted, #535b56);
   --service-rule: var(--tm-rule, #d1d3c9);
   --service-blue: var(--tm-blue, #0759c7);
-  --service-lilac: var(--tm-lilac, #e3e4fb);
-  --service-royal: var(--tm-royal, #27368b);
+  --service-gutter: var(--tm-gutter, clamp(1.25rem, 4vw, 5.5rem));
   --service-display: var(--tm-display, Cabinet, "Arial Black", system-ui, sans-serif);
   --service-text: var(--tm-text, Satoshi, system-ui, sans-serif);
   --service-mono: var(--tm-mono, ui-monospace, SFMono-Regular, Consolas, monospace);
@@ -29,17 +28,17 @@
 .service-page button[disabled] { opacity: .65; cursor: default; }
 .service-page :focus-visible { outline: 3px solid var(--service-blue); outline-offset: 4px; }
 .service-page :where([id]) { scroll-margin-top: 1.25rem; }
-.service-page .service-wrap { width: min(100% - clamp(2.5rem, 8vw, 8rem), 77rem); margin-inline: auto; }
+.service-page .service-wrap { width: calc(100% - var(--service-gutter) - var(--service-gutter)); margin-inline: auto; }
 .service-skip { position: fixed; z-index: 10; inset: .75rem auto auto .75rem; padding: .75rem 1rem; background: white; transform: translateY(-180%); }
 .service-skip:focus { transform: none; }
-.service-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 5.25rem; border-bottom: 1px solid var(--service-rule); }
+.service-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 5.25rem; border-bottom: 1px solid var(--service-ink); }
 .service-page .story-brand { display: inline-flex; align-items: center; gap: .54rem; color: var(--service-ink); font: 800 1.28rem/1 var(--service-display); letter-spacing: -.03em; text-decoration: none; white-space: nowrap; }
 .service-page .story-brand img { width: 2.25rem; height: 2.25rem; object-fit: contain; }
 .service-header nav { display: flex; gap: clamp(1.1rem, 3.1vw, 2.5rem); align-items: center; }
 .service-header nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: .92rem; font-weight: 700; text-decoration: none; }
 .service-header nav a:hover, .service-header nav [aria-current] { text-decoration: underline; text-underline-offset: .35em; }
 .service-main { flex: 1; padding-bottom: clamp(4rem, 8vw, 7.5rem); }
-.service-path { display: flex; gap: .62rem; align-items: center; margin-top: clamp(1.4rem, 3.8vw, 3.5rem); font-size: .82rem; color: var(--service-muted); }
+.service-path { display: flex; gap: .62rem; align-items: center; margin-top: clamp(1.3rem, 2.8vw, 2.8rem); font-size: .82rem; color: var(--service-muted); }
 .service-path a { text-decoration: none; }
 .service-path a:hover { text-decoration: underline; }
 .service-path [aria-hidden] { color: #848a83; }
@@ -51,11 +50,11 @@
 .service-page .service-action { display: inline-flex; min-height: 46px; padding: .65rem 1.2rem; align-items: center; justify-content: space-between; gap: 1.15rem; border: 1px solid var(--service-blue); border-radius: 4px; background: var(--service-blue); color: white; font-weight: 700; text-decoration: none; }
 .service-page .service-action:hover { background: #064da9; color: white; border-color: #064da9; }
 .service-page .service-link { display: inline-flex; min-height: 42px; gap: .6rem; align-items: center; color: var(--service-blue); font-weight: 700; }
-.service-footer { border-top: 1px solid var(--service-rule); background: #eeeee6; }
+.service-footer { border-top: 1px solid var(--service-rule); background: #f1f0eb; }
 .service-footer-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 2.5rem; padding-block: 2.6rem 3rem; }
 .service-footer address { margin-top: 1rem; color: var(--service-muted); font: inherit; font-size: .83rem; line-height: 1.65; }
 .service-footer address a { text-decoration: none; }
-.service-footer-links { width: min(100%, 35rem); }
+.service-footer-links { width: min(100%, 42rem); }
 .service-footer-links nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.3rem; align-content: start; }
 .service-footer-links nav a { display: inline-flex; width: fit-content; align-items: center; min-height: 36px; font-size: .88rem; text-decoration: none; }
 .service-footer-links nav a:hover { text-decoration: underline; }

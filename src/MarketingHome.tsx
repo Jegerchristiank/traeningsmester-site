@@ -29,6 +29,63 @@ function AccessLink({ className }: { className: string }) {
   );
 }
 
+const navigation = [
+  ["traeningsforloeb", "Træningsforløb"],
+  ["funktioner", "Funktioner"],
+  ["faq", "Spørgsmål"],
+] as const;
+
+function SiteNavigation() {
+  return (
+    <nav aria-label="Hovednavigation">
+      <div className="header-links">
+        {navigation.map(([id, label]) => (
+          <a key={id} href={`#${id}`}>
+            {label}
+          </a>
+        ))}
+      </div>
+      <details
+        className="contents-menu"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && event.currentTarget.open) {
+            event.currentTarget.open = false;
+            event.currentTarget.querySelector("summary")?.focus();
+          }
+        }}
+        onBlur={(event) => {
+          if (
+            event.relatedTarget &&
+            !event.currentTarget.contains(event.relatedTarget)
+          )
+            event.currentTarget.open = false;
+        }}
+      >
+        <summary>
+          Indhold <span aria-hidden="true">⌄</span>
+        </summary>
+        <div className="contents-links">
+          {navigation.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              onClick={(event) => {
+                const disclosure = event.currentTarget.closest("details");
+                if (disclosure) disclosure.open = false;
+              }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </details>
+      <a className="header-login" href="/app">
+        Log ind <Arrow />
+      </a>
+    </nav>
+  );
+}
+
 const features = [
   [
     "Programmer",
@@ -87,83 +144,75 @@ const questions = [
   ],
 ];
 
-function WorkoutCover() {
+function WorkoutExample() {
   return (
-    <figure
-      className="hero-product"
-      aria-label="Træningskort med eksempel fra Overkrop A"
-    >
-      <div className="deck-stage">
-        <img
-          className="deck-cover"
-          src="/product/programkort.webp"
-          srcSet="/product/programkort-lille.webp 500w, /product/programkort-mobil.webp 900w, /product/programkort.webp 1200w"
-          sizes="(max-width: 719px) 93vw, (max-width: 1500px) 45vw, 660px"
-          width="1200"
-          height="1056"
-          fetchPriority="high"
-          alt="Ringbundet træningskort med appens illustration af bænkpres med stang."
-        />
-        <details className="deck-inspection">
-          <summary>
-            <span className="deck-turn-label">
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M19.5 8.8A8 8 0 1 0 20 14M20 4v5h-5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="turn-to">Vend til appvisning</span>
-              <span className="turn-back">Vend til træningskort</span>
-            </span>
-          </summary>
-          <div className="deck-reverse">
-            <p>Overkrop A</p>
-            <h2>Bænkpres med stang</h2>
-            <img
-              src="/product/revision-detail-set.webp"
-              width="1200"
-              height="510"
-              loading="lazy"
-              decoding="async"
-              alt="Appens sætrække med 60 kg × 8 fra sidste gang og et nyt arbejdssæt indstillet til 62,5 kg × 8."
-            />
-            <small>Rekonstrueret appvisning · eksempeldata</small>
-          </div>
-        </details>
-      </div>
-      <figcaption className="deck-ledger">
-        <div className="ledger-caption">
-          <strong>
-            Overkrop A <span>/</span> Bænkpres
-          </strong>
+    <section className="hero-product" aria-labelledby="example-exercise">
+      <div className="sample-heading">
+        <p className="sample-context">
+          <span>Overkrop A</span>
           <small>Eksempeldata</small>
+        </p>
+        <h2 id="example-exercise">Bænkpres med stang</h2>
+      </div>
+      <dl className="sample-values">
+        <div>
+          <dt>Sidste træning</dt>
+          <dd>
+            60 <span>kg × 8</span>
+          </dd>
         </div>
-        <dl>
-          <div>
-            <dt>Sidste træning</dt>
-            <dd>
-              60 <span>kg × 8</span>
-            </dd>
-          </div>
-          <div className="ledger-current">
-            <dt>Dagens første sæt</dt>
-            <dd>
-              62,5 <span>kg × 8</span>
-            </dd>
-          </div>
-        </dl>
-      </figcaption>
-    </figure>
+        <div className="sample-today">
+          <dt>Dagens første sæt</dt>
+          <dd>
+            62,5 <span>kg × 8</span>
+          </dd>
+        </div>
+      </dl>
+      <div className="sample-window">
+        <p>Sætrækken i appen</p>
+        <img
+          src="/product/revision-detail-set.webp"
+          srcSet="/product/saetraekke-600.webp 600w, /product/revision-detail-set.webp 1200w"
+          sizes="(max-width: 699px) 92vw, (max-width: 1023px) 48vw, (min-width: 2300px) and (min-aspect-ratio: 2.75/1) 24vw, 33vw"
+          width="1200"
+          height="510"
+          decoding="async"
+          alt="Rekonstrueret appvisning. Sidste sæt var 60 kg × 8. Den aktive række viser 8 gentagelser med 62,5 kg."
+        />
+        <a className="edition-text-link" href="#traeningsforloeb">
+          Se et træningsforløb <Arrow down />
+        </a>
+      </div>
+      <figure className="plate-figure">
+        <picture>
+          <source
+            media="(min-width: 1024px) and (min-aspect-ratio: 2/1)"
+            srcSet="/product/vaegtskiver-panorama.webp"
+            width="1920"
+            height="800"
+          />
+          <img
+            className="plate-image"
+            src="/product/vaegtskiver-1024.webp"
+            srcSet="/product/vaegtskiver-560.webp 560w, /product/vaegtskiver-1024.webp 1024w, /product/vaegtskiver-1800.webp 1800w"
+            sizes="(max-width: 699px) 47vw, (max-width: 1023px) 25vw, 31vw"
+            width="1024"
+            height="768"
+            fetchPriority="high"
+            alt="To små blå vægtskiver på 1,25 kg hver."
+          />
+        </picture>
+        <figcaption>
+          <strong>
+            +2,5 <span>kg</span>
+          </strong>
+          <span>
+            En skive på 1,25 kg
+            <br />i hver side af stangen.
+          </span>
+        </figcaption>
+      </figure>
+    </section>
   );
 }
 
@@ -171,6 +220,7 @@ function FeatureIndex() {
   return (
     <section
       id="funktioner"
+      tabIndex={-1}
       className="edition-features edition-shell"
       aria-labelledby="feature-heading"
     >
@@ -180,89 +230,55 @@ function FeatureIndex() {
           <br />
           at træne på.
         </h2>
-        <p>
-          Vælg dine øvelser, byg din uge, og tag programmet med fra første
-          opvarmning til sidste arbejdssæt.
-        </p>
       </header>
-      <div className="week-spread">
-        <article className="warmup-poster">
-          <div className="warmup-art">
-            <img
-              src="/product/opvarmningsflamme.webp"
-              width="480"
-              height="477"
-              loading="lazy"
-              decoding="async"
-              alt=""
-            />
+      <div className="features-content">
+        <dl className="feature-register">
+          <div>
+            <dt>Eget program</dt>
+            <dd>
+              Vælg øvelser og træningsdage. Læg vægt, gentagelser og pauser ind,
+              så programmet er klar, når du møder op.
+            </dd>
           </div>
-          <div className="week-copy">
-            <h3>Før første sæt.</h3>
+          <div>
+            <dt>Styrke og kondition</dt>
+            <dd>
+              Hold opvarmning og arbejdssæt adskilt i styrketræningen. Registrér
+              tid og distance, når du løber, går eller cykler.
+            </dd>
+          </div>
+          <div>
+            <dt>Dine forbindelser</dt>
+            <dd>
+              Forbind Apple Sundhed på iPhone, eller brug et parret Apple Watch.
+              Forbindelsen til Strava er under udvikling.
+            </dd>
+          </div>
+        </dl>
+        <details className="all-features">
+          <summary>
+            Se alle funktioner{" "}
+            <span className="toggle-mark" aria-hidden="true" />
+          </summary>
+          <div className="feature-overview">
             <p>
-              Læg opvarmningen ind i programmet. Appen holder opvarmningssæt og
-              arbejdssæt adskilt i din log.
+              Funktioner i mobilappen under udvikling. Adgang afhænger af
+              platform og medlemskab.
             </p>
+            <dl>
+              {features.map(([name, detail]) => (
+                <div key={name}>
+                  <dt>{name}</dt>
+                  <dd>{detail}</dd>
+                </div>
+              ))}
+            </dl>
+            <a className="edition-text-link" href="/ai/help">
+              Sådan forbinder du en AI-assistent til din konto <Arrow />
+            </a>
           </div>
-        </article>
-        <article className="restday-poster">
-          <div className="restday-art">
-            <img
-              src="/product/hviledag.webp"
-              width="779"
-              height="680"
-              loading="lazy"
-              decoding="async"
-              alt="En blå kettlebell hviler i et håndklæde."
-            />
-          </div>
-          <div className="week-copy">
-            <h3>Plads til en hviledag.</h3>
-            <p>
-              Byg dit eget program med de træningsdage, øvelser og pauser, der
-              passer ind i din uge.
-            </p>
-          </div>
-        </article>
+        </details>
       </div>
-      <dl className="feature-notes">
-        <div>
-          <dt>Styrke og kondition</dt>
-          <dd>
-            Log kilo og gentagelser i centeret. Registrér tid og distance, når
-            du løber, går eller cykler.
-          </dd>
-        </div>
-        <div>
-          <dt>Dine forbindelser</dt>
-          <dd>
-            Forbind Apple Sundhed på iPhone. Strava er under udvikling som
-            valgfri forbindelse til dine aktiviteter.
-          </dd>
-        </div>
-      </dl>
-      <details className="all-features">
-        <summary>
-          Se alle funktioner <span className="toggle-mark" aria-hidden="true" />
-        </summary>
-        <div className="feature-overview">
-          <p>
-            Funktioner i mobilappen under udvikling. Adgang afhænger af platform
-            og medlemskab.
-          </p>
-          <dl>
-            {features.map(([name, detail]) => (
-              <div key={name}>
-                <dt>{name}</dt>
-                <dd>{detail}</dd>
-              </div>
-            ))}
-          </dl>
-          <a className="edition-text-link" href="/ai/help">
-            Sådan forbinder du en AI-assistent til din konto <Arrow />
-          </a>
-        </div>
-      </details>
     </section>
   );
 }
@@ -272,6 +288,7 @@ function Questions() {
     <section
       className="questions-block"
       id="faq"
+      tabIndex={-1}
       aria-labelledby="questions-title"
     >
       <div className="edition-shell questions-spread">
@@ -317,51 +334,25 @@ export default function MarketingHome() {
       <header className="cover-header">
         <div className="edition-shell header-inner">
           <SiteBrand />
-          <nav aria-label="Hovednavigation">
-            <a className="header-chapter" href="#traeningsforloeb">
-              Træningsforløb
-            </a>
-            <a className="header-chapter" href="#funktioner">
-              Funktioner
-            </a>
-            <a className="header-chapter" href="#faq">
-              Spørgsmål
-            </a>
-            <a className="header-login" href="/app">
-              Log ind <Arrow />
-            </a>
-          </nav>
+          <SiteNavigation />
         </div>
       </header>
       <main id="main-content">
         <section className="story-hero" aria-labelledby="hero-title">
-          <div className="edition-shell cover-layout">
-            <div className="hero-intro">
-              <h1 id="hero-title">
-                Træn videre <span>fra sidste gang.</span>
-              </h1>
-              <p>
-                Dit program, dine sæt og dine pauser samlet i én app. Se, hvad
-                du løftede sidst, og hold fokus på den træning, du er i gang
-                med.
+          <div className="poster-heading">
+            <h1 id="hero-title">
+              Træn videre <span>fra sidste gang.</span>
+            </h1>
+          </div>
+          <div className="cover-layout">
+            <div className="cover-access">
+              <p className="hero-lead">
+                <strong>En træningsapp, der husker dine sæt.</strong> Åbn dit
+                program, se dit sidste løft, og hold styr på pausen.
               </p>
-              <div className="hero-mobile-action">
-                <AccessLink className="access-button" />
-                <a className="edition-text-link" href="#traeningsforloeb">
-                  Se forløbet <Arrow down />
-                </a>
-              </div>
-            </div>
-            <WorkoutCover />
-            <div className="hero-signup">
               <AccessForm />
             </div>
-            <a
-              className="hero-follow edition-text-link"
-              href="#traeningsforloeb"
-            >
-              Se et træningsforløb <Arrow down />
-            </a>
+            <WorkoutExample />
           </div>
         </section>
         <WorkoutStory />

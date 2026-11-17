@@ -258,7 +258,7 @@ export const legalDocuments: Record<
             oprettede kontoen med. Du kan også godkende en AI-assistent fra
             mobilappen. Følg <a href="/ai/help">vejledningen til AI-assistenter</a> eller
             se <a href="/ai/connections">dine forbindelser</a>. Har du brug
-            for hjælp til login, kan du bruge <a href="#kontakt">kontaktkortet</a> øverst på siden.
+            for hjælp til login, kan du finde <a href="#kontakt">Christians kontaktoplysninger</a> øverst på siden.
             Træningsmester vil aldrig bede dig sende din adgangskode.
           </>
         ),
@@ -346,18 +346,29 @@ function OperatorAddress() {
   );
 }
 
-function SupportContactCard() {
+function SupportContact() {
+  const [emailName, emailDomain] = company.email.split("@");
   return (
-    <div className="support-contact-card">
-      {/* Close crop of the app’s approved blank ring card, træningsugen/kilder/medier/02.png. */}
-      <img src="/product/kontaktkort.webp" alt="" width="760" height="690" />
-      <address id="kontakt" tabIndex={-1} aria-label="Kontakt Christian hos Træningsmester">
-        <strong>Christian</strong>
-        <span className="support-contact-company">Træningsmester · KRISTENSON</span>
-        <a href={`mailto:${company.email}`}>Skriv til support <ArrowMark diagonal /></a>
-        <a href={`tel:${company.phoneHref}`} aria-label={`Ring ${company.phoneDisplay}`}>{company.phoneDisplay} <ArrowMark diagonal /></a>
-      </address>
-    </div>
+    <address className="support-directory" id="kontakt" tabIndex={-1} aria-label="Kontakt Christian hos Træningsmester">
+      <div className="support-recipient">
+        <strong>Kontakt Christian</strong>
+        <span>Træningsmester · {company.legalName}</span>
+      </div>
+      <dl>
+        <div className="support-contact-row">
+          <dt>E-mail</dt>
+          <dd><a className="support-email" href={`mailto:${company.email}`}>
+            <span>{emailName}<wbr />@{emailDomain}</span><ArrowMark diagonal />
+          </a></dd>
+        </div>
+        <div className="support-contact-row">
+          <dt>Telefon</dt>
+          <dd><a className="support-phone" href={`tel:${company.phoneHref}`} aria-label={`Ring ${company.phoneDisplay}`}>
+            <span>{company.phoneDisplay}</span><ArrowMark diagonal />
+          </a></dd>
+        </div>
+      </dl>
+    </address>
   );
 }
 
@@ -408,7 +419,7 @@ export function LegalPage({ route }: { route: LegalRoute }) {
             </div>
           )}
         </div>
-        {route === "support" ? <SupportContactCard /> : (
+        {route === "support" ? <SupportContact /> : (
           <div className="document-meta">
             <span className="service-caption">Senest opdateret</span>
             <span className="document-date">{document.updated}</span>

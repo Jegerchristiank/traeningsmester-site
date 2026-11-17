@@ -4,21 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-    <script>
-      // Start the hero request before React, without adding image traffic to /app.
-      if (location.pathname === "/") {
-        const hero = document.createElement("link");
-        hero.rel = "preload";
-        hero.as = "image";
-        hero.href = "/product/programkort.webp";
-        hero.imageSrcset =
-          "/product/programkort-lille.webp 500w, /product/programkort-mobil.webp 900w, /product/programkort.webp 1200w";
-        hero.imageSizes =
-          "(max-width: 719px) 93vw, (max-width: 1500px) 45vw, 660px";
-        hero.fetchPriority = "high";
-        document.head.append(hero);
-      }
-    </script>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://rbplnybmjwcoigiwtkuh.supabase.co https://eu.i.posthog.com ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'"
@@ -28,7 +13,7 @@
       content="Dit program, dine sæt og dine pauser samlet i én app. Træningsmester er under udvikling. Få besked om adgang."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#e7e8f7" />
+    <meta name="theme-color" content="#f8f7f2" />
     <noscript
       ><style>
         .access-form form {
@@ -63,7 +48,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Træn videre fra sidste gang. Et ringbundet træningskort med bænkpres og værdierne 60 kg × 8 sidst og 62,5 kg × 8 i dag."
+      content="Træn videre fra sidste gang. Bænkpres med stang. Sidst 60 kg × 8, i dag 62,5 kg × 8. To små blå vægtskiver viser forskellen."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
@@ -80,7 +65,7 @@
     />
     <meta
       name="twitter:image:alt"
-      content="Træn videre fra sidste gang. Et ringbundet træningskort med bænkpres og værdierne 60 kg × 8 sidst og 62,5 kg × 8 i dag."
+      content="Træn videre fra sidste gang. Bænkpres med stang. Sidst 60 kg × 8, i dag 62,5 kg × 8. To små blå vægtskiver viser forskellen."
     />
     <link
       rel="icon"

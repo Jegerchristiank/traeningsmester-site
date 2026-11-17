@@ -18,19 +18,16 @@
 }
 :root {
   color-scheme: light;
-  --tm-paper: #faf8f2;
-  --tm-lilac: #d9dcf6;
-  --tm-royal: #15255e;
+  --tm-paper: #f8f7f2;
   --tm-ink: #161a19;
   --tm-muted: #535b56;
   --tm-rule: #d1d3c9;
   --tm-blue: #0759c7;
   --tm-display: Cabinet, "Arial Black", sans-serif;
   --tm-text: Satoshi, Arial, sans-serif;
-  --tm-serif: Georgia, "Times New Roman", serif;
   --tm-mono:
     ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --tm-gutter: clamp(1.25rem, 4.4vw, 4.5rem);
+  --tm-gutter: clamp(1.15rem, 3.3vw, 7.5rem);
 }
 body {
   margin: 0;

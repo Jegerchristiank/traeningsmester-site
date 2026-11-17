@@ -43,150 +43,162 @@ const frames = {
 type Frame = keyof typeof frames;
 const wideQuery =
   "(min-width: 920px) and (min-height: 560px) and (prefers-reduced-motion: no-preference)";
-const reduceQuery = "(prefers-reduced-motion: reduce)";
 const readWide = () => window.matchMedia(wideQuery).matches;
-const readReduced = () => window.matchMedia(reduceQuery).matches;
 const staticLayout = () => false;
 function watchLayout(callback: () => void) {
-  const conditions = [
-    window.matchMedia(wideQuery),
-    window.matchMedia(reduceQuery),
-  ];
-  conditions.forEach((media) => media.addEventListener("change", callback));
-  return () =>
-    conditions.forEach((media) =>
-      media.removeEventListener("change", callback),
-    );
+  const media = window.matchMedia(wideQuery);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
 }
 
-function Hourglass({ animate }: { animate: boolean }) {
-  const surface = useRef<HTMLDivElement>(null);
-  const [entered, setEntered] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  useEffect(() => {
-    if (!animate || !surface.current || !("IntersectionObserver" in window))
-      return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setEntered(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.25 },
-    );
-    observer.observe(surface.current);
-    return () => observer.disconnect();
-  }, [animate]);
+function Prescription() {
   return (
-    <div className="ws-hourglass" ref={surface} aria-hidden="true">
-      <img
-        src="/product/story-hourglass.webp"
-        loading="lazy"
-        decoding="async"
-        width="620"
-        height="775"
-        alt=""
-      />
-      {animate && entered && (
-        <video
-          src="/product/story-hourglass.mp4"
-          muted
-          playsInline
-          autoPlay
-          disablePictureInPicture
-          data-playing={playing || undefined}
-          onPlaying={() => setPlaying(true)}
-          onError={() => setPlaying(false)}
-        />
-      )}
+    <dl className="ws-prescription">
+      <div>
+        <dt>Arbejdssæt</dt>
+        <dd>3 × 8</dd>
+      </div>
+      <div>
+        <dt>Planlagt vægt</dt>
+        <dd>
+          60 <small>kg</small>
+        </dd>
+      </div>
+      <div>
+        <dt>Pause</dt>
+        <dd>
+          2:00 <small>min.</small>
+        </dd>
+      </div>
+    </dl>
+  );
+}
+
+function SetComparison() {
+  return (
+    <div className="ws-set-proof">
+      <dl className="ws-comparison">
+        <div>
+          <dt>
+            <time dateTime="2026-11-12">12. november</time>
+          </dt>
+          <dd>
+            60 <small>kg × 8</small>
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <time dateTime="2026-11-15">15. november</time>
+          </dt>
+          <dd>
+            62,5 <small>kg × 8</small>
+          </dd>
+        </div>
+      </dl>
+      <p className="ws-change">
+        <span>Forskel ved otte gentagelser</span>
+        <strong>+2,5 kg</strong>
+      </p>
     </div>
   );
 }
 
-function Scene({ frame, animate }: { frame: Frame; animate: boolean }) {
+function PauseScale() {
+  return (
+    <div className="ws-time-proof">
+      <p className="ws-clock-label">Tilbage af pausen</p>
+      <p className="ws-clock-value">01:42</p>
+      <div
+        className="ws-scale"
+        role="meter"
+        aria-label="Forløbet pausetid"
+        aria-valuemin={0}
+        aria-valuemax={120}
+        aria-valuenow={18}
+        aria-valuetext="18 af 120 sekunder er gået"
+      >
+        <span className="ws-scale-elapsed" aria-hidden="true" />
+      </div>
+      <div className="ws-scale-labels" aria-hidden="true">
+        <span>0:00</span>
+        <span>1:00</span>
+        <span>2:00</span>
+      </div>
+      <p className="ws-elapsed-label">
+        <strong>18 sek.</strong> af 120 er gået.
+      </p>
+    </div>
+  );
+}
+
+function TrainingArchive() {
+  return (
+    <ol className="ws-archive" aria-label="Træningsdatoer i eksemplet">
+      <li>
+        <time dateTime="2026-11-12">
+          <b>12</b> nov.
+        </time>
+        <div>
+          <span>Forrige træning</span>
+          <strong>60 kg × 8</strong>
+        </div>
+      </li>
+      <li className="ws-saved">
+        <time dateTime="2026-11-15">
+          <b>15</b> nov.
+        </time>
+        <div>
+          <span>Registreret sæt</span>
+          <strong>62,5 kg × 8</strong>
+        </div>
+      </li>
+      <li>
+        <time dateTime="2026-11-17">
+          <b>17</b> nov.
+        </time>
+        <div>
+          <span>Næste træning</span>
+          <strong>Se sættet fra den 15.</strong>
+        </div>
+      </li>
+    </ol>
+  );
+}
+
+function Scene({ frame }: { frame: Frame }) {
   const image = frames[frame];
   return (
     <figure className="ws-scene" data-frame={frame}>
-      {frame === "program" && (
-        <>
-          <div className="ws-planned">
-            <span>Mit styrkeprogram</span>
-            <strong>3 × 8</strong>
-            <span>sæt × gentagelser</span>
-          </div>
-          <img
-            className="ws-bench"
-            src="/product/baenkpres.webp"
-            width="512"
-            height="512"
-            loading="lazy"
-            decoding="async"
-            alt=""
-          />
-        </>
-      )}
-      {frame === "set" && (
-        <div className="ws-lift">
-          <div>
-            <span>12. november</span>
-            <strong>
-              60 <small>kg</small>
-            </strong>
-          </div>
-          <div>
-            <span>15. november</span>
-            <strong>
-              62,5 <small>kg</small>
-            </strong>
-          </div>
-        </div>
-      )}
-      {frame === "rest" && (
-        <>
-          <Hourglass animate={animate} />
-          <div className="ws-clock">
-            <span>Pausetid tilbage</span>
-            <strong>01:42</strong>
-          </div>
-        </>
-      )}
-      {frame === "history" && (
-        <>
-          <img
-            className="ws-grip"
-            src="/product/story-grip.webp"
-            width="920"
-            height="1150"
-            loading="lazy"
-            decoding="async"
-            alt=""
-          />
-          <div className="ws-archive-date">
-            <span>Næste træning</span>
-            <strong>17. nov.</strong>
-          </div>
-        </>
-      )}
-      <div className="ws-window" data-flip-id="overkrop-workout-window">
-        <picture>
-          {frame === "history" && (
-            <source
-              media="(max-width: 680px)"
-              srcSet="/product/story-history-detail.webp"
-              width="889"
-              height="454"
+      <figcaption className="ws-caption">
+        <strong>Overkrop A</strong>
+        <span>Bænkpres med stang</span>
+      </figcaption>
+      <div className="ws-layout">
+        {frame === "program" && <Prescription />}
+        {frame === "set" && <SetComparison />}
+        {frame === "rest" && <PauseScale />}
+        {frame === "history" && <TrainingArchive />}
+        <div className="ws-window">
+          <picture>
+            {frame === "history" && (
+              <source
+                media="(max-width: 680px), (min-width: 1850px)"
+                srcSet="/product/story-history-detail.webp"
+                width="889"
+                height="454"
+              />
+            )}
+            <img
+              data-flip-id="overkrop-workout-window"
+              src={`/product/${image.src}.webp`}
+              width={image.width}
+              height={image.height}
+              loading="lazy"
+              decoding="async"
+              alt={image.alt}
             />
-          )}
-          <img
-            src={`/product/${image.src}.webp`}
-            width={image.width}
-            height={image.height}
-            loading="lazy"
-            decoding="async"
-            alt={image.alt}
-          />
-        </picture>
+          </picture>
+        </div>
       </div>
     </figure>
   );
@@ -198,7 +210,6 @@ function StepLabel({ children }: { children: string }) {
 
 export default function WorkoutStory() {
   const wide = useSyncExternalStore(watchLayout, readWide, staticLayout);
-  const reduced = useSyncExternalStore(watchLayout, readReduced, staticLayout);
   const root = useRef<HTMLElement>(null);
   const current = useRef<Frame>("program");
   const [frame, setFrame] = useState<Frame>("program");
@@ -225,7 +236,7 @@ export default function WorkoutStory() {
       }
       if (current.current === next) return;
       const windowElement = section?.querySelector<HTMLElement>(
-        ".ws-stage .ws-window",
+        ".ws-stage .ws-window img",
       );
       if (wide && windowElement && flip.current) {
         flip.current.killFlipsOf(windowElement);
@@ -287,7 +298,7 @@ export default function WorkoutStory() {
 
   useLayoutEffect(() => {
     const next = root.current?.querySelector<HTMLElement>(
-      ".ws-stage .ws-window",
+      ".ws-stage .ws-window img",
     );
     if (previous.current && next && flip.current) {
       flip.current.from(previous.current, {
@@ -300,12 +311,12 @@ export default function WorkoutStory() {
     previous.current = null;
   }, [frame]);
 
-  const inline = (state: Frame) =>
-    wide ? null : <Scene frame={state} animate={!reduced} />;
+  const inline = (state: Frame) => (wide ? null : <Scene frame={state} />);
   const chapter = frame === "rest" ? "set" : frame;
   return (
     <section
       id="traeningsforloeb"
+      tabIndex={-1}
       className="workout-story"
       ref={root}
       aria-labelledby="workout-story-heading"
@@ -397,7 +408,7 @@ export default function WorkoutStory() {
           </div>
           {wide && (
             <div className="ws-stage">
-              <Scene frame={frame} animate={!reduced} />
+              <Scene frame={frame} />
             </div>
           )}
         </div>

@@ -26,18 +26,18 @@ test("first screen is readable, single signup, images load and no runtime errors
   await expect(page.locator("form")).toHaveCount(1);
   await page.evaluate(() => document.fonts.ready);
   await page
-    .locator(".deck-cover")
+    .locator(".plate-image")
     .evaluate((img) => (img as HTMLImageElement).decode());
   if (testInfo.project.name === "mobile") {
-    // The product must be visible before asking visitors to read the full form.
-    const product = await page.locator(".hero-product").boundingBox();
-    expect(product!.y).toBeLessThan(page.viewportSize()!.height * 0.65);
-    await page
-      .locator(".hero-mobile-action")
-      .getByRole("link", { name: "Få besked om adgang" })
-      .click();
-    await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    // Visitors can type their e-mail immediately. The same exercise is also
+    // introduced on that first screen without opening additional controls.
+    await expect(
+      page.getByLabel("Din e-mail", { exact: true }),
+    ).toBeInViewport();
+    await expect(
+      page.getByRole("button", { name: "Få besked om adgang" }),
+    ).toBeInViewport();
+    await expect(page.locator("#example-exercise")).toBeInViewport();
   }
   await page.screenshot({
     path: `/tmp/tm-site-evidence/${testInfo.project.name}-hero-final.png`,
@@ -47,7 +47,7 @@ test("first screen is readable, single signup, images load and no runtime errors
     "#dit-saet",
     "#din-pause",
     "#din-historik",
-    ".week-spread",
+    ".feature-register",
     ".story-footer",
   ]) {
     await page.locator(target).scrollIntoViewIfNeeded();
@@ -126,9 +126,13 @@ test("only accepted response confirms once; sharing is a separate action", async
     await route.fulfill({ json: { ok: true, confirmation: "accepted" } });
   });
   await page.goto("/");
+  await page.locator(".closing-action").click();
+  await expect(page.locator("#access-email")).toBeFocused();
   await page
     .getByLabel("Din e-mail", { exact: true })
     .fill("demo@example.test");
+  await page.locator(".access-submit").click();
+  await expect(page.locator("#access-consent-error")).toBeVisible();
   await page.locator("#access-consent").check();
   await page.getByRole("button", { name: "Få besked om adgang" }).click();
   await expect(page.getByRole("button", { name: "Sender…" })).toBeDisabled();
@@ -136,7 +140,8 @@ test("only accepted response confirms once; sharing is a separate action", async
   release();
   await expect(
     page.getByRole("heading", { name: "Du er skrevet op." }),
-  ).toBeVisible();
+  ).toBeInViewport({ ratio: 1 });
+  await expect(page.locator(".access-success h2")).toBeFocused();
   await expect(page.locator(".access-success")).toContainText(
     "Vi skriver til demo@example.test, når der er nyt om adgang.",
   );
@@ -212,20 +217,21 @@ test("ordinary scrolling follows one exercise through the set, its pause and the
       "src",
       `/product/${image}.webp`,
     );
+    if (frame === "set") {
+      await expect(scene.locator(".ws-comparison")).toContainText("60 kg × 8");
+      await expect(scene.locator(".ws-comparison")).toContainText(
+        "62,5 kg × 8",
+      );
+    }
     if (frame === "rest") {
       await expect(scene).toContainText("01:42");
-      await expect
-        .poll(() =>
-          scene
-            .locator("video")
-            .evaluate(
-              (video) =>
-                video instanceof HTMLVideoElement &&
-                video.muted &&
-                video.currentTime > 0,
-            ),
-        )
-        .toBe(true);
+      const scale = scene.getByRole("meter", { name: "Forløbet pausetid" });
+      await expect(scale).toHaveAttribute("aria-valuenow", "18");
+      await expect(scale).toHaveAttribute("aria-valuemax", "120");
+    }
+    if (frame === "history") {
+      await expect(scene.locator("time")).toHaveCount(3);
+      await expect(scene.locator(".ws-saved")).toContainText("62,5 kg × 8");
     }
   }
   await expect(story.locator("[aria-current=step]")).toContainText("Historik");

@@ -1,13 +1,15 @@
 .workout-story {
-  --ws-dark: #16191f;
-  --ws-paper: #fbf7ed;
-  --ws-muted: #c6c8d0;
-  --ws-lavender: #c3c8ff;
-  --ws-blue: #174bc0;
-  --ws-rule: #41444c;
-  --ws-nav-height: 55px;
-  color: var(--ws-paper);
-  background: var(--ws-dark);
+  --ws-stock: #f2f0e9;
+  --ws-sheet: #fbfaf6;
+  --ws-charcoal: #202320;
+  --ws-ink: #181c19;
+  --ws-mute: #555d56;
+  --ws-rule: #bfc5bc;
+  --ws-blue: #0759c7;
+  --ws-nav-height: clamp(49px, 4vw, 84px);
+  background: var(--ws-stock);
+  color: var(--ws-ink);
+  border-top: 1px solid var(--ws-rule);
   font-family: var(--tm-text, Satoshi, Arial, sans-serif);
 }
 .workout-story *,
@@ -15,84 +17,93 @@
 .workout-story *::after {
   box-sizing: border-box;
 }
-.workout-story :where(h2, h3, h4, p, figure) {
+.workout-story :where(h2, h3, h4, p, dl, dd, figure, ol) {
   margin: 0;
 }
 .ws-inner {
-  max-width: 96rem;
+  width: 100%;
   margin-inline: auto;
-  padding: clamp(60px, 7vw, 108px) var(--tm-gutter, 4.4vw)
-    clamp(42px, 5.4vw, 84px);
+  padding: clamp(58px, 6.4vw, 170px) clamp(20px, 4.2vw, 170px)
+    clamp(40px, 5.7vw, 140px);
 }
 .ws-masthead {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(200px, 0.68fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(215px, 0.76fr);
   align-items: end;
-  gap: clamp(28px, 6vw, 88px);
-  margin-bottom: clamp(32px, 4.2vw, 66px);
+  gap: clamp(25px, 5vw, 160px);
+  margin-bottom: clamp(30px, 4.3vw, 112px);
 }
 .workout-story .ws-masthead h2 {
-  color: var(--ws-paper);
-  font: 800 clamp(56px, 6.2vw, 94px) / 0.97
+  color: var(--ws-ink);
+  font: 800 clamp(52px, 5.85vw, 164px)/0.99
     var(--tm-display, Cabinet, sans-serif);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.033em;
 }
 .ws-masthead h2 span {
-  color: var(--ws-lavender);
+  color: var(--ws-blue);
 }
-.ws-intro > p:first-child {
-  max-width: 31ch;
-  color: var(--ws-muted);
-  font-size: clamp(16px, 1.35vw, 21px);
-  line-height: 1.48;
+.ws-intro p:first-child {
+  max-width: 36ch;
+  color: var(--ws-ink);
+  font-size: clamp(16px, 1.35vw, 38px);
+  line-height: 1.43;
+}
+.workout-story .ws-disclosure,
+.workout-story .ws-step-label,
+.ws-nav a span,
+.ws-caption > span,
+.ws-scale-labels {
+  font-family: var(--tm-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.workout-story .ws-disclosure {
+  color: var(--ws-mute);
+  font-size: clamp(11px, 0.77vw, 20px);
+  line-height: 1.4;
+  margin-top: clamp(10px, 1.25vw, 28px);
 }
 .ws-nav {
   position: relative;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: clamp(22px, 4vw, 65px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   min-height: var(--ws-nav-height);
   border-block: 1px solid var(--ws-rule);
-  background: var(--ws-dark);
+  background: var(--ws-stock);
 }
 .workout-story .ws-nav a {
+  display: flex;
+  gap: 0.72em;
   position: relative;
-  display: inline-flex;
-  gap: 0.68em;
-  min-height: calc(var(--ws-nav-height) - 2px);
   align-items: center;
-  text-decoration: none;
-  color: var(--ws-muted);
+  min-height: max(44px, calc(var(--ws-nav-height) - 2px));
+  color: var(--ws-mute);
+  font-size: clamp(15px, 1.02vw, 27px);
   font-weight: 700;
-}
-.ws-nav a span,
-.workout-story .ws-step-label,
-.workout-story .ws-disclosure {
-  font-family: var(--tm-mono, ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  text-decoration: none;
 }
 .ws-nav a span {
-  color: #a3a7b5;
-  font-size: 0.7em;
-  letter-spacing: 0.03em;
+  color: var(--ws-mute);
+  font-size: 0.76em;
+  font-weight: 500;
 }
 .workout-story .ws-nav a:is([aria-current], :hover),
 .ws-nav a[aria-current] span {
-  color: var(--ws-lavender);
+  color: var(--ws-blue);
 }
 .ws-nav a[aria-current]::after {
   content: "";
   position: absolute;
-  height: 2px;
   bottom: -1px;
   left: 0;
-  right: 0;
-  background: var(--ws-lavender);
+  width: min(100%, 12.5em);
+  background: currentColor;
+  height: 2px;
 }
 .workout-story .ws-nav a:focus-visible {
-  outline: 2px solid #d5dbff;
-  outline-offset: 4px;
+  outline: 2px solid var(--ws-blue);
+  outline-offset: 2px;
 }
 .ws-spread {
   position: relative;
@@ -102,242 +113,321 @@
 }
 .ws-step {
   min-width: 0;
-  padding: 34px 0;
+  padding-block: 32px;
 }
-.ws-reading :is(article[id], div[id]) {
+.ws-reading [id] {
   scroll-margin-top: calc(var(--ws-nav-height) + 24px);
 }
 .workout-story .ws-step-label {
-  margin-bottom: 14px;
+  margin-bottom: clamp(11px, 1.1vw, 30px);
   text-transform: uppercase;
-  color: var(--ws-lavender);
-  letter-spacing: 0.065em;
-  font-size: 11px;
-  line-height: 1.45;
+  color: var(--ws-blue);
+  letter-spacing: 0.045em;
+  font-size: clamp(11px, 0.78vw, 20px);
+  line-height: 1.4;
 }
 .workout-story .ws-step :is(h3, h4) {
-  color: var(--ws-paper);
-  max-width: 15ch;
-  font: 800 clamp(32px, 3.2vw, 52px) / 1.02
-    var(--tm-display, Cabinet, sans-serif);
-  letter-spacing: -0.026em;
+  max-width: 14ch;
+  color: var(--ws-ink);
+  font: 800 clamp(32px, 3.25vw, 100px)/1 var(--tm-display, Cabinet, sans-serif);
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 .workout-story .ws-step h4 {
-  font-size: clamp(27px, 2.5vw, 40px);
+  font-size: clamp(27px, 2.65vw, 80px);
 }
 .workout-story .ws-step > p:not(.ws-step-label) {
-  max-width: 31ch;
-  margin-top: 15px;
-  color: var(--ws-muted);
-  font-size: clamp(16px, 1.25vw, 19px);
-  line-height: 1.5;
+  max-width: 34ch;
+  margin-top: clamp(14px, 1.1vw, 30px);
+  color: var(--ws-mute);
+  font-size: clamp(16px, 1.25vw, 36px);
+  line-height: 1.48;
 }
 .workout-story .ws-step > p + p:not(.ws-step-label) {
-  margin-top: 8px;
+  margin-top: 0.45em;
+}
+.ws-reading > article + article {
+  border-top: 1px solid var(--ws-rule);
 }
 .ws-pause-step {
   border-top: 1px dashed var(--ws-rule);
 }
-.workout-story .ws-disclosure {
-  margin-top: 12px;
-  color: var(--ws-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
 
-/* Each spread uses a different, literal crop of the same exercise. */
 .ws-scene {
-  container-type: size;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+  --ink: var(--ws-ink);
+  --soft: var(--ws-mute);
+  --rule: var(--ws-rule);
+  --stock: var(--ws-sheet);
+  --plate-pad: clamp(17px, 2vw, 68px);
+  --num: var(--tm-display, Cabinet, Arial, sans-serif);
+  --native-ratio: 1.604;
+  --native-cap: 932px;
+  color: var(--ink);
+  background: var(--stock);
+  border: 1px solid var(--rule);
   width: 100%;
-  height: clamp(360px, 44vw, 550px);
-  background: #d7d6f5;
-  color: #182541;
-}
-.ws-scene img {
-  display: block;
-}
-.ws-window {
-  position: absolute;
-  z-index: 1;
-}
-.ws-window picture,
-.ws-window img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.ws-planned,
-.ws-lift,
-.ws-clock,
-.ws-archive-date {
-  position: absolute;
-}
-.ws-scene :is(.ws-planned, .ws-lift div, .ws-clock, .ws-archive-date) > span {
-  display: block;
-  font-weight: 700;
-  line-height: 1.25;
-  font-size: clamp(12px, 1.08vw, 16px);
-}
-.ws-planned {
-  left: 6%;
-  bottom: 9%;
-}
-.ws-planned strong {
-  display: block;
-  margin: 0.13em 0 0.06em;
-  font: 800 clamp(57px, 6.3vw, 105px) / 0.93
-    var(--tm-display, Cabinet, sans-serif);
-  color: #20479f;
-  letter-spacing: -0.036em;
-}
-.workout-story .ws-bench {
-  position: absolute;
-  width: 43%;
-  height: 51%;
-  top: 3%;
-  left: 1%;
-  object-fit: contain;
-}
-.ws-scene[data-frame="program"] {
-  background: #d2d2f4;
-}
-.ws-scene[data-frame="program"]::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 0 43%;
-  border-left: 1px solid #a5aad4;
-  background: #e5e5f8;
-}
-.ws-scene[data-frame="program"] .ws-window {
-  width: 55%;
-  right: 4%;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #fff;
-  border: 1px solid #d3d4df;
-  box-shadow: 0 10px 22px #3432531a;
-}
-.ws-scene[data-frame="program"] .ws-window::before {
-  content: "";
-  display: block;
-  height: 9px;
-  background: #324fa4;
-}
-.ws-scene[data-frame="set"] {
-  color: #172130;
-  background: #f1eee5;
-}
-.ws-lift {
-  inset: 11% 7% auto;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 0.7fr 1.3fr;
-  gap: 3%;
-  align-items: end;
-  border-bottom: 1px solid #c8c6bd;
-  padding-bottom: 5%;
-}
-.ws-lift div:first-child {
-  color: #62665f;
-}
-.ws-lift div:last-child {
-  color: var(--ws-blue);
-}
-.ws-lift strong {
-  display: block;
-  margin-top: 0.12em;
-  font: 800 clamp(46px, 4.7vw, 76px) / 0.94
-    var(--tm-display, Cabinet, sans-serif);
-  white-space: nowrap;
-  letter-spacing: -0.03em;
-}
-.ws-lift div:last-child strong {
-  font-size: clamp(48px, 17cqh, 101px);
-}
-.ws-lift small {
-  font-size: 0.32em;
-  letter-spacing: -0.012em;
-}
-.ws-scene[data-frame="set"] .ws-window {
-  width: min(86%, 121cqh);
-  left: 50%;
-  bottom: 8%;
-  transform: translateX(-50%);
-  filter: drop-shadow(0 7px 14px #3a3b381b);
-}
-.ws-scene[data-frame="rest"] {
-  color: white;
-  background: #071b72;
-}
-.ws-hourglass {
-  position: absolute;
-  inset: 0 -2% 0 41%;
-  mask-image: linear-gradient(to right, transparent, black 13%);
-}
-.ws-hourglass :is(img, video) {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 22%;
-}
-.ws-hourglass video {
-  opacity: 0;
-}
-.ws-hourglass video[data-playing] {
-  opacity: 1;
-}
-.ws-clock {
-  left: 6%;
-  top: 9%;
-}
-.ws-clock > strong {
-  display: block;
-  margin-top: 0.1em;
-  font: 800 clamp(48px, 16cqh, 98px) / 0.94
-    var(--tm-display, Cabinet, sans-serif);
-  letter-spacing: -0.026em;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 0 var(--plate-pad) var(--plate-pad);
   font-variant-numeric: tabular-nums;
 }
-.ws-scene[data-frame="rest"] .ws-window {
-  left: 6%;
-  bottom: 8%;
-  width: min(49%, 73cqh, 348px);
-  box-shadow: 0 7px 25px #05103844;
+.ws-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 15px;
+  padding-block: clamp(11px, 1.1vw, 39px);
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.25;
 }
-.ws-scene[data-frame="history"] {
-  background: #10141b;
-  color: #fff;
+.ws-caption strong {
+  font: 800 clamp(17px, 1.35vw, 40px)/1.12 var(--num);
+  letter-spacing: -0.018em;
 }
-.ws-grip {
-  position: absolute;
-  inset: 0;
+.ws-caption > span {
+  color: var(--soft);
+  font-size: clamp(11px, 0.86vw, 23px);
+}
+.ws-layout {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  align-items: center;
+  gap: clamp(18px, 2.1vw, 69px);
+  padding-top: var(--plate-pad);
+}
+.ws-window {
+  grid-area: media;
+  container-type: size;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: 50% 15%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  place-items: center;
 }
-.ws-archive-date {
-  right: 6%;
-  bottom: 8%;
-  text-align: right;
+.ws-window picture {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
 }
-.ws-archive-date strong {
+.ws-window source {
+  display: none;
+}
+.ws-window img {
   display: block;
-  margin-top: 0.09em;
-  font: 800 clamp(37px, 4.65vw, 70px) / 0.94
-    var(--tm-display, Cabinet, sans-serif);
+  width: min(100cqw, calc(100cqh * var(--native-ratio)), var(--native-cap));
+  height: auto;
+}
+.ws-prescription,
+.ws-set-proof,
+.ws-time-proof,
+.ws-archive {
+  grid-area: evidence;
+  min-width: 0;
+}
+.ws-scene
+  :is(
+    dt,
+    .ws-clock-label,
+    .ws-elapsed-label,
+    .ws-change,
+    .ws-archive li div > span
+  ) {
+  font-size: clamp(13px, 1.12vw, 30px);
+  line-height: 1.38;
+}
+.ws-prescription {
+  display: grid;
+  align-self: stretch;
+  align-content: center;
+}
+.ws-prescription > div {
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-block: clamp(13px, 1.55vw, 42px);
+  border-bottom: 1px solid var(--rule);
+}
+.ws-prescription > div:first-child {
+  border-top: 1px solid var(--rule);
+}
+.ws-prescription dt {
+  color: var(--soft);
+}
+.ws-prescription dd {
+  color: var(--ink);
+  font: 800 clamp(24px, 2.5vw, 76px)/1 var(--num);
+  letter-spacing: -0.027em;
+  white-space: nowrap;
+}
+.ws-prescription small {
+  font-size: 0.48em;
+  letter-spacing: -0.014em;
+}
+.ws-scene[data-frame="program"] .ws-layout {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.72fr);
+  grid-template-areas: "media evidence";
+}
+.ws-scene[data-frame="program"] img {
+  border: 1px solid #d8dcd5;
+}
+
+.ws-scene[data-frame="set"] {
+  --stock: #074fb4;
+  --ink: #fff;
+  --soft: #e3edff;
+  --rule: #79a2db;
+  --native-ratio: 2.35294;
+  --native-cap: 1200px;
+  border-color: var(--stock);
+}
+.ws-scene[data-frame="set"] .ws-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "evidence" "media";
+  align-items: start;
+  gap: clamp(12px, 1.45vw, 39px);
+}
+.ws-set-proof {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: clamp(12px, 2vw, 57px);
+}
+.ws-comparison {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 16px;
+}
+.ws-comparison dt {
+  color: var(--soft);
+}
+.ws-comparison dd {
+  margin-top: 0.1em;
+  font: 800 clamp(31px, 3.45vw, 90px)/1 var(--num);
+  letter-spacing: -0.027em;
+  white-space: nowrap;
+}
+.ws-comparison dd small {
+  font-size: 0.44em;
+  letter-spacing: -0.015em;
+}
+.ws-change {
+  display: grid;
+  align-content: end;
+  gap: 3px;
+  color: var(--soft);
+}
+.ws-change strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ws-scene[data-frame="rest"] {
+  --stock: #222526;
+  --ink: #faf9f3;
+  --soft: #d5d9d7;
+  --rule: #67706c;
+  --native-ratio: 1.33333;
+  --native-cap: 932px;
+  border-color: var(--stock);
+}
+.ws-scene[data-frame="rest"] .ws-layout {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.06fr);
+  grid-template-areas: "evidence media";
+}
+.ws-clock-label {
+  color: var(--soft);
+}
+.workout-story .ws-clock-value {
+  color: var(--ink);
+  font: 800 clamp(46px, 5.8vw, 142px)/1.02 var(--num);
   letter-spacing: -0.03em;
 }
-.ws-scene[data-frame="history"] .ws-window {
-  width: 44%;
-  max-width: 335px;
-  left: 5%;
-  bottom: 7%;
+.ws-scale {
+  position: relative;
+  height: clamp(27px, 2.6vw, 70px);
+  border-block: 1px solid #a7b0a4;
+  margin-top: clamp(16px, 2.5vw, 62px);
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 calc(8.33333333% - 1px),
+    #798476 calc(8.33333333% - 1px) 8.33333333%
+  );
+}
+.ws-scale-elapsed {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 15%;
+  background: #8bbaff;
+  border-right: 2px solid white;
+}
+.ws-scale-labels {
+  margin-top: 0.5em;
+  display: flex;
+  justify-content: space-between;
+  color: var(--soft);
+  font-size: clamp(10px, 0.86vw, 23px);
+}
+.workout-story .ws-elapsed-label {
+  margin-top: clamp(10px, 1.5vw, 42px);
+  color: var(--soft);
+}
+.ws-elapsed-label strong {
+  color: var(--ink);
+}
+
+.ws-scene[data-frame="history"] {
+  --native-ratio: 1.02236;
+  --native-cap: 960px;
+}
+.ws-scene[data-frame="history"] .ws-layout {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.07fr);
+  grid-template-areas: "evidence media";
+}
+.ws-archive {
+  list-style: none;
+  padding: 0;
+}
+.ws-archive li {
+  display: grid;
+  grid-template-columns: minmax(73px, 0.58fr) minmax(0, 1fr);
+  gap: clamp(9px, 1.2vw, 32px);
+  align-items: baseline;
+  padding: clamp(12px, 1.15vw, 38px) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ws-archive li:first-child {
+  border-top: 1px solid var(--rule);
+}
+.ws-archive time {
+  font-family: var(--tm-mono, ui-monospace, monospace);
+  font-size: clamp(10px, 0.83vw, 22px);
+  white-space: nowrap;
+}
+.ws-archive time b {
+  font: 800 clamp(23px, 2.55vw, 75px)/1 var(--num);
+  letter-spacing: -0.032em;
+}
+.ws-archive li div {
+  display: grid;
+  gap: 0.16em;
+}
+.ws-archive li div > span {
+  color: var(--soft);
+}
+.ws-archive li div > strong {
+  font-size: clamp(14px, 1.32vw, 37px);
+  line-height: 1.24;
+}
+.ws-archive .ws-saved :is(time, strong) {
+  color: var(--ws-blue);
 }
 
 @media (min-width: 920px) and (min-height: 560px) and (prefers-reduced-motion: no-preference) {
@@ -347,41 +437,31 @@
   }
   .ws-spread[data-sticky] {
     display: grid;
-    grid-template-columns: minmax(245px, 0.65fr) minmax(0, 1.38fr);
-    gap: clamp(34px, 6vw, 104px);
+    grid-template-columns: minmax(235px, 0.47fr) minmax(0, 1fr);
+    gap: clamp(28px, 4.45vw, 160px);
     align-items: start;
-    padding-top: clamp(26px, 4vh, 46px);
+    padding-top: clamp(24px, 3.5vh, 78px);
   }
   .ws-spread[data-sticky] .ws-stage {
     position: sticky;
-    top: calc(var(--ws-nav-height) + clamp(22px, 4vh, 46px));
+    top: calc(var(--ws-nav-height) + clamp(20px, 3.4vh, 60px));
   }
   .ws-stage .ws-scene {
-    height: clamp(340px, 59vh, 538px);
+    height: clamp(335px, 61svh, 1120px);
   }
   .ws-spread[data-sticky] .ws-step {
-    min-height: clamp(335px, 53vh, 490px);
-    padding: clamp(30px, 6vh, 75px) 0 24px;
-  }
-  .ws-spread[data-sticky] .ws-step:first-child {
-    padding-top: clamp(25px, 5vh, 58px);
-  }
-  .ws-spread[data-sticky] .ws-reading > article + article {
-    border-top: 1px solid var(--ws-rule);
-  }
-  .ws-spread[data-sticky] .ws-pause-step {
-    min-height: clamp(315px, 48vh, 430px);
+    min-height: clamp(325px, 51svh, 960px);
+    padding: clamp(25px, 5.1svh, 100px) 0 28px;
   }
   .ws-spread[data-sticky] #din-historik {
-    min-height: max(60vh, 440px);
+    min-height: max(61svh, 390px);
   }
 }
-/* The same four frames stay attached to their text on phones, at short heights and with reduced motion. */
 .ws-spread:not([data-sticky]) .ws-step {
   display: grid;
-  grid-template-columns: minmax(215px, 0.6fr) minmax(0, 1.22fr);
+  grid-template-columns: minmax(215px, 0.47fr) minmax(0, 1fr);
   grid-template-rows: max-content max-content max-content 1fr;
-  column-gap: clamp(25px, 5vw, 78px);
+  gap: 0 clamp(24px, 4.45vw, 160px);
   align-items: start;
 }
 .ws-spread:not([data-sticky]) .ws-step > :not(.ws-scene) {
@@ -390,208 +470,285 @@
 .ws-spread:not([data-sticky]) .ws-step > .ws-scene {
   grid-column: 2;
   grid-row: 1 / 6;
+  height: clamp(365px, 38vw, 1080px);
 }
-.ws-spread:not([data-sticky]) article + article {
-  border-top: 1px solid var(--ws-rule);
+@media (min-width: 1850px) {
+  .ws-scene {
+    --plate-pad: clamp(19px, min(1.65vw, 3svh), 56px);
+  }
+  .ws-caption {
+    padding-block: clamp(13px, 1.7svh, 32px);
+  }
+  .ws-scene .ws-layout {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .ws-prescription > div {
+    padding-block: clamp(11px, 1.7svh, 34px);
+  }
+  .ws-prescription dd {
+    font-size: clamp(34px, min(2.45vw, 5svh), 74px);
+  }
+  .ws-archive li {
+    padding-block: clamp(9px, 1.45svh, 29px);
+  }
+  .ws-archive time b {
+    font-size: clamp(30px, min(2.45vw, 5svh), 72px);
+  }
+  .ws-scene
+    :is(
+      dt,
+      .ws-clock-label,
+      .ws-elapsed-label,
+      .ws-change,
+      .ws-archive li div > span
+    ) {
+    font-size: clamp(17px, min(1.03vw, 2.2svh), 30px);
+  }
+  .ws-archive li div > strong {
+    font-size: clamp(19px, min(1.24vw, 2.6svh), 35px);
+  }
+  .workout-story .ws-clock-value {
+    font-size: clamp(65px, min(5vw, 10svh), 126px);
+  }
+
+  .ws-scene[data-frame="set"] .ws-layout {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.2fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "evidence media";
+    align-items: center;
+    gap: clamp(28px, 2.3vw, 83px);
+  }
+  .ws-set-proof {
+    display: block;
+  }
+  .ws-comparison {
+    grid-template-columns: auto;
+    gap: clamp(12px, 1.45vw, 48px);
+  }
+  .ws-comparison > div {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 9px 1.3vw;
+    justify-content: space-between;
+  }
+  .ws-comparison dd {
+    margin: 0;
+  }
+  .workout-story .ws-change {
+    margin-top: clamp(20px, 2vw, 64px);
+    padding-top: clamp(12px, 1vw, 32px);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .ws-scene[data-frame="history"] {
+    --native-ratio: 1.95815;
+    --native-cap: 1050px;
+  }
+}
+@media (max-width: 1100px) and (min-width: 920px) {
+  .ws-inner {
+    padding-inline: 3.2vw;
+  }
+  .ws-prescription > div {
+    display: block;
+  }
+  .ws-prescription dd {
+    margin-top: 4px;
+  }
+  .ws-archive li {
+    grid-template-columns: minmax(57px, 0.5fr) minmax(0, 1fr);
+  }
+  .ws-change {
+    max-width: 15ch;
+  }
 }
 @media (max-width: 919px) {
   .ws-masthead {
-    grid-template-columns: minmax(0, 1.4fr) minmax(175px, 0.65fr);
-    gap: 25px;
+    grid-template-columns: minmax(0, 1.34fr) minmax(185px, 0.7fr);
+    gap: 22px;
   }
   .workout-story .ws-masthead h2 {
-    font-size: clamp(45px, 7vw, 64px);
+    font-size: clamp(42px, 7vw, 67px);
   }
-  .ws-scene {
-    height: clamp(330px, 46vw, 400px);
-  }
-  .ws-spread:not([data-sticky]) .ws-step {
-    grid-template-columns: minmax(170px, 0.52fr) minmax(0, 1.1fr);
-    gap: 0 clamp(20px, 4vw, 36px);
-  }
-  .ws-lift div:last-child strong {
-    font-size: clamp(52px, 8vw, 74px);
-  }
-  .ws-clock > strong {
-    font-size: clamp(50px, 8vw, 80px);
-  }
-}
-@media (min-width: 681px) and (max-width: 919px) {
   .ws-spread:not([data-sticky]) .ws-step {
     display: block;
+    padding-block: 29px;
   }
   .workout-story .ws-step :is(h3, h4) {
-    max-width: 25ch;
+    max-width: 24ch;
   }
   .workout-story .ws-step > p:not(.ws-step-label) {
-    max-width: 45ch;
+    max-width: 43ch;
   }
-  .workout-story .ws-step .ws-scene {
-    margin-top: 22px;
-    height: clamp(330px, 52vw, 465px);
+  .ws-spread:not([data-sticky]) .ws-step > .ws-scene {
+    margin-top: 18px;
+    height: clamp(310px, 45vw, 445px);
   }
 }
 @media (max-width: 680px) {
   .ws-inner {
-    padding-top: 54px;
+    padding: 50px max(16px, 4.8vw) 32px;
   }
   .ws-masthead {
     display: block;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
   }
   .workout-story .ws-masthead h2 {
-    font-size: clamp(40px, 9.45vw, 57px);
+    font-size: clamp(37px, 9vw, 56px);
   }
-  .ws-intro > p:first-child {
-    max-width: 38ch;
+  .ws-intro p:first-child {
+    margin-top: 17px;
     font-size: 16px;
-    margin-top: 18px;
+  }
+  .workout-story .ws-disclosure {
+    margin-top: 9px;
   }
   .ws-nav {
-    gap: min(5.4vw, 26px);
     --ws-nav-height: 45px;
+    grid-template-columns: 0.8fr 1.15fr 0.76fr;
+    gap: 6px;
   }
   .workout-story .ws-nav a {
     font-size: 14px;
-    gap: 0.42em;
+    gap: 5px;
   }
-  .ws-spread:not([data-sticky]) .ws-step {
-    display: block;
-    padding-block: 28px;
+  .ws-nav a[aria-current]::after {
+    width: 85%;
   }
-  .workout-story .ws-step-label {
-    margin-bottom: 8px;
+  .ws-reading [id] {
+    scroll-margin-top: 16px;
   }
   .workout-story .ws-step :is(h3, h4) {
     max-width: 17ch;
   }
   .workout-story .ws-step > p:not(.ws-step-label) {
     margin-top: 9px;
-    max-width: 39ch;
   }
   .workout-story .ws-step > p + p:not(.ws-step-label) {
-    margin-top: 5px;
+    margin-top: 4px;
   }
-  .workout-story .ws-scene {
+  .ws-spread:not([data-sticky]) .ws-step > .ws-scene {
     height: auto;
-    margin-top: 18px;
-    aspect-ratio: 1.28;
   }
-  .workout-story .ws-scene[data-frame="program"] {
-    aspect-ratio: 1.05;
+  .ws-scene {
+    --plate-pad: clamp(12px, 3.6vw, 21px);
   }
-  .workout-story .ws-scene[data-frame="set"] {
-    aspect-ratio: 1.38;
+  .ws-caption {
+    padding-block: 10px;
   }
-  .workout-story .ws-scene[data-frame="rest"] {
-    aspect-ratio: 0.98;
+  .ws-layout {
+    padding-top: 13px;
+    gap: 15px;
   }
-  .workout-story .ws-scene[data-frame="history"] {
-    aspect-ratio: 1.12;
+  .ws-window {
+    container-type: normal;
+    display: block;
+    width: 100%;
+    height: auto;
   }
-  .ws-planned {
-    bottom: auto;
-    top: 7%;
-    left: 6%;
+  .ws-window picture {
+    display: block;
+    height: auto;
   }
-  .ws-planned strong {
-    font-size: clamp(32px, 10vw, 53px);
-    margin: 2px 0 0;
+  .ws-window img {
+    width: 100%;
+    height: auto;
   }
-  .ws-scene .ws-planned > span {
-    font-size: 11px;
+  .ws-scene[data-frame] .ws-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
   }
-  .ws-scene[data-frame="program"]::before {
-    inset: 46% 0 0;
+  .ws-scene[data-frame="program"] .ws-layout {
+    grid-template-areas: "media" "evidence";
+  }
+  .ws-prescription {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--rule);
+  }
+  .ws-prescription > div,
+  .ws-prescription > div:first-child {
+    display: block;
+    padding: 10px 0 0;
     border: 0;
-    border-top: 1px solid #a5aad4;
   }
-  .workout-story .ws-bench {
-    inset: 1% 3% auto auto;
-    width: 52%;
-    height: 39%;
+  .ws-prescription dd {
+    margin-top: 3px;
+    font-size: clamp(21px, 5.8vw, 34px);
   }
-  .ws-scene[data-frame="program"] .ws-window {
-    top: auto;
-    bottom: 5%;
-    left: 6%;
-    right: auto;
-    width: 87%;
-    max-width: 370px;
-    transform: none;
+  .ws-prescription dt {
+    font-size: 12px;
   }
-  .ws-scene[data-frame="program"] .ws-window::before {
-    height: 5px;
+  .ws-scene[data-frame="set"] .ws-layout,
+  .ws-scene[data-frame="rest"] .ws-layout {
+    grid-template-areas: "evidence" "media";
   }
-  .ws-lift {
-    inset: 9% 6% auto;
-    padding-bottom: 3%;
+  .ws-set-proof {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 11px;
   }
-  .ws-lift strong {
-    font-size: clamp(35px, 10vw, 55px);
+  .ws-comparison dd {
+    font-size: clamp(31px, 8vw, 48px);
   }
-  .ws-lift div:last-child strong {
-    font-size: clamp(48px, 13.6vw, 76px);
+  .workout-story .ws-change {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--rule);
+    padding-top: 5px;
   }
-  .ws-scene[data-frame="set"] .ws-window {
-    left: 5%;
-    width: 90%;
-    bottom: 8%;
-    transform: none;
+  .ws-time-proof {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: baseline;
   }
-  .ws-hourglass {
-    inset: 0 -1% auto auto;
-    height: 54%;
-    width: auto;
-    aspect-ratio: 4 / 5;
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      black 13%,
-      black 87%,
-      transparent
-    );
+  .ws-clock-label {
+    grid-column: 1;
+    grid-row: 1;
   }
-  .ws-hourglass :is(img, video) {
-    object-fit: cover;
-    object-position: center top;
+  .workout-story .ws-clock-value {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: clamp(36px, 10vw, 53px);
   }
-  .ws-hourglass::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 18%;
-    background: linear-gradient(transparent, #071b72);
-  }
-  .ws-clock {
-    left: 5%;
-    top: 10%;
-  }
-  .ws-clock > strong {
-    font-size: clamp(45px, 13vw, 72px);
-  }
-  .ws-scene[data-frame="rest"] .ws-window {
-    width: 80%;
-    left: 5%;
-    bottom: 5%;
-    max-width: 345px;
-  }
-  .ws-scene[data-frame="history"] .ws-window {
-    width: 88%;
-    left: 5%;
-    bottom: 6%;
-  }
-  .ws-archive-date {
-    right: auto;
-    left: 6%;
-    bottom: auto;
-    top: 7%;
-    text-align: left;
-  }
-  .ws-archive-date strong {
-    font-size: clamp(25px, 7vw, 40px);
-  }
-  .workout-story .ws-disclosure {
+  .ws-scale {
+    grid-column: 1/-1;
+    height: 18px;
     margin-top: 9px;
+  }
+  .ws-scale-labels {
+    grid-column: 1/-1;
+    margin-top: 4px;
+  }
+  .workout-story .ws-elapsed-label {
+    grid-row: 1/3;
+    grid-column: 2;
+    margin: 0;
+    text-align: right;
+    align-self: end;
+  }
+  .ws-scene[data-frame="history"] .ws-layout {
+    grid-template-areas: "evidence" "media";
+  }
+  .ws-archive li {
+    padding: 7px 0;
+    grid-template-columns: minmax(63px, 0.47fr) minmax(0, 1fr);
+  }
+  .ws-archive li div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1px 5px;
+  }
+  .ws-archive time b {
+    font-size: 22px;
+  }
+  .ws-archive li div > strong {
+    font-size: 13px;
   }
 }

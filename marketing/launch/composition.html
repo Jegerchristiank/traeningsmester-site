@@ -4,89 +4,83 @@
   <meta charset="utf-8">
   <title>Træningsmester — Træn videre fra sidste gang.</title>
   <style>
-    @font-face { font-family: Cabinet; src: url('../../public/fonts/CabinetGrotesk-800.woff2'); font-weight: 800 }
-    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-500.woff2'); font-weight: 500 }
-    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-700.woff2'); font-weight: 700 }
-    :root { --paper:#f8f7f2; --ink:#111d3a; --muted:#505768; --rule:#bec0c6; --lavender:#d8d8ee; --blue:#0759c7 }
+    @font-face { font-family:Cabinet; src:url('../../public/fonts/CabinetGrotesk-800.woff2'); font-weight:800 }
+    @font-face { font-family:Satoshi; src:url('../../public/fonts/Satoshi-500.woff2'); font-weight:500 }
+    @font-face { font-family:Satoshi; src:url('../../public/fonts/Satoshi-700.woff2'); font-weight:700 }
+    :root { --paper:#f5f2e9; --ink:#181c1a; --muted:#525953; --line:#afb3a8; --blue:#0759c7 }
     * { box-sizing:border-box }
-    body { margin:0; color:var(--ink); background:var(--paper); font:500 36px/1.2 Satoshi,Arial,sans-serif }
-    h1,p,figure,dl,dt,dd { margin:0 }
+    body { margin:0; color:var(--ink); background:var(--paper); font:500 34px/1.24 Satoshi,Arial,sans-serif }
+    h1,p,dl,dd,dt { margin:0 }
     #canvas { position:relative; isolation:isolate; width:1080px; height:1920px; overflow:hidden; background:var(--paper) }
-    #canvas.outro,#canvas.still,#canvas.og { background:linear-gradient(114deg,#f2f2fb 0%,#e3e5f8 46%,#c3c9ee 100%) }
-    .brand { position:absolute; left:67px; top:82px; display:flex; align-items:center; gap:15px; z-index:3 }
-    .brand img { width:56px; height:56px; object-fit:contain }
-    .brand span { font:800 43px/.95 Cabinet,Arial,sans-serif; letter-spacing:-.047em }
-    h1 { position:absolute; left:60px; top:200px; z-index:2; font:800 146px/.87 Cabinet,Arial,sans-serif; letter-spacing:-.06em }
+    .brand { position:absolute; left:68px; top:80px; z-index:3; display:flex; gap:16px; align-items:center }
+    .brand img { width:54px; height:54px; object-fit:contain }
+    .brand span { font:800 44px/.96 Cabinet,Arial,sans-serif; letter-spacing:-.05em }
+    h1 { position:absolute; left:61px; top:209px; z-index:2; font:800 143px/.88 Cabinet,Arial,sans-serif; letter-spacing:-.06em }
     h1 span { display:block; white-space:nowrap }
-    .card { position:absolute; width:700px; height:auto; filter:drop-shadow(6px 16px 12px rgb(33 40 86 / 20%)) }
-    .field,.moving-motif { position:absolute }
-    .field { background:var(--lavender) }
-    .moving-motif { display:block; object-fit:fill }
-    .screen { display:block; position:absolute; z-index:1; height:auto; filter:drop-shadow(0 7px 12px rgb(18 29 63 / 12%)) }
-    .note { position:absolute; left:69px; bottom:62px; font-size:26px; color:var(--muted) }
-    .metric { position:absolute; left:70px; right:70px; border-top:2px solid var(--rule); padding-top:23px }
-    .metric dt,.figures dt { color:var(--muted); font:700 31px/1.1 Satoshi,Arial,sans-serif; letter-spacing:-.015em }
-    .metric dd,.figures dd { margin-top:11px; font:800 85px/.93 Cabinet,Arial,sans-serif; letter-spacing:-.055em; font-variant-numeric:tabular-nums; white-space:nowrap }
-    .figures { position:absolute; z-index:2 }
-    .figures dt:not(:first-child) { margin-top:36px }
-    .figures dd:last-child { color:var(--blue) }
-    .figures dd small { font:700 .46em/1 Satoshi,Arial,sans-serif; letter-spacing:-.045em }
-    .cta { position:absolute; display:flex; align-items:center; gap:22px; color:var(--blue); font:700 49px/1.1 Satoshi,Arial,sans-serif; letter-spacing:-.045em }
+    .study,.moving-motif,.screen,.scene-for-copy { position:absolute; display:block }
+    .study,.moving-motif,.scene-for-copy { object-fit:cover }
+    .screen { z-index:1; height:auto; filter:drop-shadow(0 8px 16px rgb(24 29 25 / 12%)) }
+    .note,.address,.status,.storyline,.ledger,.metric,.cta { position:absolute }
+    .note,.status { color:var(--muted) }
+    .note { left:70px; bottom:65px; font-size:26px }
+    .metric { left:70px; right:70px; bottom:143px; border-top:2px solid var(--line); padding-top:22px }
+    .metric dt,.ledger dt { font:700 33px/1.1 Satoshi,Arial,sans-serif; letter-spacing:-.025em }
+    .metric dd,.ledger dd { margin-top:9px; font:800 83px/.96 Cabinet,Arial,sans-serif; letter-spacing:-.055em; font-variant-numeric:tabular-nums }
+    .metric small,.ledger small { font:700 .43em/1 Satoshi,Arial,sans-serif; letter-spacing:-.035em }
+    .ledger { display:grid; grid-template-columns:1fr 1fr; column-gap:32px }
+    .ledger div + div { border-left:2px solid var(--line); padding-left:33px; color:var(--blue) }
+    .ledger dd { white-space:nowrap }
+    .cta { display:flex; align-items:center; gap:18px; color:var(--blue); font:700 49px/1.04 Satoshi,Arial,sans-serif; letter-spacing:-.045em }
     .arrow { width:.65em; height:.65em; flex-shrink:0 }
-    .address,.status { position:absolute }
     .address { font-weight:700; letter-spacing:-.025em }
-    .status { color:var(--muted) }
-    .intro h1 { top:203px; font-size:151px }
-    .intro .moving-motif { top:550px; left:0; width:1080px; height:1000px }
-    .intro .metric { top:1603px; border:0; padding:0 }
-    .intro .metric dd { font-size:96px }
-    .chapter h1 { top:211px; font-size:130px }
-    .chapter .field { top:532px; left:347px; right:0; height:775px }
-    .chapter .card { top:184px; left:704px; width:308px; transform:rotate(3deg) }
-    .chapter .screen { top:531px; left:75px; width:838px }
-    .chapter .metric { bottom:151px }
-    .set .field { left:0; right:0; top:780px; height:385px; background:#e7e8f3 }
-    .set .screen { left:81px; top:512px; width:910px }
-    .set .metric dd { color:var(--blue) }
-    .rest .brand { color:#fff; text-shadow:0 1px 2px rgb(4 18 37 / 50%); top:65px }
-    .rest .moving-motif { left:0; top:0; width:1080px; height:960px }
-    .rest h1 { top:1032px; font-size:108px }
-    .rest .screen { top:1194px; left:71px; width:938px; height:584px; object-fit:cover; object-position:50% 82% }
-    .rest .note { bottom:61px }
-    .history .screen { left:103px; top:548px; width:877px }
-    .history .field { top:706px; width:1080px; left:0; height:441px; background:#e7e8f3 }
-    .history .metric dd { color:var(--blue) }
-    .outro h1 { top:220px; font-size:146px }
-    .outro .field { left:70px; top:1350px; width:940px; height:2px; background:#a6adc7 }
-    .outro .card { width:695px; top:635px; left:381px }
-    .outro .figures { top:790px; left:65px }
-    .outro .figures dd { font-size:97px }
-    .outro .cta { top:1434px; left:69px; font-size:71px }
-    .outro .address { top:1553px; left:70px; font-size:44px }
-    .outro .status { top:1647px; left:70px; font-size:34px }
+    .intro h1 { top:214px; font-size:154px }
+    .intro .moving-motif { top:565px; left:0; width:1080px; height:810px }
+    .intro .metric { top:1493px; bottom:auto; border:0; padding:0 }
+    .intro .metric dd { font-size:119px }
+    .chapter h1 { font-size:127px }
+    .chapter .screen { top:479px; left:81px; width:845px }
+    .program .screen { left:100px }
+    .set h1 { top:209px; font-size:136px }
+    .set .screen { left:78px; top:572px; width:923px }
+    .set .storyline { top:387px; left:70px; font-size:43px }
+    .set .metric dd,.history .metric dd { color:var(--blue) }
+    #canvas.rest { background:#202623; color:#f7f4ed }
+    .rest .note { color:#d5d8cf }
+    .rest h1 { top:212px }
+    .rest .rest-time { position:absolute; left:58px; top:519px; font:800 239px/.9 Cabinet,Arial,sans-serif; letter-spacing:-.067em; font-variant-numeric:tabular-nums }
+    .rest .screen { left:74px; top:818px; width:932px; height:580px; object-fit:cover; object-position:50% 82% }
+    .rest .metric { border-color:#69736b }
+    .rest .metric dd { font-size:76px }
+    .history .screen { left:103px; top:573px; width:870px }
+    .outro h1 { font-size:142px }
+    .outro .study { width:1080px; height:580px; left:0; top:555px }
+    .outro .ledger { left:70px; top:1205px; right:72px }
+    .outro .ledger dd { font-size:94px }
+    .outro .cta { top:1480px; left:68px; right:68px; padding-top:36px; border-top:2px solid var(--line); font-size:63px }
+    .outro .address { top:1618px; left:70px; font-size:43px }
+    .outro .status { top:1717px; left:70px; font-size:34px }
     #canvas.still { height:1350px }
-    .still .brand { top:58px }
-    .still h1 { top:173px; font-size:139px }
-    .still .field { top:1091px; left:69px; width:942px; height:2px; background:#a6adc7 }
-    .still .card { width:704px; top:473px; left:364px }
-    .still .figures { top:639px; left:65px }
-    .still .figures dd { font-size:95px }
-    .still .cta { left:69px; top:1150px; font-size:49px }
-    .still .address { top:1170px; right:69px; font-size:32px }
-    .still .note { top:1256px; bottom:auto; font-size:25px }
+    .still .brand { top:51px }
+    .still h1 { top:160px; font-size:133px }
+    .still .study { top:436px; left:0; width:1080px; height:495px }
+    .still .ledger { left:68px; right:68px; top:981px }
+    .still .ledger dd { font-size:86px }
+    .still .ledger dt { font-size:29px }
+    .still .cta { left:68px; top:1171px; right:68px; border-top:2px solid var(--line); padding-top:23px; font-size:46px }
+    .still .address { right:68px; top:1210px; font-size:29px }
+    .still .note { bottom:53px; font-size:24px }
     #canvas.og { width:1200px; height:630px }
-    .og .brand { top:47px; left:46px; gap:12px }
-    .og .brand img { width:44px; height:44px }
-    .og .brand span { font-size:34px }
-    .og h1 { top:163px; left:42px; font-size:90px }
-    .og .field { top:490px; left:49px; width:485px; height:1px; background:#a6adc7 }
-    .og .card { width:630px; top:41px; right:-1px }
-    .og .figures { left:49px; top:359px; display:grid; grid-template-columns:auto auto; column-gap:45px }
-    .og .figures dt { grid-row:1; font-size:19px }
-    .og .figures dt:not(:first-child) { margin:0 }
-    .og .figures dd { grid-row:2; font-size:52px; margin-top:3px }
-    .og .cta { left:49px; top:524px; font-size:34px; gap:16px }
-    .og .note { top:578px; left:50px; bottom:auto; font-size:18px }
+    .og .scene-for-copy { inset:0; width:1200px; height:630px }
+    .og .brand { top:46px; left:48px; gap:10px }
+    .og .brand img { width:43px; height:43px }
+    .og .brand span { font-size:31px }
+    .og h1 { left:43px; top:158px; font-size:86px }
+    .og .ledger { top:355px; left:49px; width:492px; column-gap:14px }
+    .og .ledger div+div { padding-left:20px }
+    .og .ledger dt { font-size:19px }
+    .og .ledger dd { font-size:51px; margin-top:5px }
+    .og .cta { top:514px; left:49px; font-size:34px; gap:13px }
+    .og .note { top:574px; bottom:auto; left:50px; font-size:19px }
   </style>
 </head>
 <body>
@@ -95,45 +89,43 @@
     const mode = new URLSearchParams(location.search).get('mode') || 'intro';
     const stage = document.getElementById('canvas');
     const brand = '<div class="brand"><img src="../../public/brand/tm-logo-256.webp" alt=""><span>Træningsmester</span></div>';
-    const card = '<img class="card" src="../../public/product/programkort.webp" alt="Illustreret øvelseskort med ring og teksten Bænkpres med stang">';
-    const field = '<div class="field"></div>';
-    const figures = '<dl class="figures"><dt>Sidste træning</dt><dd>60 <small>kg × 8</small></dd><dt>Dagens første sæt</dt><dd>62,5 <small>kg × 8</small></dd></dl>';
-    const arrow = '<svg class="arrow" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 24 24 4M5 4h19v19" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const cta = '<p class="cta">Få besked om adgang' + arrow + '</p>';
     const headline = (...lines) => '<h1>' + lines.map(line => '<span>' + line + '</span>').join('') + '</h1>';
-    const metric = (label,value) => '<dl class="metric"><dt>' + label + '</dt><dd>' + value + '</dd></dl>';
-    const note = label => '<p class="note">' + label + '</p>';
-    const recordNote = note('Eksempeldata · rekonstruerede appvisninger');
-    const product = (frame,alt) => '<img class="screen" src="../../public/product/revision-' + frame + '.webp" alt="' + alt + '">';
-    const film = (name,label) => '<video class="moving-motif" muted playsinline preload="auto" aria-label="' + label + '" src="source/' + name + '-bevaegelse.mp4"></video>';
+    const sample = note => '<p class="note">' + note + '</p>';
+    const recordNote = sample('Eksempeldata · rekonstruerede appvisninger');
+    const study = '<img class="study" src="../../public/product/vaegtskiver-panorama.webp" alt="To koboltblå vægtskiver på 1,25 kg">';
+    const product = (name,alt) => '<img class="screen" src="../../public/product/revision-' + name + '.webp" alt="' + alt + '">';
+    const metric = (label,amount,unit) => '<dl class="metric"><dt>' + label + '</dt><dd>' + amount + ' <small>' + unit + '</small></dd></dl>';
+    const ledger = '<dl class="ledger"><div><dt>Sidste træning</dt><dd>60 <small>kg × 8</small></dd></div><div><dt>Dagens første sæt</dt><dd>62,5 <small>kg × 8</small></dd></div></dl>';
+    const cta = '<p class="cta">Få besked om adgang<svg class="arrow" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 24 24 4M5 4h19v19" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></p>';
     const scenes = {
       program: {
-        title:['Dit program', 'er klar.'], background:field + card, alt:'Mit styrkeprogram. Overkrop A. Bænkpres Med Stang.',
-        label:'Overkrop A · Bænkpres med stang', value:'3 sæt × 8'
+        title:['Dit program', 'er klar.'], alt:'Overkrop A. Bænkpres Med Stang.', label:'Overkrop A · Bænkpres med stang', amount:'3', unit:'sæt × 8'
       },
       set: {
-        title:['Registrér', 'sættet.'], background:field, alt:'Sidste sæt 60 kg × 8. Første sæt står til 62,5 kg × 8.',
-        label:'Første arbejdssæt', value:'62,5 kg × 8'
+        title:['To små skiver.'], alt:'Sidste sæt 60 kg × 8. Første sæt står til 62,5 kg × 8.', label:'Første arbejdssæt', amount:'62,5', unit:'kg × 8',
+        message:'<p class="storyline">1,25 kg på hver side af stangen.</p>'
+      },
+      rest: {
+        title:['Hold styr', 'på pausen.'], alt:'Første sæt er registreret. Andet sæt er aktivt, og pausen viser 01:42.', label:'Første sæt er registreret', amount:'62,5', unit:'kg × 8',
+        message:'<p class="rest-time">01:42</p>'
       },
       history: {
-        title:['Tag det med', 'til næste gang.'], background:field, alt:'Tidligere sæt i Bænkpres Med Stang den 15. november, 62,5 kg × 8.',
-        label:'15. november · seneste registrering', value:'62,5 kg × 8'
+        title:['Tag det med', 'til næste gang.'], alt:'Tidligere sæt i Bænkpres Med Stang den 15. november, 62,5 kg × 8.', label:'15. november · seneste registrering', amount:'62,5', unit:'kg × 8'
       }
     };
     stage.className = mode;
     const scene = scenes[mode];
     if (scene) {
       stage.classList.add('chapter');
-      stage.innerHTML = scene.background + brand + headline(...scene.title) + product(mode,scene.alt)
-        + metric(scene.label,scene.value) + recordNote;
-    } else if (mode === 'rest') {
-      stage.innerHTML = film('timeglas','Timeglas af blå vægtskiver') + brand + headline('Hold styr på pausen.')
-        + product('rest','Første sæt er registreret. Andet sæt er aktivt. Der er 01:42 tilbage af pausen.') + recordNote;
+      stage.innerHTML = brand + headline(...scene.title) + (scene.message || '') + product(mode,scene.alt)
+        + metric(scene.label,scene.amount,scene.unit) + recordNote;
     } else if (mode === 'intro') {
-      stage.innerHTML = brand + headline('Hvad løftede', 'jeg sidst?') + film('programkort','Ringbundne kort med bænkpres')
-        + metric('Sidste sæt i bænkpres','60 kg × 8') + note('Eksempeldata');
+      stage.innerHTML = brand + headline('Hvad løftede','jeg sidst?')
+        + '<img class="moving-motif" src="../../public/product/vaegtskiver-1800.webp" alt="To vægtskiver à 1,25 kg">'
+        + metric('Sidste sæt i bænkpres','60','kg × 8') + sample('Eksempeldata');
     } else if (['outro','still','og'].includes(mode)) {
-      stage.innerHTML = field + card + brand + headline('Træn videre', 'fra sidste gang.') + figures + cta + note('Eksempeldata');
+      const picture = mode === 'og' ? '<img class="scene-for-copy" src="source/vaegtskiver-deling.webp" alt="To vægtskiver à 1,25 kg">' : study;
+      stage.innerHTML = picture + brand + headline('Træn videre','fra sidste gang.') + ledger + cta + sample('Eksempeldata · Bænkpres med stang');
       if (mode !== 'og') stage.insertAdjacentHTML('beforeend','<p class="address">traeningsmester.dk</p>');
       if (mode === 'outro') stage.insertAdjacentHTML('beforeend','<p class="status">Træningsmester er under udvikling.</p>');
     }

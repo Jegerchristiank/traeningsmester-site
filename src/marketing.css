@@ -37,34 +37,57 @@
 }
 
 .support-page .document-masthead {
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, .72fr);
-  align-items: center;
-  gap: clamp(2rem, 6vw, 6rem);
-  padding: clamp(1.5rem, 2.8vw, 2.8rem) 0;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.15fr);
+  align-items: end;
+  gap: clamp(2.5rem, 6vw, 8rem);
+  padding-block: clamp(2.25rem, 4.5vw, 5.75rem) clamp(2.25rem, 4vw, 4.5rem);
 }
-.support-page .document-heading .service-lead { max-width: 37ch; }
-.support-topics { display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; margin-top: clamp(1.2rem, 2.5vw, 2.25rem); }
-.support-topics a { display: inline-flex; align-items: center; gap: .42rem; min-height: 40px; font-size: .95rem; font-weight: 700; }
-.support-topics .service-arrow { width: .92em; height: .92em; }
-.support-contact-card { position: relative; container-type: inline-size; width: 100%; max-width: 30rem; justify-self: end; background: var(--service-lilac); }
-.support-contact-card img { display: block; width: 100%; height: auto; }
-.support-contact-card address {
-  position: absolute; left: 18.4%; top: 32%; width: 62.4%; margin: 0;
-  transform: rotate(-3.1deg); transform-origin: top left;
-  font: inherit; line-height: 1.18;
+.support-page .document-heading .service-lead { max-width: 38ch; }
+.support-topics { display: flex; flex-wrap: wrap; gap: .3rem 1.55rem; margin-top: clamp(1rem, 2.3vw, 2rem); }
+.support-topics a { display: inline-flex; align-items: center; gap: .5rem; min-height: 42px; font-size: .97rem; font-weight: 700; }
+.support-topics .service-arrow { width: 1em; height: 1em; }
+.support-directory { font-style: normal; }
+.support-recipient {
+  display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; justify-content: space-between;
+  padding-bottom: .9rem; border-bottom: 2px solid var(--service-ink);
 }
-.support-contact-card strong { display: block; font: 800 clamp(1.5rem, 9.8cqw, 3rem)/.98 var(--service-display); letter-spacing: -.035em; }
-.support-contact-company { display: block; margin: .4em 0 1.25em; font: 700 clamp(.68rem, 3.25cqw, .95rem)/1.3 var(--service-text); }
-.support-contact-card a {
-  display: flex; align-items: center; justify-content: space-between; gap: .5em; min-height: max(40px, 10.2cqw);
-  border-top: 1px solid #9ba0a2; color: var(--service-blue);
-  font: 700 clamp(.94rem, 4.35cqw, 1.3rem)/1.18 var(--service-text); font-variant-numeric: tabular-nums;
-  text-decoration: none;
+.support-recipient strong { font: 800 clamp(1.35rem, 2.3vw, 2.4rem)/1.08 var(--service-display); letter-spacing: -.025em; }
+.support-recipient > span { color: var(--service-muted); font-size: .88rem; }
+.support-contact-row {
+  display: grid; grid-template-columns: minmax(3.4rem, 15%) minmax(0, 1fr);
+  align-items: baseline; column-gap: .7rem; padding: clamp(.7rem, 1.3vw, 1.45rem) 0; border-bottom: 1px solid var(--service-rule);
 }
-.support-contact-card a:hover { text-decoration: underline; }
+.support-contact-row dt { color: var(--service-muted); font-weight: 700; font-size: .88rem; }
+.support-contact-row dd { min-width: 0; }
+.support-directory a {
+  display: flex; align-items: center; justify-content: space-between; gap: .65rem; min-height: 44px;
+  color: var(--service-blue); text-decoration: none;
+}
+.support-directory a:hover > span { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .13em; }
+.support-directory .service-arrow { width: 1.18rem; height: 1.18rem; }
+.support-email { font: 700 clamp(1.1rem, 1.7vw, 2.4rem)/1.25 var(--service-text); letter-spacing: -.028em; overflow-wrap: anywhere; }
+.support-phone { font: 800 clamp(2rem, 4.3vw, 6.2rem)/1.03 var(--service-display); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.support-phone span { white-space: nowrap; }
+@media (min-width: 1550px) {
+  .document-page:not(.support-page) .document-masthead {
+    grid-template-columns: minmax(0, .87fr) minmax(0, 1fr) auto;
+    gap: clamp(3rem, 6vw, 9rem); align-items: end;
+  }
+  .document-page:not(.support-page) .document-heading { display: contents; }
+  .document-page:not(.support-page) .document-heading .service-lead { margin: 0; max-width: 50ch; }
+  .document-page:not(.support-page) .document-meta { justify-self: end; }
+  .document-layout { grid-template-columns: minmax(14rem, .5fr) minmax(0, 2fr); gap: clamp(3rem, 4vw, 7rem); }
+  .document-section { grid-template-columns: 2rem minmax(0, .65fr) minmax(0, 1fr); gap: clamp(1rem, 1.7vw, 2.75rem); align-items: baseline; }
+  .document-section > div { display: contents; }
+  .document-section p { margin: 0; max-width: 68ch; }
+}
 @media (max-width: 760px) {
-  .support-page .document-masthead { grid-template-columns: minmax(0, 1fr); gap: 1.15rem; padding: 1.85rem 0 1.35rem; }
-  .support-contact-card { justify-self: start; max-width: 23rem; }
-  .support-topics { margin-top: .8rem; }
+  .support-page .document-masthead { grid-template-columns: minmax(0, 1fr); gap: 1.55rem; padding: 1.75rem 0 1.6rem; }
+  .support-topics { margin-top: .65rem; }
+  .support-contact-row { grid-template-columns: minmax(0,1fr); gap: .12rem; padding: .65rem 0; }
+  .support-directory a { justify-content: space-between; }
+  .support-recipient { padding-bottom: .65rem; }
+  .support-recipient > span { font-size: .8rem; }
+  .support-phone { font-size: clamp(2.25rem, 9.5vw, 3.1rem); }
+  .support-email { font-size: clamp(.98rem, 3.8vw, 1.3rem); }
 }
-@media print { .support-contact-card { max-width: 16rem; } }

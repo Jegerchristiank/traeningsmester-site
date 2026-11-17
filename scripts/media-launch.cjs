@@ -1,5 +1,5 @@
 // Render campaign artwork in Chromium, then cut the four views from the original Center Stage film.
-// Run with its MP4 as the first argument to also render the launch film. Without it, render the two stills.
+// A source MP4 adds the film; --studio BLENDER also regenerates all original weight-plate frames.
 const { chromium } = require('@playwright/test');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
@@ -24,7 +24,7 @@ const shots = [
 ];
 
 function ffmpeg(args) {
-  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', ...args], { stdio: 'inherit' });
+  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-filter_complex_threads', '4', ...args], { stdio: 'inherit' });
 }
 
 async function showComposition(page, mode) {
@@ -77,7 +77,10 @@ async function renderShot(page, shot, temp, source) {
   let picture = '0:v';
   if (motion) {
     args.push('-i', path.join(launch, motion.name));
-    filters.push('[2:v]scale=' + motion.width + ':' + motion.height + ':flags=lanczos,setsar=1[motif]');
+    const pan = "zoompan=z='1.05-.05*on/" + (frames - 1)
+      + "':x='(iw-iw/zoom)*.54':y='(ih-ih/zoom)*.53':d=" + frames
+      + ':s=' + motion.width + 'x' + motion.height + ':fps=' + fps;
+    filters.push('[2:v]' + pan + ',setsar=1[motif]');
     filters.push('[0:v][motif]overlay=' + motion.x + ':' + motion.y + ':format=rgb[ground]');
     picture = 'ground';
   }
@@ -95,57 +98,46 @@ async function renderShot(page, shot, temp, source) {
   filters.push('[' + picture + ']scale=out_color_matrix=bt709,format=yuv420p[out]');
   ffmpeg([...args, '-filter_complex', filters.join(';'), '-map', '[out]', '-frames:v', String(frames),
     '-an', '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-color_primaries', 'bt709',
-    '-color_trc', 'bt709', '-colorspace', 'bt709', filmFile]);
+    '-color_trc', 'bt709', '-colorspace', 'bt709', '-threads', '4', filmFile]);
 }
 
-// Read the app campaign's own lighting, perspective matrix, catalogue artwork and printed label.
-async function renderSources(browser, studio, temp) {
-  const page = await browser.newPage({
-    viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2, reducedMotion: 'reduce',
-  });
-  const sourcePage = pathToFileURL(path.join(studio, 'layout.html'));
-  sourcePage.hash = '02';
-  await page.goto(sourcePage.href);
-  await page.waitForFunction(() => document.querySelector('#base').complete
-    && document.querySelector('#bench').naturalWidth > 0);
-  await page.evaluate(() => document.fonts.ready);
-  await page.addStyleTag({ content: '#mark,#url,.copy { visibility:hidden }' });
-  const print = path.join(temp, 'print.png');
-  const isolated = path.join(temp, 'isolated.png');
-  await page.screenshot({ path: print });
-  await page.close();
-
-  const sources = path.join(launch, 'source');
-  ffmpeg(['-i', print, '-i', path.join(sources, 'programkort-alpha.png'), '-filter_complex',
-    '[0:v]scale=1122:1402:flags=lanczos,format=rgb24[c];[1:v]format=gray[a];[c][a]alphamerge,crop=1000:880:60:100,format=rgba',
-    '-frames:v', '1', isolated]);
-  for (const [name, width, height, quality] of [
-    ['programkort.webp', 1200, 1056, 90], ['programkort-mobil.webp', 900, 792, 88],
-    ['programkort-lille.webp', 500, 440, 85],
-  ]) {
-    execFileSync('cwebp', ['-quiet', '-q', String(quality), '-m', '6', '-sharp_yuv', '-alpha_q', '100',
-      '-resize', String(width), String(height), isolated, '-o', path.join(product, name)]);
-  }
-  for (const [id, name, crop] of [
-    ['02', 'programkort', '1080:1000:0:50'], ['03', 'timeglas', '1080:960:0:0'],
-  ]) {
-    ffmpeg(['-i', path.join(studio, 'medier', id + '-bevaegelse.mp4'), '-vf', 'crop=' + crop + ',setsar=1',
-      '-t', '3', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p',
-      '-movflags', '+faststart', path.join(sources, name + '-bevaegelse.mp4')]);
+// Author once in 3D. Each wider frame uses an actual camera projection through the same studio.
+function renderStudio(blender, temp) {
+  const scene = path.join(launch, 'source', 'vaegtskiver.py');
+  const shots = [
+    { png: 'master', width: 1800, samples: 40, camera: [], files: [
+      ['vaegtskiver-1800.webp', 1800, 1350, 84], ['vaegtskiver-1024.webp', 1024, 768, 83],
+      ['vaegtskiver-560.webp', 560, 420, 82],
+    ] },
+    { png: 'panorama', width: 1920, samples: 36, camera: ['--panorama'],
+      files: [['vaegtskiver-panorama.webp', 1920, 800, 84]] },
+    { png: 'share', width: 1200, samples: 34, camera: ['--share'],
+      files: [['vaegtskiver-deling.webp', 1200, 630, 91]] },
+  ];
+  for (const shot of shots) {
+    const png = path.join(temp, shot.png + '.png');
+    execFileSync(blender, ['-b', '--python-exit-code', '1', '-t', '5', '-P', scene, '--', ...shot.camera,
+      '--width', String(shot.width), '--samples', String(shot.samples), '--out', png], { stdio: 'inherit' });
+    for (const [name, width, height, quality] of shot.files) {
+      const target = path.join(shot.png === 'share' ? path.join(launch, 'source') : product, name);
+      const resize = width !== shot.width ? ['-resize', String(width), String(height)] : [];
+      execFileSync('cwebp', ['-quiet', '-f', '30', '-q', String(quality), '-m', '6', '-sharp_yuv',
+        ...resize, png, '-o', target]);
+    }
   }
 }
 
 async function main() {
-  const rebuildSources = process.argv[2] === '--sources';
-  if (rebuildSources && !process.argv[3]) throw new Error('Pass the app campaign’s kilder directory after --sources.');
+  const rebuildSources = process.argv[2] === '--studio';
+  if (rebuildSources && !process.argv[3]) throw new Error('Pass the Blender executable after --studio.');
   const source = rebuildSources ? path.join(launch, 'source', 'product-center-stage.mp4')
     : process.argv[2] && path.resolve(process.argv[2]);
   if (source && !fs.existsSync(source)) throw new Error('Center Stage source not found: ' + source);
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-launch-'));
   let browser;
   try {
+    if (rebuildSources) renderStudio(process.argv[3], temp);
     browser = await chromium.launch({ headless: true });
-    if (rebuildSources) await renderSources(browser, path.resolve(process.argv[3]), temp);
     const page = await browser.newPage({ viewport: { width: 1200, height: 1920 }, deviceScaleFactor: 1 });
     const canvas = page.locator('#canvas');
     await showComposition(page, 'still');

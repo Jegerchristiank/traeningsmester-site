@@ -1,8 +1,8 @@
 Hvad løftede jeg sidst?
 
-I klippet var det otte gentagelser med 60 kilo i bænkpres. I dag kommer der 62,5 kilo på stangen. Det sidste sæt står lige over det næste, pausen har sit eget ur, og næste gang kan du finde de 62,5 kilo igen.
+Otte gentagelser med 60 kilo i bænkpres. I dag kommer der en skive på 1,25 kilo på hver side. Når du registrerer de 62,5 kilo i Træningsmester, står det forrige sæt lige ovenover. Næste gang kan du finde dagens sæt igen.
 
-Jeg bygger Træningsmester og leder efter folk, der vil prøve appen i deres egen træning. Du kan skrive dig op alene eller sende linket til din træningsmakker.
+Jeg bygger stadig på appen og søger folk, der vil afprøve den i deres egen træning. Har du eller din træningsmakker lyst til at være med?
 
 Få besked om adgang på https://www.traeningsmester.dk/
 

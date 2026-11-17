@@ -1,7 +1,7 @@
 .account-loading { padding-block: 2rem 5rem; }
 .account-desk {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, .65fr);
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, .72fr);
   align-items: start;
   gap: clamp(2.5rem, 8vw, 8rem);
   padding: clamp(2rem, 4.2vw, 4.4rem) 0 0;
@@ -14,7 +14,7 @@
 .service-page :is(.account-form, .ai-login) { display: grid; gap: 1.2rem; margin: 0; }
 .account-desk .account-form { margin-top: 1.6rem; }
 .service-page :is(.account-form, .ai-login) label { display: grid; gap: .45rem; font-size: .98rem; font-weight: 700; }
-.service-page :is(.account-form, .ai-login) input:not([type="checkbox"]) { width: 100%; min-width: 0; min-height: 3.2rem; padding: .55rem .85rem; border: 1px solid #828a80; border-radius: 3px; background: #fffefa; color: var(--service-ink); font: 400 1rem var(--service-text); }
+.service-page :is(.account-form, .ai-login) input:not([type="checkbox"]) { width: 100%; min-width: 0; min-height: 3.2rem; padding: .55rem .85rem; border: 1px solid #828a80; border-radius: 3px; background: #fff; color: var(--service-ink); font: 400 1rem var(--service-text); }
 .service-page :is(.account-form, .ai-login) .account-consent { display: flex; align-items: flex-start; gap: .65rem; color: var(--service-muted); font-weight: 400; font-size: .9rem; line-height: 1.5; }
 .account-consent input { flex-shrink: 0; width: 1.2rem; height: 1.2rem; margin: .1rem 0 0; accent-color: var(--service-blue); }
 .service-page :is(.account-primary, .ai-primary) { display: inline-flex; min-height: 3.05rem; align-items: center; justify-content: center; gap: .7rem; padding: .6rem 1.25rem; border: 1px solid var(--service-blue); border-radius: 4px; background: var(--service-blue); color: white; font-weight: 700; text-decoration: none; }
@@ -24,25 +24,34 @@
 .account-alternative { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding-top: .55rem; font-size: .95rem; }
 .account-owner { display: grid; justify-items: start; margin-top: 2.2rem; padding-top: 1.1rem; border-top: 1px solid var(--service-rule); }
 .account-owner strong { margin: .25rem 0 0; overflow-wrap: anywhere; }
-.account-tools {
-  margin-top: .2rem;
-  padding: clamp(1.4rem, 3.5vw, 3rem);
-  border-radius: .5rem .8rem .8rem .5rem;
-  border-right: .4rem solid var(--service-royal);
-  background: var(--service-lilac);
-}
-.account-tools > h2 { margin: 0; font-size: clamp(1.85rem, 3.25vw, 2.8rem); line-height: 1.02; }
-.account-tools .account-tools-intro { margin: .65rem 0 1rem; max-width: 31ch; color: var(--service-muted); }
-.account-tools > a, .account-tools > div { border-top: 1px solid #a8acca; }
+.account-tools { align-self: start; padding: 1.1rem 0 0; border-top: 2px solid var(--service-ink); }
+.account-tools > h2 { margin: 0; font-size: clamp(1.65rem, 2.4vw, 2.6rem); line-height: 1.02; }
+.account-tools .account-tools-intro { margin: .55rem 0 1.2rem; max-width: 39ch; color: var(--service-muted); }
+.account-tools > a, .account-tools > div { border-top: 1px solid var(--service-rule); }
+.account-tools > a:last-child, .account-tools > div:last-child { border-bottom: 1px solid var(--service-rule); }
 .account-tools > div { padding: .85rem 0; }
 .account-tools > div:first-of-type { margin-top: 1.25rem; }
 .account-tools a {
-  display: flex; min-height: 46px; align-items: center; justify-content: space-between; gap: .9rem;
-  color: var(--service-blue); text-decoration: none; font: 700 1.05rem/1.35 var(--service-text);
+  display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: .9rem;
+  color: var(--service-blue); text-decoration: none; font: 700 1.18rem/1.3 var(--service-text);
 }
 .account-tools a:hover { text-decoration: underline; }
-.account-tools div > a { min-height: 30px; }
-.account-tools div p { margin: .1rem 0 0; color: var(--service-muted); font-size: .95rem; }
+.account-tools div > a { min-height: 40px; }
+.account-tools div p { margin: .1rem 0 0; color: var(--service-muted); font-size: .97rem; }
+@media (min-width: 1550px) {
+  .account-login-layout { grid-template-columns: minmax(0, 2.35fr) minmax(18rem, .85fr); gap: clamp(3rem, 5.5vw, 8rem); }
+  .account-login {
+    display: grid; grid-template-columns: minmax(0, .9fr) minmax(19rem, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    align-items: start; column-gap: clamp(3rem, 5.5vw, 8rem); max-width: none;
+  }
+  .account-login > h1 { grid-area: 1 / 1; }
+  .account-login > .account-intro { grid-area: 2 / 1; }
+  .account-login > .account-form { grid-area: 1 / 2 / 4 / 3; width: 100%; max-width: 39rem; margin: 0; border-top: 2px solid var(--service-ink); padding-top: 1rem; }
+  .account-login-layout .account-tools { width: 100%; max-width: 47rem; }
+  .account-login > .account-alternative { grid-area: 4 / 2; }
+  .account-login > .account-text-action { grid-area: 3 / 1; }
+}
 @media (max-width: 760px) {
   .account-desk { display: flex; flex-direction: column; align-items: stretch; gap: 2.4rem; padding-top: 2rem; }
   .account-login, .account-identity, .account-tools { width: 100%; max-width: 35rem; }

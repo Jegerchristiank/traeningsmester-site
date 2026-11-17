@@ -6,13 +6,14 @@
 .ai-guide-title .service-link { margin-top: .75rem; }
 .ai-guide-title h1 { max-width: 13ch; }
 .ai-guidelines > section:first-of-type { padding-top: 0; }
-.ai-endpoint {
-  background: var(--service-lilac); border-right: .4rem solid var(--service-royal);
-  border-radius: .5rem .8rem .8rem .5rem; padding: clamp(1.25rem, 2.8vw, 2.8rem);
+.ai-endpoint { border-top: 2px solid var(--service-ink); border-bottom: 1px solid var(--service-rule); padding-block: 1.15rem 1.2rem; }
+.ai-address-label { color: var(--service-muted); font: 700 .85rem/1.4 var(--service-text); }
+.ai-endpoint code {
+  display: block; max-width: 100%; margin: .65rem 0 1.3rem;
+  color: var(--service-ink); overflow-wrap: anywhere; user-select: all;
+  font: 400 clamp(1rem, 1.6vw, 2.3rem)/1.35 var(--service-mono); letter-spacing: -.04em;
 }
-.ai-address-label { color: var(--service-ink); font: 800 clamp(1.35rem, 2.25vw, 2rem)/1.05 var(--service-display); letter-spacing: -.025em; }
-.ai-endpoint code { display: block; max-width: 100%; margin: 1.05rem 0 1.15rem; padding-block: .72rem; border-block: 1px solid #a8acca; overflow-wrap: anywhere; user-select: all; color: var(--service-ink); font: 400 clamp(.85rem, 1.32vw, 1.02rem)/1.45 var(--service-mono); }
-.ai-endpoint button { min-height: 44px; padding: .6rem 1.05rem; border: 0; border-radius: 4px; color: white; background: var(--service-blue); font-weight: 700; }
+.ai-endpoint button { display: inline-flex; align-items: center; gap: .65rem; min-height: 44px; padding: .5rem .95rem; border: 0; border-radius: 3px; color: white; background: var(--service-blue); font-weight: 700; }
 .ai-endpoint button:hover { background: #064da9; }
 .ai-endpoint [role="status"] { margin-top: .65rem; font-size: .88rem; }
 .ai-endpoint [role="status"]:empty { display: none; }
@@ -55,6 +56,23 @@
 .ai-empty p { margin-top: .55rem; }
 .ai-empty .service-link { margin-top: .5rem; }
 .ai-feedback { margin-top: 1.5rem!important; }
+@media (min-width: 1550px) {
+  .ai-guide-title {
+    grid-template-columns: minmax(0, .95fr) minmax(0, .65fr) minmax(0, 1fr);
+    grid-template-areas: "title intro endpoint" "title manage endpoint";
+    align-items: end; gap: .4rem clamp(2.5rem, 4.6vw, 7rem);
+  }
+  .ai-guide-intro { display: contents; }
+  .ai-guide-title h1 { grid-area: title; align-self: start; }
+  .ai-guide-title .service-lead { grid-area: intro; margin: 0; max-width: 39ch; }
+  .ai-guide-title .service-link { grid-area: manage; justify-self: start; align-self: start; }
+  .ai-guide-title .ai-endpoint { grid-area: endpoint; }
+  .ai-guide-grid { grid-template-columns: minmax(14rem, .5fr) minmax(0, 2fr); gap: clamp(3rem, 4vw, 7rem); }
+  .ai-guidelines > section { display: grid; grid-template-columns: minmax(0, .65fr) minmax(0, 1fr); align-items: baseline; gap: 0 clamp(2rem, 2.8vw, 5rem); }
+  .ai-guidelines > section > h2 { grid-column: 1; grid-row: 1; }
+  .ai-guidelines > section > :not(h2) { grid-column: 2; max-width: 68ch; }
+  .ai-guidelines > section > :nth-child(2) { margin-top: 0; }
+}
 @media (max-width: 760px) {
   .ai-guide-title { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; border-bottom: 0; padding-bottom: 1.55rem; }
   .ai-guide-grid, .ai-connections-grid, .ai-consent-grid { display: flex; flex-direction: column; align-items: stretch; gap: 1.8rem; }

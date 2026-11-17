@@ -1,40 +1,118 @@
 import { expect, test } from "@playwright/test";
 
-for (const javaScriptEnabled of [true, false]) {
-  test.describe(
-    javaScriptEnabled ? "Interactive cover" : "Pre-rendered cover",
-    () => {
-      test.use({ javaScriptEnabled });
+test("the cover uses the available screen and keeps its controls and example legible", async ({
+  page,
+}, testInfo) => {
+  const landscape = testInfo.project.name === "desktop";
+  const viewports = landscape
+    ? [
+        [1440, 720],
+        [1920, 720],
+        [1920, 1080],
+        [2560, 1080],
+        [3440, 900],
+        [3440, 1440],
+        [3840, 1080],
+        [5120, 1440],
+      ]
+    : [
+        [320, 740],
+        [390, 844],
+        [820, 1024],
+      ];
+  await page.goto("/");
+  for (const [width, height] of viewports) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => document.fonts.ready);
+    const data = await page.evaluate(() => {
+      const box = (selector: string) => {
+        const el = document.querySelector(selector)!;
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      };
+      const title = document.createRange();
+      title.selectNodeContents(document.querySelector("h1")!);
+      return {
+        width: document.documentElement.clientWidth,
+        document: document.documentElement.scrollWidth,
+        headingFits: Array.from(title.getClientRects()).every(
+          (r) => r.left >= -1 && r.right <= innerWidth + 1,
+        ),
+        layout: box(".cover-layout"),
+        hero: box(".story-hero"),
+        submit: box(".access-submit"),
+        plate: box(".plate-image"),
+        app: box(".sample-window img"),
+        singleForm: document.forms.length,
+      };
+    });
+    expect(data.document, `horizontal overflow at ${width}`).toBe(data.width);
+    expect(data.layout.left).toBe(0);
+    expect(data.layout.right).toBe(data.width);
+    expect(data.headingFits).toBe(true);
+    expect(data.submit.bottom).toBeLessThanOrEqual(height);
+    expect(data.singleForm).toBe(1);
+    for (const box of [data.plate, data.app]) {
+      expect(box.left).toBeGreaterThanOrEqual(0);
+      expect(box.right).toBeLessThanOrEqual(data.width);
+    }
+    if (landscape) {
+      expect(
+        data.hero.bottom,
+        `full first screen at ${width}`,
+      ).toBeGreaterThanOrEqual(height - 1);
+      expect(
+        data.app.bottom,
+        `complete set at ${width}×${height}`,
+      ).toBeLessThanOrEqual(height + 1);
+      expect(
+        data.plate.bottom,
+        `complete illustration at ${width}×${height}`,
+      ).toBeLessThanOrEqual(height + 1);
+    }
+  }
+});
 
-      test("the ring card turns by touch and keyboard and keeps the same set in view", async ({
-        page,
-      }) => {
-        await page.goto("/");
-        const card = page.locator(".deck-inspection");
-        const turn = card.locator("summary");
-        const previous = page.locator(".deck-ledger dd").first();
-        const current = page.locator(".deck-ledger dd").last();
-        await expect(turn).toContainText("Vend til appvisning");
-        await expect(previous).toHaveText("60 kg × 8");
-        await expect(current).toHaveText("62,5 kg × 8");
-        await turn.click(); // The printed card itself is also the pointer target.
-        await expect(card).toHaveAttribute("open", "");
-        await expect(card.locator(".turn-back")).toBeVisible();
-        const values = card.getByRole("img", {
-          name: /60 kg × 8.*62,5 kg × 8/,
-        });
-        await expect(values).toBeVisible();
-        await values.evaluate((img) => (img as HTMLImageElement).decode());
-        await expect(
-          card.getByRole("heading", { name: "Bænkpres med stang" }),
-        ).toBeVisible();
-        await turn.focus();
-        await page.keyboard.press("Enter");
-        await expect(card).not.toHaveAttribute("open", "");
-        await expect(card.locator(".turn-to")).toBeVisible();
-        await expect(turn).toBeFocused();
-        await expect(current).toHaveText("62,5 kg × 8");
-      });
-    },
-  );
-}
+test("visitors can jump to the feature index or close mobile navigation with the keyboard", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Hovednavigation" });
+  const mobile = info.project.name === "mobile";
+  if (mobile) {
+    const toggle = nav.locator("summary");
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+    await expect(nav.getByRole("link", { name: "Funktioner" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(toggle).toBeFocused();
+    await expect(nav.getByRole("link", { name: "Funktioner" })).toHaveCount(0);
+    await toggle.click();
+  }
+  await nav.getByRole("link", { name: "Funktioner" }).click();
+  await expect(page).toHaveURL(/#funktioner$/);
+  await expect(page.locator("#feature-heading")).toBeInViewport();
+  if (mobile) await expect(page.locator("#funktioner")).toBeFocused();
+});
+
+test.describe("Pre-rendered training example", () => {
+  test.use({ javaScriptEnabled: false });
+  test("exercise, past weight, current weight and the app image are on the first page", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const example = page.getByRole("region", { name: "Bænkpres med stang" });
+    await expect(example).toContainText("Overkrop A");
+    await expect(example.locator(".sample-values dd").first()).toHaveText(
+      "60 kg × 8",
+    );
+    await expect(example.locator(".sample-values dd").last()).toHaveText(
+      "62,5 kg × 8",
+    );
+    await expect(
+      example.getByRole("img", { name: /Rekonstrueret appvisning/ }),
+    ).toBeVisible();
+    await example.getByRole("link", { name: "Se et træningsforløb" }).click();
+    await expect(page.locator("#workout-story-heading")).toBeInViewport();
+  });
+});
