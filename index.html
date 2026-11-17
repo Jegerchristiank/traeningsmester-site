@@ -10,7 +10,11 @@
         const hero = document.createElement("link");
         hero.rel = "preload";
         hero.as = "image";
-        hero.href = "/product/athlete.webp";
+        hero.href = "/product/programkort.webp";
+        hero.imageSrcset =
+          "/product/programkort-lille.webp 500w, /product/programkort-mobil.webp 900w, /product/programkort.webp 1200w";
+        hero.imageSizes =
+          "(max-width: 719px) 93vw, (max-width: 1500px) 45vw, 660px";
         hero.fetchPriority = "high";
         document.head.append(hero);
       }
@@ -24,7 +28,7 @@
       content="Dit program, dine sæt og dine pauser samlet i én app. Træningsmester er under udvikling. Få besked om adgang."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#f7f6f1" />
+    <meta name="theme-color" content="#e7e8f7" />
     <noscript
       ><style>
         .access-form form {
@@ -59,7 +63,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Træn videre fra sidste gang. En hånd om vægtstangen og appens sætrække med 60 kg × 8 sidst og 62,5 kg i dag."
+      content="Træn videre fra sidste gang. Et ringbundet træningskort med bænkpres og værdierne 60 kg × 8 sidst og 62,5 kg × 8 i dag."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
@@ -76,7 +80,7 @@
     />
     <meta
       name="twitter:image:alt"
-      content="Træn videre fra sidste gang. En hånd om vægtstangen og appens sætrække med 60 kg × 8 sidst og 62,5 kg i dag."
+      content="Træn videre fra sidste gang. Et ringbundet træningskort med bænkpres og værdierne 60 kg × 8 sidst og 62,5 kg × 8 i dag."
     />
     <link
       rel="icon"

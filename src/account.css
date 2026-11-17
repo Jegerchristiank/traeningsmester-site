@@ -1,17 +1,18 @@
 .account-loading { padding-block: 2rem 5rem; }
-.account-desk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, .78fr); gap: 0 clamp(3rem, 9vw, 9rem); padding-block: clamp(2.4rem, 6.2vw, 6.7rem) 0; }
-.account-desk .account-intro, .account-identity .service-lead { margin-top: 1.3rem; max-width: 33ch; color: var(--service-muted); font: 400 clamp(1.12rem, 1.7vw, 1.45rem)/1.48 var(--service-text); text-wrap: pretty; }
-.account-login-desk { grid-template-rows: auto auto minmax(0, 1fr) auto; align-items: start; }
-.account-login-desk > h1, .account-login-desk > .account-intro, .account-guide-link { grid-column: 1; }
-.account-login-desk > h1 { grid-row: 1; }
-.account-login-desk > .account-intro { grid-row: 2; }
-.account-guide-link { grid-row: 3; margin-top: clamp(1.35rem, 3.2vw, 3.25rem); }
-.account-login-desk :is(.account-form, .account-alternative) { grid-column: 2; }
-.account-login-desk > .account-form { grid-row: 1 / 4; }
-.account-login-desk > .account-alternative { grid-row: 4; }
-.account-login-desk > .account-text-action { grid-column: 2; grid-row: 1; align-self: start; justify-self: start; }
+.account-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, .65fr);
+  align-items: start;
+  gap: clamp(2.5rem, 8vw, 8rem);
+  padding: clamp(2rem, 4.2vw, 4.4rem) 0 0;
+}
+.account-desk .account-intro, .account-identity .service-lead {
+  margin-top: 1rem; max-width: 40ch; color: var(--service-muted);
+  font: 400 clamp(1.05rem, 1.52vw, 1.32rem)/1.48 var(--service-text); text-wrap: pretty;
+}
+.account-login, .account-identity { max-width: 35rem; }
 .service-page :is(.account-form, .ai-login) { display: grid; gap: 1.2rem; margin: 0; }
-.account-desk .account-form { border-top: 2px solid var(--service-ink); padding-top: 1.35rem; }
+.account-desk .account-form { margin-top: 1.6rem; }
 .service-page :is(.account-form, .ai-login) label { display: grid; gap: .45rem; font-size: .98rem; font-weight: 700; }
 .service-page :is(.account-form, .ai-login) input:not([type="checkbox"]) { width: 100%; min-width: 0; min-height: 3.2rem; padding: .55rem .85rem; border: 1px solid #828a80; border-radius: 3px; background: #fffefa; color: var(--service-ink); font: 400 1rem var(--service-text); }
 .service-page :is(.account-form, .ai-login) .account-consent { display: flex; align-items: flex-start; gap: .65rem; color: var(--service-muted); font-weight: 400; font-size: .9rem; line-height: 1.5; }
@@ -23,17 +24,29 @@
 .account-alternative { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; padding-top: .55rem; font-size: .95rem; }
 .account-owner { display: grid; justify-items: start; margin-top: 2.2rem; padding-top: 1.1rem; border-top: 1px solid var(--service-rule); }
 .account-owner strong { margin: .25rem 0 0; overflow-wrap: anywhere; }
-.account-tools { border-top: 2px solid var(--service-ink); }
-.account-tools > h2 { margin: 1.25rem 0 .6rem; font-size: 1.65rem; }
-.account-tools > div { border-bottom: 1px solid var(--service-rule); padding: 1.1rem 0; }
-.account-tools a { display: flex; justify-content: space-between; align-items: center; gap: .8rem; text-decoration: none; font-weight: 700; font-size: 1.15rem; }
-.account-tools p { margin: .25rem 0 0; font-size: .95rem; color: var(--service-muted); }
+.account-tools {
+  margin-top: .2rem;
+  padding: clamp(1.4rem, 3.5vw, 3rem);
+  border-radius: .5rem .8rem .8rem .5rem;
+  border-right: .4rem solid var(--service-royal);
+  background: var(--service-lilac);
+}
+.account-tools > h2 { margin: 0; font-size: clamp(1.85rem, 3.25vw, 2.8rem); line-height: 1.02; }
+.account-tools .account-tools-intro { margin: .65rem 0 1rem; max-width: 31ch; color: var(--service-muted); }
+.account-tools > a, .account-tools > div { border-top: 1px solid #a8acca; }
+.account-tools > div { padding: .85rem 0; }
+.account-tools > div:first-of-type { margin-top: 1.25rem; }
+.account-tools a {
+  display: flex; min-height: 46px; align-items: center; justify-content: space-between; gap: .9rem;
+  color: var(--service-blue); text-decoration: none; font: 700 1.05rem/1.35 var(--service-text);
+}
+.account-tools a:hover { text-decoration: underline; }
+.account-tools div > a { min-height: 30px; }
+.account-tools div p { margin: .1rem 0 0; color: var(--service-muted); font-size: .95rem; }
 @media (max-width: 760px) {
-  .account-desk { display: flex; flex-direction: column; gap: 1.8rem; padding-top: 2.2rem; }
-  .account-login-desk { align-items: stretch; gap: 0; }
-  .account-desk .account-intro, .account-identity .service-lead { margin-top: .85rem; }
-  .account-desk .account-form { margin-top: 1.55rem; padding-top: 1.1rem; }
-  .account-guide-link { margin-top: 1.15rem; border-top: 1px solid var(--service-rule); padding-top: .7rem; }
+  .account-desk { display: flex; flex-direction: column; align-items: stretch; gap: 2.4rem; padding-top: 2rem; }
+  .account-login, .account-identity, .account-tools { width: 100%; max-width: 35rem; }
+  .account-desk .account-intro, .account-identity .service-lead { margin-top: .8rem; }
+  .account-desk .account-form { margin-top: 1.25rem; }
   .account-owner { margin-top: 1.5rem; }
-  .account-login-desk > .account-text-action { margin-top: 1rem; }
 }

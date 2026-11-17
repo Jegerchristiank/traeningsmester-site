@@ -246,18 +246,8 @@ export const legalDocuments: Record<
     updated: "17. november 2026",
     sections: [
       {
-        title: "Kontakt",
-        body: (
-          <>
-            Skriv til <a href={`mailto:${company.email}`}>{company.email}</a>{" "}
-            eller ring på{" "}
-            <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>.
-            Beskriv gerne om du bruger iPhone eller Android, appversionen og
-            hvad du gjorde, da problemet opstod. Del ikke adgangskoder,
-            betalingskort eller helbredsoplysninger, som ikke er nødvendige for
-            at løse sagen.
-          </>
-        ),
+        title: "Når du skriver",
+        body: "Beskriv gerne, om du bruger iPhone eller Android, din appversion og hvad du gjorde, da problemet opstod. Del ikke adgangskoder, betalingskort eller helbredsoplysninger, som ikke er nødvendige for at løse sagen.",
       },
       {
         title: "Konto og login",
@@ -268,7 +258,7 @@ export const legalDocuments: Record<
             oprettede kontoen med. Du kan også godkende en AI-assistent fra
             mobilappen. Følg <a href="/ai/help">vejledningen til AI-assistenter</a> eller
             se <a href="/ai/connections">dine forbindelser</a>. Har du brug
-            for hjælp til login, kan du skrive til os på kontaktmailen ovenfor.
+            for hjælp til login, kan du bruge <a href="#kontakt">kontaktkortet</a> øverst på siden.
             Træningsmester vil aldrig bede dig sende din adgangskode.
           </>
         ),
@@ -356,6 +346,21 @@ function OperatorAddress() {
   );
 }
 
+function SupportContactCard() {
+  return (
+    <div className="support-contact-card">
+      {/* Close crop of the app’s approved blank ring card, træningsugen/kilder/medier/02.png. */}
+      <img src="/product/kontaktkort.webp" alt="" width="760" height="690" />
+      <address id="kontakt" tabIndex={-1} aria-label="Kontakt Christian hos Træningsmester">
+        <strong>Christian</strong>
+        <span className="support-contact-company">Træningsmester · KRISTENSON</span>
+        <a href={`mailto:${company.email}`}>Skriv til support <ArrowMark diagonal /></a>
+        <a href={`tel:${company.phoneHref}`} aria-label={`Ring ${company.phoneDisplay}`}>{company.phoneDisplay} <ArrowMark diagonal /></a>
+      </address>
+    </div>
+  );
+}
+
 export function LegalPage({ route }: { route: LegalRoute }) {
   const document = legalDocuments[route];
   useEffect(() => {
@@ -391,22 +396,24 @@ export function LegalPage({ route }: { route: LegalRoute }) {
   const serviceRoute = route === "support" || route === "slet-konto";
   return (
     <ServiceShell area={serviceRoute ? "Hjælp og kontakt" : "Om hjemmesiden"}
-      className="document-page" address={<OperatorAddress />}>
+      className={route === "support" ? "document-page support-page" : "document-page"} address={<OperatorAddress />}>
       <header className="document-masthead">
         <div className="document-heading">
           <h1 className={document.title.length > 12 ? "document-long-title" : undefined}>{document.title}</h1>
           <p className="service-lead">{document.intro}</p>
-        </div>
-        <div className="document-meta">
-          {route === "support" ? (
-            <>
-              <a className="service-action" href={`mailto:${company.email}`}>Skriv til support <ArrowMark diagonal /></a>
-              <a className="service-link" href={`tel:${company.phoneHref}`}>Ring {company.phoneDisplay}</a>
-            </>
-          ) : (
-            <><span className="service-caption">Senest opdateret</span><span className="document-date">{document.updated}</span></>
+          {route === "support" && (
+            <div className="support-topics">
+              <a href="/app">Log ind på din konto <ArrowMark /></a>
+              <a href="/slet-konto">Slet konto <ArrowMark /></a>
+            </div>
           )}
         </div>
+        {route === "support" ? <SupportContactCard /> : (
+          <div className="document-meta">
+            <span className="service-caption">Senest opdateret</span>
+            <span className="document-date">{document.updated}</span>
+          </div>
+        )}
       </header>
       <div className="document-layout">
         <Contents entries={sections} />

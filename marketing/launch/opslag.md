@@ -1,11 +1,11 @@
 Hvad løftede jeg sidst?
 
-Var det 60 kilo eller 62,5? I Træningsmester står vægten fra sidste gang lige over dit næste sæt. I klippet kan du følge et sæt bænkpres fra programmet, gennem pausen og frem til næste træning.
+I klippet var det otte gentagelser med 60 kilo i bænkpres. I dag kommer der 62,5 kilo på stangen. Det sidste sæt står lige over det næste, pausen har sit eget ur, og næste gang kan du finde de 62,5 kilo igen.
 
-Jeg bygger stadig på appen og vil gerne have den prøvet af i forskellige træninger. Har du eller din træningsmakker lyst til at være med?
+Jeg bygger Træningsmester og leder efter folk, der vil prøve appen i deres egen træning. Du kan skrive dig op alene eller sende linket til din træningsmakker.
 
 Få besked om adgang på https://www.traeningsmester.dk/
 
 / Christian
 
-Klippet viser rekonstruerede appvisninger med eksempeldata. Foto af Victor Freitas.
+Klippet viser eksempeldata og rekonstruerede appvisninger.

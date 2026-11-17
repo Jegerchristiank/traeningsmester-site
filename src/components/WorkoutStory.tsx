@@ -8,229 +8,306 @@ import {
 import type { Flip } from "gsap/Flip";
 import "../workout-story.css";
 
-const frames = {
-  program: {
-    height: 1250,
-    moment: "I programmet",
-    date: "15. november",
-    value: "3 × 8",
-    unit: "",
-    label: "Sæt × gentagelser",
-    note: "Planlagt pause",
-    detail: "2:00 min.",
-    alt: "Overkrop A i Mit styrkeprogram. Bænkpres Med Stang er planlagt med tre sæt af otte gentagelser, 60 kg og to minutters pause.",
-  },
-  set: {
-    height: 1083,
-    moment: "Første arbejdssæt",
-    date: "15. november",
-    value: "62,5",
-    unit: "kg",
-    label: "Vægt i første sæt",
-    note: "Sidste gang",
-    detail: "60 kg × 8",
-    alt: "Første sætrække er aktiv. Der står 62,5 kg og otte gentagelser. Ovenover står sidste sæt fra tre dage tidligere, 60 kg × 8.",
-  },
-  rest: {
-    height: 1403,
-    moment: "Efter første sæt",
-    date: "15. november",
-    value: "01:42",
-    unit: "",
-    label: "Tilbage af pausen",
-    note: "Næste arbejdssæt",
-    detail: "2 af 3",
-    alt: "62,5 kg × 8 er markeret udført med grønt. Andet sæt er aktivt, og pausefeltet nederst viser et minut og 42 sekunder tilbage.",
-  },
-  history: {
-    height: 939,
-    moment: "I næste træning",
-    date: "17. november",
-    value: "62,5",
-    unit: "kg",
-    label: "Vægt sidste gang",
-    note: "15. november",
-    detail: "1 sæt · 8 gent.",
-    alt: "Tidligere for Bænkpres Med Stang. Den 15. november ligger ét registreret sæt med 62,5 kg × 8, og den 12. november ligger en tidligere træning.",
-  },
-} as const;
-
-type Frame = keyof typeof frames;
-type Chapter = Exclude<Frame, "rest">;
-
 const chapters = [
-  {
-    frame: "program",
-    id: "dit-program",
-    number: "01",
-    title: "Dit program er klar.",
-    summary: "Overkrop A · Bænkpres · 3 × 8",
-    copy: "Åbn Overkrop A. Bænkpres står klar med tre sæt af otte og to minutters pause mellem sættene.",
-  },
-  {
-    frame: "set",
-    id: "dit-saet",
-    number: "02",
-    title: "Et sæt ad gangen.",
-    summary: "62,5 kg × 8 · Pause 01:42",
-    copy: "Registrér sættet. Hold styr på pausen.",
-  },
-  {
-    frame: "history",
-    id: "din-historik",
-    number: "03",
-    title: "Tag det med til næste gang.",
-    summary: "15. november · 62,5 kg × 8 gemt i historikken",
-    copy: "Se dine tidligere træninger, når du skal videre.",
-  },
+  { number: "01", name: "Program", anchor: "dit-program", frame: "program" },
+  { number: "02", name: "Sæt og pause", anchor: "dit-saet", frame: "set" },
+  { number: "03", name: "Historik", anchor: "din-historik", frame: "history" },
 ] as const;
 
+const frames = {
+  program: {
+    src: "story-program-day",
+    width: 932,
+    height: 581,
+    alt: "Overkrop A i appen. Bænkpres Med Stang er planlagt med tre sæt af otte, 60 kg og to minutters pause.",
+  },
+  set: {
+    src: "revision-detail-set",
+    width: 1200,
+    height: 510,
+    alt: "Første arbejdssæt i appen. Der står 62,5 kg og otte gentagelser i den aktive række. Ovenover står det tidligere sæt, 60 kg × 8.",
+  },
+  rest: {
+    src: "story-rest-detail",
+    width: 932,
+    height: 699,
+    alt: "Det første sæt har et grønt flueben ved 62,5 kg × 8. Andet sæt er aktivt. Under rækkerne viser pausetimeren 01:42.",
+  },
+  history: {
+    src: "revision-history",
+    width: 960,
+    height: 939,
+    alt: "Tidligere for Bænkpres Med Stang. Den 15. november er ét sæt registreret med 62,5 kg × 8. Herunder ligger træningen den 12. november.",
+  },
+} as const;
+type Frame = keyof typeof frames;
+const wideQuery =
+  "(min-width: 920px) and (min-height: 560px) and (prefers-reduced-motion: no-preference)";
 const reduceQuery = "(prefers-reduced-motion: reduce)";
-function watchMotion(listener: () => void) {
-  const media = window.matchMedia(reduceQuery);
-  media.addEventListener("change", listener);
-  return () => media.removeEventListener("change", listener);
+const readWide = () => window.matchMedia(wideQuery).matches;
+const readReduced = () => window.matchMedia(reduceQuery).matches;
+const staticLayout = () => false;
+function watchLayout(callback: () => void) {
+  const conditions = [
+    window.matchMedia(wideQuery),
+    window.matchMedia(reduceQuery),
+  ];
+  conditions.forEach((media) => media.addEventListener("change", callback));
+  return () =>
+    conditions.forEach((media) =>
+      media.removeEventListener("change", callback),
+    );
 }
 
-function WorkoutSheet({ frame }: { frame: Frame }) {
-  const item = frames[frame];
+function Hourglass({ animate }: { animate: boolean }) {
+  const surface = useRef<HTMLDivElement>(null);
+  const [entered, setEntered] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!animate || !surface.current || !("IntersectionObserver" in window))
+      return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setEntered(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(surface.current);
+    return () => observer.disconnect();
+  }, [animate]);
   return (
-    <figure className="ws-sheet" data-frame={frame}>
-      <figcaption className="ws-sheet-heading">
-        <span>Overkrop A</span>
-        <span>{item.date}</span>
-      </figcaption>
-      <div className="ws-sheet-body">
-        <div className="ws-readout">
-          <span className="ws-readout-label">{item.label}</span>
-          <span className="ws-value">
-            {item.value}
-            {item.unit && <small>{item.unit}</small>}
-          </span>
-          <span className="ws-note">
-            {item.note}
-            <strong>{item.detail}</strong>
-          </span>
-        </div>
-        <div className="ws-window" data-flip-id="workout-screen">
+    <div className="ws-hourglass" ref={surface} aria-hidden="true">
+      <img
+        src="/product/story-hourglass.webp"
+        loading="lazy"
+        decoding="async"
+        width="620"
+        height="775"
+        alt=""
+      />
+      {animate && entered && (
+        <video
+          src="/product/story-hourglass.mp4"
+          muted
+          playsInline
+          autoPlay
+          disablePictureInPicture
+          data-playing={playing || undefined}
+          onPlaying={() => setPlaying(true)}
+          onError={() => setPlaying(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function Scene({ frame, animate }: { frame: Frame; animate: boolean }) {
+  const image = frames[frame];
+  return (
+    <figure className="ws-scene" data-frame={frame}>
+      {frame === "program" && (
+        <>
+          <div className="ws-planned">
+            <span>Mit styrkeprogram</span>
+            <strong>3 × 8</strong>
+            <span>sæt × gentagelser</span>
+          </div>
           <img
-            src={`/product/revision-${frame}.webp`}
-            width={960}
-            height={item.height}
+            className="ws-bench"
+            src="/product/baenkpres.webp"
+            width="512"
+            height="512"
             loading="lazy"
             decoding="async"
-            alt={item.alt}
+            alt=""
           />
+        </>
+      )}
+      {frame === "set" && (
+        <div className="ws-lift">
+          <div>
+            <span>12. november</span>
+            <strong>
+              60 <small>kg</small>
+            </strong>
+          </div>
+          <div>
+            <span>15. november</span>
+            <strong>
+              62,5 <small>kg</small>
+            </strong>
+          </div>
         </div>
-      </div>
-      <div className="ws-sheet-footer">
-        <span>Bænkpres med stang</span>
-        <span>{item.moment}</span>
+      )}
+      {frame === "rest" && (
+        <>
+          <Hourglass animate={animate} />
+          <div className="ws-clock">
+            <span>Pausetid tilbage</span>
+            <strong>01:42</strong>
+          </div>
+        </>
+      )}
+      {frame === "history" && (
+        <>
+          <img
+            className="ws-grip"
+            src="/product/story-grip.webp"
+            width="920"
+            height="1150"
+            loading="lazy"
+            decoding="async"
+            alt=""
+          />
+          <div className="ws-archive-date">
+            <span>Næste træning</span>
+            <strong>17. nov.</strong>
+          </div>
+        </>
+      )}
+      <div className="ws-window" data-flip-id="overkrop-workout-window">
+        <picture>
+          {frame === "history" && (
+            <source
+              media="(max-width: 680px)"
+              srcSet="/product/story-history-detail.webp"
+              width="889"
+              height="454"
+            />
+          )}
+          <img
+            src={`/product/${image.src}.webp`}
+            width={image.width}
+            height={image.height}
+            loading="lazy"
+            decoding="async"
+            alt={image.alt}
+          />
+        </picture>
       </div>
     </figure>
   );
 }
 
+function StepLabel({ children }: { children: string }) {
+  return <p className="ws-step-label">{children}</p>;
+}
+
 export default function WorkoutStory() {
-  const allStates = useSyncExternalStore(
-    watchMotion,
-    () => window.matchMedia(reduceQuery).matches,
-    () => false,
-  );
-  const [frame, setFrame] = useState<Frame>("program");
-  const activeChapter: Chapter = frame === "rest" ? "set" : frame;
+  const wide = useSyncExternalStore(watchLayout, readWide, staticLayout);
+  const reduced = useSyncExternalStore(watchLayout, readReduced, staticLayout);
   const root = useRef<HTMLElement>(null);
+  const current = useRef<Frame>("program");
+  const [frame, setFrame] = useState<Frame>("program");
   const flip = useRef<typeof Flip | null>(null);
-  const previousWindow = useRef<ReturnType<typeof Flip.getState> | null>(null);
-  const mobileTarget = useRef<HTMLElement | null>(null);
+  const previous = useRef<ReturnType<typeof Flip.getState> | null>(null);
 
   useEffect(() => {
-    if (
-      allStates ||
-      !root.current ||
-      !window.matchMedia("(min-width: 960px)").matches
-    )
-      return;
     const section = root.current;
-    let disposed = false;
-    let release = () => {};
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        observer.disconnect();
-        void Promise.all([
-          import("gsap"),
-          import("gsap/Flip"),
-          import("gsap/ScrollTrigger"),
-        ])
-          .then(([{ gsap }, { Flip }, { ScrollTrigger }]) => {
-            if (disposed) return;
-            gsap.registerPlugin(Flip, ScrollTrigger);
-            flip.current = Flip;
-            // Warm the upcoming app frames when the reader reaches the spread.
-            const trigger = ScrollTrigger.create({
-              trigger: section,
-              start: "top bottom",
-              once: true,
-              onEnter: () => {
-                for (const state of ["set", "rest", "history"]) {
-                  const image = new Image();
-                  image.src = `/product/revision-${state}.webp`;
-                  void image.decode().catch(() => {});
-                }
-              },
-            });
-            release = () => trigger.kill();
-          })
-          .catch(() => {}); // Chapter controls and static sheets work without the motion bundle.
-      },
-      { rootMargin: "200px" },
+    if (!section) return;
+    const steps = Array.from(
+      section.querySelectorAll<HTMLElement>("[data-reading-step]"),
     );
-    observer.observe(section);
+    let raf = 0;
+    let disposed = false;
+    let releaseTrigger = () => {};
+
+    function readPosition() {
+      raf = 0;
+      const line = Math.min(window.innerHeight * 0.43, 365);
+      let next: Frame = "program";
+      for (const step of steps) {
+        if (step.getBoundingClientRect().top > line) break;
+        next = step.dataset.readingStep as Frame;
+      }
+      if (current.current === next) return;
+      const windowElement = section?.querySelector<HTMLElement>(
+        ".ws-stage .ws-window",
+      );
+      if (wide && windowElement && flip.current) {
+        flip.current.killFlipsOf(windowElement);
+        previous.current = flip.current.getState(windowElement);
+      }
+      current.current = next;
+      setFrame(next);
+    }
+    function schedule() {
+      if (!raf) raf = requestAnimationFrame(readPosition);
+    }
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    readPosition();
+
+    const observer =
+      wide && "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            ([entry]) => {
+              if (!entry.isIntersecting) return;
+              observer?.disconnect();
+              void Promise.all([
+                import("gsap"),
+                import("gsap/Flip"),
+                import("gsap/ScrollTrigger"),
+              ])
+                .then(([{ gsap }, { Flip }, { ScrollTrigger }]) => {
+                  if (disposed) return;
+                  gsap.registerPlugin(Flip, ScrollTrigger);
+                  flip.current = Flip;
+                  const trigger = ScrollTrigger.create({
+                    trigger: section,
+                    start: "top bottom",
+                    end: "bottom top",
+                    onUpdate: readPosition,
+                    onRefresh: readPosition,
+                  });
+                  window.removeEventListener("scroll", schedule);
+                  releaseTrigger = () => trigger.kill();
+                  readPosition();
+                })
+                .catch(() => {}); // Native scrolling already selects each chapter.
+            },
+            { rootMargin: "180px" },
+          )
+        : null;
+    observer?.observe(section);
     return () => {
       disposed = true;
-      observer.disconnect();
-      release();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      releaseTrigger();
+      previous.current = null;
       flip.current = null;
-      previousWindow.current = null;
     };
-  }, [allStates]);
-
-  function select(next: Frame, button?: HTMLButtonElement) {
-    if (next === frame) return;
-    const current = root.current?.querySelector<HTMLElement>(".ws-window");
-    const wide = window.matchMedia("(min-width: 960px)").matches;
-    if (wide && !allStates && current && flip.current) {
-      flip.current.killFlipsOf(current);
-      previousWindow.current = flip.current.getState(current);
-    }
-    if (!wide && button) mobileTarget.current = button;
-    setFrame(next);
-  }
+  }, [wide]);
 
   useLayoutEffect(() => {
-    const next = root.current?.querySelector<HTMLElement>(".ws-window");
-    if (previousWindow.current && flip.current && next) {
-      flip.current.from(previousWindow.current, {
+    const next = root.current?.querySelector<HTMLElement>(
+      ".ws-stage .ws-window",
+    );
+    if (previous.current && next && flip.current) {
+      flip.current.from(previous.current, {
         targets: next,
         scale: true,
-        duration: 0.4,
+        duration: 0.38,
         ease: "power2.out",
       });
     }
-    previousWindow.current = null;
-    // A chapter above may have closed. Keep the button the visitor just chose in sight.
-    const button = mobileTarget.current;
-    if (button && button.getBoundingClientRect().top < 0)
-      button.scrollIntoView({ block: "start", behavior: "instant" });
-    mobileTarget.current = null;
+    previous.current = null;
   }, [frame]);
 
+  const inline = (state: Frame) =>
+    wide ? null : <Scene frame={state} animate={!reduced} />;
+  const chapter = frame === "rest" ? "set" : frame;
   return (
     <section
-      ref={root}
       id="traeningsforloeb"
       className="workout-story"
+      ref={root}
       aria-labelledby="workout-story-heading"
     >
       <div className="ws-inner">
@@ -238,135 +315,92 @@ export default function WorkoutStory() {
           <h2 id="workout-story-heading">
             Fra sidste sæt
             <br />
-            <em>til næste træning.</em>
+            <span>til næste træning.</span>
           </h2>
-          <p>
-            Følg bænkpres gennem én træning i Overkrop A, fra programmet til det
-            sæt, du finder igen næste gang.
-          </p>
+          <div className="ws-intro">
+            <p>
+              Følg én øvelse i Overkrop A, fra planen den 15. november til næste
+              træning to dage senere.
+            </p>
+            <p className="ws-disclosure">
+              Eksempeldata · rekonstruerede appvisninger
+            </p>
+          </div>
         </header>
-        <div className="ws-book" data-all-states={allStates || undefined}>
-          {chapters.map((chapter) => {
-            const open = allStates || chapter.frame === activeChapter;
-            const displayFrame =
-              chapter.frame === "set" && frame === "rest" && !allStates
-                ? "rest"
-                : chapter.frame;
-            return (
-              <section
-                key={chapter.id}
-                className="ws-chapter"
-                id={chapter.id}
-                data-current={open || undefined}
+        <nav className="ws-nav" aria-label="Træningsforløbets kapitler">
+          {chapters.map((item) => (
+            <a
+              key={item.frame}
+              href={`#${item.anchor}`}
+              aria-current={chapter === item.frame ? "step" : undefined}
+            >
+              <span>{item.number}</span>
+              {item.name}
+            </a>
+          ))}
+        </nav>
+        <div className="ws-spread" data-sticky={wide || undefined}>
+          <div className="ws-reading">
+            <article
+              id="dit-program"
+              className="ws-step"
+              data-reading-step="program"
+              aria-labelledby="ws-program-title"
+            >
+              <StepLabel>01 / Programmet</StepLabel>
+              <h3 id="ws-program-title">Dit program er klar.</h3>
+              <p>
+                Åbn Overkrop A. Bænkpres med stang ligger klar med tre sæt af
+                otte og to minutters pause.
+              </p>
+              {inline("program")}
+            </article>
+            <article id="dit-saet" aria-labelledby="ws-set-title">
+              <div className="ws-step" data-reading-step="set">
+                <StepLabel>02 / Første arbejdssæt</StepLabel>
+                <h3 id="ws-set-title">Et sæt ad gangen.</h3>
+                <p>Registrér sættet. Hold styr på pausen.</p>
+                <p>
+                  Sidst løftede du 60 kg. I dag skriver du 62,5 kg og otte
+                  gentagelser i første sætrække.
+                </p>
+                {inline("set")}
+              </div>
+              <div
+                id="din-pause"
+                className="ws-step ws-pause-step"
+                data-reading-step="rest"
               >
-                <h3 className="ws-tab-heading">
-                  {allStates ? (
-                    <span className="ws-tab">
-                      <span className="ws-index">{chapter.number}</span>
-                      {chapter.title}
-                    </span>
-                  ) : (
-                    <button
-                      className="ws-tab"
-                      type="button"
-                      aria-expanded={open}
-                      aria-disabled={open || undefined}
-                      aria-controls={`workout-${chapter.frame}`}
-                      aria-describedby={
-                        open ? undefined : `summary-${chapter.frame}`
-                      }
-                      onClick={(event) => {
-                        if (!open) select(chapter.frame, event.currentTarget);
-                      }}
-                    >
-                      <span className="ws-index" aria-hidden="true">
-                        {chapter.number}
-                      </span>
-                      <span>
-                        {chapter.title}
-                        {!open && (
-                          <small
-                            className="ws-summary"
-                            aria-hidden="true"
-                            id={`summary-${chapter.frame}`}
-                          >
-                            {chapter.summary}
-                          </small>
-                        )}
-                      </span>
-                      <svg
-                        className="ws-pointer"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d={
-                            open ? "M4 10h12M10 4l6 6-6 6" : "M4 10h12M10 4v12"
-                          }
-                          stroke="currentColor"
-                          strokeWidth="1.65"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </h3>
-                <div
-                  className="ws-chapter-body"
-                  id={`workout-${chapter.frame}`}
-                  hidden={!open}
-                >
-                  <div className="ws-copy">
-                    <p>{chapter.copy}</p>
-                    {chapter.frame === "set" && (
-                      <p>
-                        Sidst løftede du 60 kg. Denne gang skriver du 62,5 kg ×
-                        8. Når du markerer sættet som udført, starter pausen.
-                      </p>
-                    )}
-                    {chapter.frame === "history" && (
-                      <p>
-                        Åbn “Tidligere” ved bænkpres. Her ligger de 62,5 kg × 8
-                        fra den 15. november.
-                      </p>
-                    )}
-                    {chapter.frame === "set" && !allStates && (
-                      <div
-                        className="ws-steps"
-                        role="group"
-                        aria-label="Tidspunkter i andet kapitel"
-                      >
-                        <button
-                          type="button"
-                          aria-pressed={frame === "set"}
-                          onClick={() => select("set")}
-                        >
-                          Se sættet
-                        </button>
-                        <button
-                          type="button"
-                          aria-pressed={frame === "rest"}
-                          onClick={() => select("rest")}
-                        >
-                          Se pausen
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {open && <WorkoutSheet frame={displayFrame} />}
-                  {allStates && chapter.frame === "set" && (
-                    <WorkoutSheet frame="rest" />
-                  )}
-                </div>
-              </section>
-            );
-          })}
+                <h4>Mellem sættene.</h4>
+                <p>
+                  Når du markerer sættet som udført, starter pausen. Andet sæt
+                  ligger klar. Der er 1 minut og 42 sekunder tilbage.
+                </p>
+                {inline("rest")}
+              </div>
+            </article>
+            <article
+              id="din-historik"
+              className="ws-step"
+              data-reading-step="history"
+              aria-labelledby="ws-history-title"
+            >
+              <StepLabel>03 / Historikken</StepLabel>
+              <h3 id="ws-history-title">Tag det med til næste gang.</h3>
+              <p>Se dine tidligere træninger, når du skal videre.</p>
+              <p>
+                Ved næste bænkpres åbner du “Tidligere”. Her ligger de 62,5 kg ×
+                8 fra den 15. november.
+              </p>
+              {inline("history")}
+            </article>
+          </div>
+          {wide && (
+            <div className="ws-stage">
+              <Scene frame={frame} animate={!reduced} />
+            </div>
+          )}
         </div>
-        <p className="ws-disclosure">
-          Eksempeldata · rekonstruerede appvisninger
-        </p>
       </div>
     </section>
   );

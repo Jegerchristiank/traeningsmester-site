@@ -5,109 +5,138 @@
   <title>Træningsmester — Træn videre fra sidste gang.</title>
   <style>
     @font-face { font-family: Cabinet; src: url('../../public/fonts/CabinetGrotesk-800.woff2'); font-weight: 800 }
-    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-400.woff2'); font-weight: 400 }
+    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-500.woff2'); font-weight: 500 }
     @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-700.woff2'); font-weight: 700 }
-    :root { --paper: #f7f6f1; --ink: #161a19; --quiet: #525a56; --rule: #b5b8ae; --blue: #0759c7 }
-    * { box-sizing: border-box }
-    body { margin: 0; color: var(--ink); background: var(--paper); font: 400 34px/1.24 Satoshi, Arial, sans-serif }
-    h1, p, figure { margin: 0 }
-    #canvas { width: 1080px; height: 1920px; position: relative; isolation: isolate; overflow: hidden; background: var(--paper) }
-    .brand { position: absolute; left: 70px; top: 85px; display: flex; align-items: center; gap: 17px; z-index: 2 }
-    .brand img { width: 54px; height: 54px; object-fit: contain }
-    .brand span { font: 800 42px/1 Cabinet, Arial, sans-serif; letter-spacing: -.045em }
-    h1 { position: absolute; top: 213px; left: 63px; font: 800 154px/.89 Cabinet, Arial, sans-serif; letter-spacing: -.061em; z-index: 2 }
-    h1 span, h1 em { display: block; white-space: nowrap }
-    h1 em { margin-top: 15px; font: italic 128px/.97 Georgia, 'Times New Roman', serif; letter-spacing: -.066em }
-    .photo { position: absolute; overflow: hidden; background: #262a28 }
-    .photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--position, 51% 47%); filter: grayscale(1) contrast(1.16) brightness(.91); transform: scale(var(--photo-scale, 1.02)); transform-origin: var(--origin, 52% 46%) }
-    .screen { display: block; position: absolute; height: auto; z-index: 1; filter: drop-shadow(0 7px 12px rgb(15 23 19 / 11%)) }
-    .foot { position: absolute; font-size: 27px; line-height: 1.24; color: var(--quiet) }
-    .cta { position: absolute; display: flex; align-items: center; justify-content: space-between; gap: 32px; border-top: 2px solid var(--rule); padding-top: 24px; color: var(--blue); font-weight: 700; letter-spacing: -.042em }
-    .cta .arrow { flex-shrink: 0; width: 32px; height: 32px }
-    .address { position: absolute; font-weight: 700; letter-spacing: -.015em }
-    .intro .photo { top: 640px; left: 0; width: 1080px; height: 948px; --position: 51% 40% }
-    .intro h1 { top: 228px; font-size: 161px }
-    .intro h1 em { font-size: 160px; margin-top: 5px }
-    .intro .screen { left: 100px; top: 1323px; width: 920px }
-    .intro .foot { left: 125px; top: 1740px }
-    .outro h1 { top: 224px }
-    .outro .photo { left: 0; top: 578px; width: 1080px; height: 666px; --position: 49% 38% }
-    .outro .screen { left: 145px; top: 999px; width: 860px }
-    .outro .foot { left: 163px; top: 1381px }
-    .outro .cta { left: 70px; right: 70px; top: 1490px; font-size: 64px }
-    .outro .address { top: 1630px; left: 71px; font-size: 42px }
-    .outro .status { position: absolute; top: 1712px; left: 71px; color: var(--quiet); font-size: 34px }
-    /* The set and rest exports share a source viewport and keep exactly the same upper left point. */
-    .chapter .brand { top: 79px }
-    .chapter h1 { top: 203px; font-size: 123px }
-    .chapter h1 em { margin-top: 5px; font-size: 106px }
-    .chapter .screen { width: 846px; top: 471px; left: 76px }
-    .chapter .photo { top: 524px; right: 0; width: 406px; height: 801px; --position: 63% 44% }
-    .chapter .caption { position: absolute; bottom: 140px; left: 80px; right: 80px; border-top: 2px solid var(--rule); padding-top: 24px }
-    .chapter .caption p:first-child { font: 700 30px/1.1 Satoshi, Arial, sans-serif; color: var(--quiet); margin-bottom: 9px }
-    .chapter .stat { font: 400 59px/1.1 ui-monospace, 'Menlo', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.075em }
-    .chapter .foot { bottom: 71px; left: 80px }
-    .chapter.rest .screen, .chapter.set .screen { width: 795px; top: 462px; left: 76px }
-    .chapter.history .screen { width: 895px; top: 551px }
-    .chapter.history .photo { top: 480px; right: 0; width: 540px; height: 840px; --position: 61% 39% }
-    .still { height: 1350px !important }
-    .still .brand { top: 62px }
-    .still h1 { top: 169px; font-size: 146px }
-    .still h1 em { font-size: 122px; margin-top: 9px }
-    .still .photo { left: 0; top: 460px; width: 1080px; height: 548px; --position: 48% 43% }
-    .still .screen { left: 184px; top: 775px; width: 822px }
-    .still .foot { left: 203px; top: 1137px; font-size: 24px }
-    .still .cta { left: 70px; right: 70px; top: 1211px; padding-top: 18px; justify-content: flex-start; gap: 15px; font-size: 42px }
-    .still .address { right: 70px; top: 1243px; font-size: 30px }
-    #canvas.og { width: 1200px; height: 630px }
-    .og .brand { top: 46px; left: 49px; gap: 11px }
-    .og .brand img { width: 44px; height: 44px }
-    .og .brand span { font-size: 33px }
-    .og h1 { top: 171px; left: 44px; font-size: 101px }
-    .og h1 em { font-size: 82px; margin-top: 9px }
-    .og .photo { right: 0; top: 0; width: 562px; height: 630px; --position: 57% 37% }
-    .og .screen { left: 584px; top: 321px; width: 576px; filter: drop-shadow(0 4px 9px rgb(14 23 17 / 18%)) }
-    .og .cta { top: 488px; left: 49px; width: 492px; padding-top: 14px; justify-content: flex-start; gap: 14px; font-size: 35px }
-    .og .cta .arrow { width: 23px; height: 23px }
-    .og .foot { left: 50px; top: 565px; font-size: 21px }
+    :root { --paper:#f8f7f2; --ink:#111d3a; --muted:#505768; --rule:#bec0c6; --lavender:#d8d8ee; --blue:#0759c7 }
+    * { box-sizing:border-box }
+    body { margin:0; color:var(--ink); background:var(--paper); font:500 36px/1.2 Satoshi,Arial,sans-serif }
+    h1,p,figure,dl,dt,dd { margin:0 }
+    #canvas { position:relative; isolation:isolate; width:1080px; height:1920px; overflow:hidden; background:var(--paper) }
+    #canvas.outro,#canvas.still,#canvas.og { background:linear-gradient(114deg,#f2f2fb 0%,#e3e5f8 46%,#c3c9ee 100%) }
+    .brand { position:absolute; left:67px; top:82px; display:flex; align-items:center; gap:15px; z-index:3 }
+    .brand img { width:56px; height:56px; object-fit:contain }
+    .brand span { font:800 43px/.95 Cabinet,Arial,sans-serif; letter-spacing:-.047em }
+    h1 { position:absolute; left:60px; top:200px; z-index:2; font:800 146px/.87 Cabinet,Arial,sans-serif; letter-spacing:-.06em }
+    h1 span { display:block; white-space:nowrap }
+    .card { position:absolute; width:700px; height:auto; filter:drop-shadow(6px 16px 12px rgb(33 40 86 / 20%)) }
+    .field,.moving-motif { position:absolute }
+    .field { background:var(--lavender) }
+    .moving-motif { display:block; object-fit:fill }
+    .screen { display:block; position:absolute; z-index:1; height:auto; filter:drop-shadow(0 7px 12px rgb(18 29 63 / 12%)) }
+    .note { position:absolute; left:69px; bottom:62px; font-size:26px; color:var(--muted) }
+    .metric { position:absolute; left:70px; right:70px; border-top:2px solid var(--rule); padding-top:23px }
+    .metric dt,.figures dt { color:var(--muted); font:700 31px/1.1 Satoshi,Arial,sans-serif; letter-spacing:-.015em }
+    .metric dd,.figures dd { margin-top:11px; font:800 85px/.93 Cabinet,Arial,sans-serif; letter-spacing:-.055em; font-variant-numeric:tabular-nums; white-space:nowrap }
+    .figures { position:absolute; z-index:2 }
+    .figures dt:not(:first-child) { margin-top:36px }
+    .figures dd:last-child { color:var(--blue) }
+    .figures dd small { font:700 .46em/1 Satoshi,Arial,sans-serif; letter-spacing:-.045em }
+    .cta { position:absolute; display:flex; align-items:center; gap:22px; color:var(--blue); font:700 49px/1.1 Satoshi,Arial,sans-serif; letter-spacing:-.045em }
+    .arrow { width:.65em; height:.65em; flex-shrink:0 }
+    .address,.status { position:absolute }
+    .address { font-weight:700; letter-spacing:-.025em }
+    .status { color:var(--muted) }
+    .intro h1 { top:203px; font-size:151px }
+    .intro .moving-motif { top:550px; left:0; width:1080px; height:1000px }
+    .intro .metric { top:1603px; border:0; padding:0 }
+    .intro .metric dd { font-size:96px }
+    .chapter h1 { top:211px; font-size:130px }
+    .chapter .field { top:532px; left:347px; right:0; height:775px }
+    .chapter .card { top:184px; left:704px; width:308px; transform:rotate(3deg) }
+    .chapter .screen { top:531px; left:75px; width:838px }
+    .chapter .metric { bottom:151px }
+    .set .field { left:0; right:0; top:780px; height:385px; background:#e7e8f3 }
+    .set .screen { left:81px; top:512px; width:910px }
+    .set .metric dd { color:var(--blue) }
+    .rest .brand { color:#fff; text-shadow:0 1px 2px rgb(4 18 37 / 50%); top:65px }
+    .rest .moving-motif { left:0; top:0; width:1080px; height:960px }
+    .rest h1 { top:1032px; font-size:108px }
+    .rest .screen { top:1194px; left:71px; width:938px; height:584px; object-fit:cover; object-position:50% 82% }
+    .rest .note { bottom:61px }
+    .history .screen { left:103px; top:548px; width:877px }
+    .history .field { top:706px; width:1080px; left:0; height:441px; background:#e7e8f3 }
+    .history .metric dd { color:var(--blue) }
+    .outro h1 { top:220px; font-size:146px }
+    .outro .field { left:70px; top:1350px; width:940px; height:2px; background:#a6adc7 }
+    .outro .card { width:695px; top:635px; left:381px }
+    .outro .figures { top:790px; left:65px }
+    .outro .figures dd { font-size:97px }
+    .outro .cta { top:1434px; left:69px; font-size:71px }
+    .outro .address { top:1553px; left:70px; font-size:44px }
+    .outro .status { top:1647px; left:70px; font-size:34px }
+    #canvas.still { height:1350px }
+    .still .brand { top:58px }
+    .still h1 { top:173px; font-size:139px }
+    .still .field { top:1091px; left:69px; width:942px; height:2px; background:#a6adc7 }
+    .still .card { width:704px; top:473px; left:364px }
+    .still .figures { top:639px; left:65px }
+    .still .figures dd { font-size:95px }
+    .still .cta { left:69px; top:1150px; font-size:49px }
+    .still .address { top:1170px; right:69px; font-size:32px }
+    .still .note { top:1256px; bottom:auto; font-size:25px }
+    #canvas.og { width:1200px; height:630px }
+    .og .brand { top:47px; left:46px; gap:12px }
+    .og .brand img { width:44px; height:44px }
+    .og .brand span { font-size:34px }
+    .og h1 { top:163px; left:42px; font-size:90px }
+    .og .field { top:490px; left:49px; width:485px; height:1px; background:#a6adc7 }
+    .og .card { width:630px; top:41px; right:-1px }
+    .og .figures { left:49px; top:359px; display:grid; grid-template-columns:auto auto; column-gap:45px }
+    .og .figures dt { grid-row:1; font-size:19px }
+    .og .figures dt:not(:first-child) { margin:0 }
+    .og .figures dd { grid-row:2; font-size:52px; margin-top:3px }
+    .og .cta { left:49px; top:524px; font-size:34px; gap:16px }
+    .og .note { top:578px; left:50px; bottom:auto; font-size:18px }
   </style>
 </head>
 <body>
   <main id="canvas"></main>
   <script>
-    const params = new URLSearchParams(location.search);
-    const mode = params.get('mode') || 'intro';
+    const mode = new URLSearchParams(location.search).get('mode') || 'intro';
     const stage = document.getElementById('canvas');
-    const asset = name => '../../public/product/' + name + '.webp';
     const brand = '<div class="brand"><img src="../../public/brand/tm-logo-256.webp" alt=""><span>Træningsmester</span></div>';
-    const photo = '<figure class="photo"><img src="' + asset('athlete') + '" alt="En løfter griber stangen i træningslokalet"></figure>';
-    const note = '<p class="foot">Eksempeldata · rekonstruerede appvisninger</p>';
+    const card = '<img class="card" src="../../public/product/programkort.webp" alt="Illustreret øvelseskort med ring og teksten Bænkpres med stang">';
+    const field = '<div class="field"></div>';
+    const figures = '<dl class="figures"><dt>Sidste træning</dt><dd>60 <small>kg × 8</small></dd><dt>Dagens første sæt</dt><dd>62,5 <small>kg × 8</small></dd></dl>';
     const arrow = '<svg class="arrow" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 24 24 4M5 4h19v19" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const cta = '<p class="cta"><span>Få besked om adgang</span>' + arrow + '</p>';
-    const headline = (lead, emphasis) => '<h1><span>' + lead + '</span><em>' + emphasis + '</em></h1>';
-    const product = (frame, alt) => '<img class="screen" src="' + asset('revision-' + frame) + '" alt="' + alt + '">';
-    const detail = product('detail-set', 'Sidste sæt 60 kg × 8. Arbejdssæt 1 af 3, 8 gentagelser ved 62,5 kg.');
+    const cta = '<p class="cta">Få besked om adgang' + arrow + '</p>';
+    const headline = (...lines) => '<h1>' + lines.map(line => '<span>' + line + '</span>').join('') + '</h1>';
+    const metric = (label,value) => '<dl class="metric"><dt>' + label + '</dt><dd>' + value + '</dd></dl>';
+    const note = label => '<p class="note">' + label + '</p>';
+    const recordNote = note('Eksempeldata · rekonstruerede appvisninger');
+    const product = (frame,alt) => '<img class="screen" src="../../public/product/revision-' + frame + '.webp" alt="' + alt + '">';
+    const film = (name,label) => '<video class="moving-motif" muted playsinline preload="auto" aria-label="' + label + '" src="source/' + name + '-bevaegelse.mp4"></video>';
     const scenes = {
-      program: { title: ['Dit program', 'er klar.'], alt: 'Mit styrkeprogram, Overkrop A, Bænkpres Med Stang.', label: 'Overkrop A · Bænkpres med stang', value: '3 sæt × 8' },
-      set: { title: ['Registrér', 'sættet.'], alt: 'Bænkpres Med Stang. Sidste sæt 60 kg × 8. Første sæt står til 62,5 kg × 8.', label: 'Sidste gang', value: '60 kg × 8' },
-      rest: { title: ['Hold styr', 'på pausen.'], alt: 'Første sæt er registreret med 62,5 kg. Andet sæt er aktivt. Der er 01:42 tilbage af pausen.', label: 'Mellem sættene', value: '01:42' },
-      history: { title: ['Tag det med', 'til næste gang.'], alt: 'Tidligere sæt i Bænkpres Med Stang. Den 15. november, 62,5 kg × 8.', label: '15. november · registreret sæt', value: '62,5 kg × 8' }
+      program: {
+        title:['Dit program', 'er klar.'], background:field + card, alt:'Mit styrkeprogram. Overkrop A. Bænkpres Med Stang.',
+        label:'Overkrop A · Bænkpres med stang', value:'3 sæt × 8'
+      },
+      set: {
+        title:['Registrér', 'sættet.'], background:field, alt:'Sidste sæt 60 kg × 8. Første sæt står til 62,5 kg × 8.',
+        label:'Første arbejdssæt', value:'62,5 kg × 8'
+      },
+      history: {
+        title:['Tag det med', 'til næste gang.'], background:field, alt:'Tidligere sæt i Bænkpres Med Stang den 15. november, 62,5 kg × 8.',
+        label:'15. november · seneste registrering', value:'62,5 kg × 8'
+      }
     };
-
     stage.className = mode;
     const scene = scenes[mode];
     if (scene) {
       stage.classList.add('chapter');
-      stage.innerHTML = brand + headline(...scene.title) + photo + product(mode, scene.alt)
-        + '<div class="caption"><p>' + scene.label + '</p><p class="stat">' + scene.value + '</p></div>' + note;
+      stage.innerHTML = scene.background + brand + headline(...scene.title) + product(mode,scene.alt)
+        + metric(scene.label,scene.value) + recordNote;
+    } else if (mode === 'rest') {
+      stage.innerHTML = film('timeglas','Timeglas af blå vægtskiver') + brand + headline('Hold styr på pausen.')
+        + product('rest','Første sæt er registreret. Andet sæt er aktivt. Der er 01:42 tilbage af pausen.') + recordNote;
     } else if (mode === 'intro') {
-      stage.innerHTML = brand + headline('Hvad løftede', 'jeg sidst?') + photo + detail + note;
-    } else if (['outro', 'still', 'og'].includes(mode)) {
-      stage.innerHTML = brand + headline('Træn videre', 'fra sidste gang.') + photo + detail + cta + note;
-      if (mode !== 'og') stage.insertAdjacentHTML('beforeend', '<p class="address">traeningsmester.dk</p>');
-      if (mode === 'outro') stage.insertAdjacentHTML('beforeend', '<p class="status">Træningsmester er under udvikling.</p>');
+      stage.innerHTML = brand + headline('Hvad løftede', 'jeg sidst?') + film('programkort','Ringbundne kort med bænkpres')
+        + metric('Sidste sæt i bænkpres','60 kg × 8') + note('Eksempeldata');
+    } else if (['outro','still','og'].includes(mode)) {
+      stage.innerHTML = field + card + brand + headline('Træn videre', 'fra sidste gang.') + figures + cta + note('Eksempeldata');
+      if (mode !== 'og') stage.insertAdjacentHTML('beforeend','<p class="address">traeningsmester.dk</p>');
+      if (mode === 'outro') stage.insertAdjacentHTML('beforeend','<p class="status">Træningsmester er under udvikling.</p>');
     }
-
   </script>
 </body>
 </html>

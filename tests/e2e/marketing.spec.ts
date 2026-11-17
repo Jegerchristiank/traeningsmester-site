@@ -26,10 +26,8 @@ test("first screen is readable, single signup, images load and no runtime errors
   await expect(page.locator("form")).toHaveCount(1);
   await page.evaluate(() => document.fonts.ready);
   await page
-    .locator(".hero-product img")
-    .evaluateAll((images) =>
-      Promise.all(images.map((img) => (img as HTMLImageElement).decode())),
-    );
+    .locator(".deck-cover")
+    .evaluate((img) => (img as HTMLImageElement).decode());
   if (testInfo.project.name === "mobile") {
     // The product must be visible before asking visitors to read the full form.
     const product = await page.locator(".hero-product").boundingBox();
@@ -46,9 +44,10 @@ test("first screen is readable, single signup, images load and no runtime errors
   });
   for (const target of [
     "#traeningsforloeb",
-    "#dit-saet .ws-tab",
-    "#din-historik .ws-tab",
-    ".training-photo",
+    "#dit-saet",
+    "#din-pause",
+    "#din-historik",
+    ".week-spread",
     ".story-footer",
   ]) {
     await page.locator(target).scrollIntoViewIfNeeded();
@@ -57,7 +56,11 @@ test("first screen is readable, single signup, images load and no runtime errors
     .poll(() =>
       page.evaluate(() =>
         Array.from(document.images)
-          .filter((img) => img.getBoundingClientRect().width > 0)
+          .filter(
+            (img) =>
+              !img.closest("details:not([open])") &&
+              img.getBoundingClientRect().width > 0,
+          )
           .every((img) => img.complete && img.naturalWidth > 0),
       ),
     )
@@ -181,70 +184,84 @@ test("keyboard can reach form, open features and return from final CTA", async (
   await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
 });
 
-test("chapters retain the exercise from the first set through the pause and history", async ({
+test("ordinary scrolling follows one exercise through the set, its pause and the next session", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto("/");
-  const sheet = page.locator(".ws-sheet");
-  await expect(sheet).toHaveCount(1);
-  await expect(sheet).toContainText("3 × 8");
-  await expect(sheet.locator("img")).toHaveAttribute(
-    "src",
-    "/product/revision-program.webp",
-  );
-  const set = page.getByRole("button", { name: "Et sæt ad gangen." });
-  await set.focus();
+  const story = page.locator(".workout-story");
+  const wide = testInfo.project.name === "desktop";
+  const steps = [
+    ["program", "story-program-day"],
+    ["set", "revision-detail-set"],
+    ["rest", "story-rest-detail"],
+    ["history", "revision-history"],
+  ] as const;
+  await expect(story.locator(".ws-stage")).toHaveCount(wide ? 1 : 0);
+  for (const [frame, image] of steps) {
+    const step = story.locator(`[data-reading-step="${frame}"]`);
+    const distance = await step.evaluate(
+      (el) => el.getBoundingClientRect().top - 124,
+    );
+    await page.mouse.wheel(0, Math.round(distance));
+    const scene = wide
+      ? story.locator(".ws-stage .ws-scene")
+      : step.locator(".ws-scene");
+    await expect(scene).toHaveAttribute("data-frame", frame);
+    await expect(scene).toBeInViewport();
+    await expect(scene.locator(".ws-window img")).toHaveAttribute(
+      "src",
+      `/product/${image}.webp`,
+    );
+    if (frame === "rest") {
+      await expect(scene).toContainText("01:42");
+      await expect
+        .poll(() =>
+          scene
+            .locator("video")
+            .evaluate(
+              (video) =>
+                video instanceof HTMLVideoElement &&
+                video.muted &&
+                video.currentTime > 0,
+            ),
+        )
+        .toBe(true);
+    }
+  }
+  await expect(story.locator("[aria-current=step]")).toContainText("Historik");
+  const chapter = story.getByRole("link", { name: "02 Sæt og pause" });
+  await chapter.focus();
   await page.keyboard.press("Enter");
-  await expect(set).toHaveAttribute("aria-expanded", "true");
-  await expect(sheet).toHaveAttribute("data-frame", "set");
-  await expect(sheet).toContainText("60 kg × 8");
-  await page.getByRole("button", { name: "Se pausen" }).click();
-  await expect(sheet.locator("img")).toHaveAttribute(
-    "src",
-    "/product/revision-rest.webp",
-  );
-  await expect(sheet).toContainText("01:42");
-  const history = page.getByRole("button", {
-    name: "Tag det med til næste gang.",
-  });
-  await history.click();
-  await expect(history).toBeInViewport();
-  await expect(sheet.locator("img")).toHaveAttribute(
-    "src",
-    "/product/revision-history.webp",
-  );
-  await expect(sheet).toContainText("62,5");
-  await expect(sheet).toContainText("15. november");
+  await expect(page).toHaveURL(/#dit-saet$/);
+  await expect(chapter).toHaveAttribute("aria-current", "step");
+  await expect(story.locator("#ws-set-title")).toBeInViewport();
 });
 
-test("reduced motion exposes each readable frame in order without chapter navigation", async ({
+test("reduced motion shows four static app frames in reading order", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const sheets = page.locator(".ws-sheet");
-  await expect(sheets).toHaveCount(4);
+  const story = page.locator(".workout-story");
+  const scenes = story.locator(".ws-scene");
+  await expect(story.locator(".ws-stage")).toHaveCount(0);
+  await expect(scenes).toHaveCount(4);
   for (const [index, state] of [
     "program",
     "set",
     "rest",
     "history",
   ].entries()) {
-    const sheet = sheets.nth(index);
-    await expect(sheet).toBeVisible();
-    await expect(sheet.locator("img")).toHaveAttribute(
-      "src",
-      `/product/revision-${state}.webp`,
-    );
+    const scene = scenes.nth(index);
+    await expect(scene).toBeVisible();
+    await expect(scene).toHaveAttribute("data-frame", state);
+    await expect(scene.locator(".ws-window img")).toHaveAttribute("alt", /./);
   }
-  await expect(page.locator(".workout-story button")).toHaveCount(0);
+  await expect(story.locator("video")).toHaveCount(0);
+  await story.getByRole("link", { name: "03 Historik" }).click();
+  await expect(story.locator("#ws-history-title")).toBeInViewport();
   await page.locator(".closing-action").click();
   await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
 });
 
 test("statistics are opt-in, payloads exclude personal content and withdrawal stops events", async ({

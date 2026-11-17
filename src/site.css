@@ -18,7 +18,9 @@
 }
 :root {
   color-scheme: light;
-  --tm-paper: #f7f6f1;
+  --tm-paper: #faf8f2;
+  --tm-lilac: #d9dcf6;
+  --tm-royal: #15255e;
   --tm-ink: #161a19;
   --tm-muted: #535b56;
   --tm-rule: #d1d3c9;

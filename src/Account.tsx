@@ -80,11 +80,17 @@ export default function Account() {
           </nav>
         </div>
       ) : (
-        <div className="account-desk account-login-desk">
-          <AccountForm client={client} />
-          <aside className="account-guide-link">
-            <a className="service-link" href="/ai/help">Sådan forbinder du en assistent <ArrowMark /></a>
-          </aside>
+        <div className="account-desk">
+          <div className="account-login">
+            <AccountForm client={client} />
+          </div>
+          <nav className="account-tools" aria-labelledby="assistentvejledning">
+            <h2 id="assistentvejledning">Forbind din assistent</h2>
+            <p className="account-tools-intro">Vælg den vejledning, der passer til det værktøj, du bruger.</p>
+            <a href="/ai/help#chatgpt">ChatGPT <ArrowMark /></a>
+            <a href="/ai/help#claude">Claude <ArrowMark /></a>
+            <a href="/ai/help#codex">Codex <ArrowMark /></a>
+          </nav>
         </div>
       )}
     </ServiceShell>

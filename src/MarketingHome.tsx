@@ -91,34 +91,77 @@ function WorkoutCover() {
   return (
     <figure
       className="hero-product"
-      aria-label="Træningsfoto og eksempel fra Træningsmester"
+      aria-label="Træningskort med eksempel fra Overkrop A"
     >
-      <div className="cover-print training-photo">
+      <div className="deck-stage">
         <img
-          className="cover-athlete"
-          src="/product/athlete.webp"
+          className="deck-cover"
+          src="/product/programkort.webp"
+          srcSet="/product/programkort-lille.webp 500w, /product/programkort-mobil.webp 900w, /product/programkort.webp 1200w"
+          sizes="(max-width: 719px) 93vw, (max-width: 1500px) 45vw, 660px"
           width="1200"
-          height="800"
+          height="1056"
           fetchPriority="high"
-          alt="En atlet holder vægtstangen over hovedet i træningscenteret."
+          alt="Ringbundet træningskort med appens illustration af bænkpres med stang."
         />
+        <details className="deck-inspection">
+          <summary>
+            <span className="deck-turn-label">
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M19.5 8.8A8 8 0 1 0 20 14M20 4v5h-5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="turn-to">Vend til appvisning</span>
+              <span className="turn-back">Vend til træningskort</span>
+            </span>
+          </summary>
+          <div className="deck-reverse">
+            <p>Overkrop A</p>
+            <h2>Bænkpres med stang</h2>
+            <img
+              src="/product/revision-detail-set.webp"
+              width="1200"
+              height="510"
+              loading="lazy"
+              decoding="async"
+              alt="Appens sætrække med 60 kg × 8 fra sidste gang og et nyt arbejdssæt indstillet til 62,5 kg × 8."
+            />
+            <small>Rekonstrueret appvisning · eksempeldata</small>
+          </div>
+        </details>
       </div>
-      <div className="cover-sheet">
-        <div className="sheet-heading">
-          <p className="edition-label">Overkrop A</p>
-          <p className="sheet-exercise">Bænkpres Med Stang</p>
+      <figcaption className="deck-ledger">
+        <div className="ledger-caption">
+          <strong>
+            Overkrop A <span>/</span> Bænkpres
+          </strong>
+          <small>Eksempeldata</small>
         </div>
-        <img
-          className="cover-app"
-          src="/product/revision-detail-set.webp"
-          width="1200"
-          height="510"
-          alt="Appens sætrække. Sidste gang 60 kg × 8. Dagens første arbejdssæt er indstillet til 62,5 kg og 8 gentagelser."
-        />
-      </div>
-      <figcaption>
-        <span>Eksempeldata · rekonstrueret appvisning</span>
-        <span>Foto · Victor Freitas</span>
+        <dl>
+          <div>
+            <dt>Sidste træning</dt>
+            <dd>
+              60 <span>kg × 8</span>
+            </dd>
+          </div>
+          <div className="ledger-current">
+            <dt>Dagens første sæt</dt>
+            <dd>
+              62,5 <span>kg × 8</span>
+            </dd>
+          </div>
+        </dl>
       </figcaption>
     </figure>
   );
@@ -131,57 +174,73 @@ function FeatureIndex() {
       className="edition-features edition-shell"
       aria-labelledby="feature-heading"
     >
-      <div className="feature-spread-heading">
-        <h2 className="print-title" id="feature-heading">
+      <header className="feature-heading">
+        <h2 id="feature-heading">
           Til din måde
           <br />
-          <em>at træne på.</em>
+          at træne på.
         </h2>
         <p>
-          Opbyg din træningsuge med de øvelser, aktiviteter og forbindelser, der
-          passer til dig.
+          Vælg dine øvelser, byg din uge, og tag programmet med fra første
+          opvarmning til sidste arbejdssæt.
         </p>
+      </header>
+      <div className="week-spread">
+        <article className="warmup-poster">
+          <div className="warmup-art">
+            <img
+              src="/product/opvarmningsflamme.webp"
+              width="480"
+              height="477"
+              loading="lazy"
+              decoding="async"
+              alt=""
+            />
+          </div>
+          <div className="week-copy">
+            <h3>Før første sæt.</h3>
+            <p>
+              Læg opvarmningen ind i programmet. Appen holder opvarmningssæt og
+              arbejdssæt adskilt i din log.
+            </p>
+          </div>
+        </article>
+        <article className="restday-poster">
+          <div className="restday-art">
+            <img
+              src="/product/hviledag.webp"
+              width="779"
+              height="680"
+              loading="lazy"
+              decoding="async"
+              alt="En blå kettlebell hviler i et håndklæde."
+            />
+          </div>
+          <div className="week-copy">
+            <h3>Plads til en hviledag.</h3>
+            <p>
+              Byg dit eget program med de træningsdage, øvelser og pauser, der
+              passer ind i din uge.
+            </p>
+          </div>
+        </article>
       </div>
-      <div className="feature-spread">
-        <figure className="exercise-plate">
-          <p className="edition-label">Fra øvelsesbiblioteket</p>
-          <img
-            src="/product/baenkpres.webp"
-            width="512"
-            height="512"
-            alt="Appens øvelsesillustration viser startpositionen til bænkpres med stang."
-            loading="lazy"
-            decoding="async"
-          />
-          <figcaption>
-            <strong>Bænkpres Med Stang</strong>
-            <span>Styrke / Vægtstang</span>
-          </figcaption>
-        </figure>
-        <div className="feature-register">
-          <div>
-            <h3>Egne programmer</h3>
-            <p>
-              Sæt øvelserne i din rækkefølge. Vælg antal sæt og pauser for hver
-              træningsdag.
-            </p>
-          </div>
-          <div>
-            <h3>Styrke og kondition</h3>
-            <p>
-              Registrér kilo og gentagelser i centeret. Tag tid på din løbetur,
-              og følg distancen udenfor.
-            </p>
-          </div>
-          <div>
-            <h3>Dine forbindelser</h3>
-            <p>
-              Brug Apple Sundhed på iPhone. Strava er under udvikling som
-              valgfri forbindelse til dine aktiviteter.
-            </p>
-          </div>
+      <dl className="feature-notes">
+        <div>
+          <dt>Styrke og kondition</dt>
+          <dd>
+            Log kilo og gentagelser i centeret. Registrér tid og distance, når
+            du løber, går eller cykler.
+          </dd>
         </div>
-      </div>
+        <div>
+          <dt>Dine forbindelser</dt>
+          <dd>
+            Forbind Apple Sundhed på iPhone. Strava er under udvikling som
+            valgfri forbindelse til dine aktiviteter.
+          </dd>
+        </div>
+      </dl>
       <details className="all-features">
         <summary>
           Se alle funktioner <span className="toggle-mark" aria-hidden="true" />
@@ -208,50 +267,37 @@ function FeatureIndex() {
   );
 }
 
-function ProjectAndQuestions() {
+function Questions() {
   return (
-    <section className="project-section" aria-labelledby="questions-title">
-      <div className="edition-shell project-spread">
-        <aside aria-labelledby="project-title" className="project-colophon">
-          <p className="edition-label" id="project-title">
-            Bag Træningsmester
-          </p>
-          <h3>
-            Christian
-            <br />
-            <em>Kristensen.</em>
-          </h3>
-          <p>
-            Bag projektet står KRISTENSON i Næstved. Skriv til Christian, hvis
-            du har et spørgsmål til appen eller en idé fra din egen træning.
-          </p>
-          <a className="edition-text-link" href="/support">
-            Kontakt og support <Arrow />
-          </a>
-        </aside>
-        <div className="question-register" id="faq">
-          <h2 id="questions-title">
-            Inden du <em>skriver dig op.</em>
-          </h2>
-          <div className="question-list">
-            {questions.map(([question, answer], i) => (
-              <details className="question" key={question} open={i === 0}>
-                <summary>
-                  {question}
-                  <span className="toggle-mark" aria-hidden="true" />
-                </summary>
-                <p>
-                  {answer}
-                  {i === 3 && (
-                    <>
-                      {" "}
-                      <a href="/privatliv">Læs om privatliv.</a>
-                    </>
-                  )}
-                </p>
-              </details>
-            ))}
-          </div>
+    <section
+      className="questions-block"
+      id="faq"
+      aria-labelledby="questions-title"
+    >
+      <div className="edition-shell questions-spread">
+        <h2 id="questions-title">
+          Inden du
+          <br />
+          skriver dig op.
+        </h2>
+        <div className="question-list">
+          {questions.map(([question, answer], index) => (
+            <details className="question" key={question} open={index === 0}>
+              <summary>
+                {question}
+                <span className="toggle-mark" aria-hidden="true" />
+              </summary>
+              <p>
+                {answer}
+                {index === 3 && (
+                  <>
+                    {" "}
+                    <a href="/privatliv">Læs om privatliv.</a>
+                  </>
+                )}
+              </p>
+            </details>
+          ))}
         </div>
       </div>
     </section>
@@ -263,60 +309,64 @@ export default function MarketingHome() {
     document.title = "Træningsmester — Træn videre fra sidste gang.";
     recordMarketingVisit();
   }, []);
-
   return (
     <div className="edition-home" id="top">
       <a className="story-skip" href="#main-content">
         Gå til indhold
       </a>
-      <header className="edition-header edition-shell">
-        <SiteBrand />
-        <nav aria-label="Hovednavigation">
-          <a className="header-chapter" href="#traeningsforloeb">
-            Træningsforløb
-          </a>
-          <a className="header-chapter" href="#funktioner">
-            Funktioner
-          </a>
-          <a className="header-chapter" href="#faq">
-            Spørgsmål
-          </a>
-          <a className="header-login" href="/app">
-            Log ind <Arrow />
-          </a>
-        </nav>
+      <header className="cover-header">
+        <div className="edition-shell header-inner">
+          <SiteBrand />
+          <nav aria-label="Hovednavigation">
+            <a className="header-chapter" href="#traeningsforloeb">
+              Træningsforløb
+            </a>
+            <a className="header-chapter" href="#funktioner">
+              Funktioner
+            </a>
+            <a className="header-chapter" href="#faq">
+              Spørgsmål
+            </a>
+            <a className="header-login" href="/app">
+              Log ind <Arrow />
+            </a>
+          </nav>
+        </div>
       </header>
       <main id="main-content">
-        <section
-          className="story-hero edition-shell"
-          aria-labelledby="hero-title"
-        >
-          <div className="hero-intro">
-            <h1 id="hero-title">
-              Træn videre <em>fra sidste gang.</em>
-            </h1>
-            <p>
-              Dit program, dine sæt og dine pauser samlet i én app. Se, hvad du
-              løftede sidst, og hold fokus på den træning, du er i gang med.
-            </p>
-            <div className="hero-mobile-action">
-              <AccessLink className="access-button" />
-              <a className="edition-text-link" href="#traeningsforloeb">
-                Se forløbet <Arrow down />
-              </a>
+        <section className="story-hero" aria-labelledby="hero-title">
+          <div className="edition-shell cover-layout">
+            <div className="hero-intro">
+              <h1 id="hero-title">
+                Træn videre <span>fra sidste gang.</span>
+              </h1>
+              <p>
+                Dit program, dine sæt og dine pauser samlet i én app. Se, hvad
+                du løftede sidst, og hold fokus på den træning, du er i gang
+                med.
+              </p>
+              <div className="hero-mobile-action">
+                <AccessLink className="access-button" />
+                <a className="edition-text-link" href="#traeningsforloeb">
+                  Se forløbet <Arrow down />
+                </a>
+              </div>
             </div>
+            <WorkoutCover />
+            <div className="hero-signup">
+              <AccessForm />
+            </div>
+            <a
+              className="hero-follow edition-text-link"
+              href="#traeningsforloeb"
+            >
+              Se et træningsforløb <Arrow down />
+            </a>
           </div>
-          <WorkoutCover />
-          <div className="hero-signup">
-            <AccessForm />
-          </div>
-          <a className="hero-follow edition-text-link" href="#traeningsforloeb">
-            Se et træningsforløb <Arrow down />
-          </a>
         </section>
         <WorkoutStory />
         <FeatureIndex />
-        <ProjectAndQuestions />
+        <Questions />
         <section className="closing" aria-label="Tilmelding">
           <div className="edition-shell closing-inner">
             <p>Træningsmester er under udvikling.</p>
@@ -327,12 +377,12 @@ export default function MarketingHome() {
       <footer className="story-footer">
         <div className="edition-shell">
           <div className="footer-directory">
-            <div>
+            <div className="footer-maker">
               <SiteBrand />
               <p>
-                KRISTENSON · CVR 40679456
-                <br />
-                Blomstergården 13, 4700 Næstved
+                Træningsmester udvikles af Christian Kristensen i Næstved. Har
+                du en idé fra din træning, kan du{" "}
+                <a href="/support">skrive til Christian</a>.
               </p>
             </div>
             <nav aria-label="Konto og hjælp">
@@ -352,10 +402,13 @@ export default function MarketingHome() {
             </nav>
           </div>
           <div className="footer-base">
+            <p>
+              KRISTENSON · CVR 40679456
+              <br />
+              Blomstergården 13, 4700 Næstved
+            </p>
             <AnalyticsConsent />
-            <a href="#top">
-              Til toppen <span aria-hidden="true">↑</span>
-            </a>
+            <a href="#top">Til toppen ↑</a>
           </div>
         </div>
       </footer>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MCP_RESOURCE, MCP_SCOPES } from "../../api/_lib/mcp/config";
 import { ArrowMark, Contents } from "./ServiceLayout";
 
@@ -11,44 +11,56 @@ const chapters = [
 ];
 
 function ServerAddress() {
-  const input = useRef<HTMLInputElement>(null);
+  const address = useRef<HTMLElement>(null);
   const [notice, setNotice] = useState("");
   async function copy() {
     try {
       await navigator.clipboard.writeText(MCP_RESOURCE);
       setNotice("Serveradressen er kopieret.");
     } catch {
-      input.current?.focus();
-      input.current?.select();
-      setNotice("Adressen er markeret. Brug din enheds kopifunktion.");
+      const element = address.current;
+      if (element) {
+        element.focus();
+        window.getSelection()?.selectAllChildren(element);
+      }
+      setNotice("Brug din enheds kopifunktion til at kopiere adressen.");
     }
   }
 
   return (
     <div className="ai-endpoint">
-      <label htmlFor="mcp-address" className="service-caption">MCP-serveradresse</label>
-      <div>
-        <input id="mcp-address" ref={input} type="text" readOnly value={MCP_RESOURCE} spellCheck={false} />
-        <button type="button" onClick={() => void copy()}>Kopiér adresse</button>
-      </div>
+      <p className="ai-address-label">MCP-serveradresse</p>
+      <code id="mcp-address" ref={address} tabIndex={-1}>{MCP_RESOURCE}</code>
+      <button type="button" onClick={() => void copy()}>Kopiér adresse</button>
       <p role="status">{notice}</p>
     </div>
   );
 }
 
 export default function AssistantGuide() {
+  useEffect(() => {
+    // Links from the account page may arrive before the lazy route has mounted.
+    const id = window.location.hash.slice(1);
+    if (!chapters.some((entry) => entry.id === id)) return;
+    const heading = document.getElementById(id);
+    if (!heading) return;
+    heading.scrollIntoView({ behavior: "instant" });
+    heading.focus({ preventScroll: true });
+  }, []);
+
   return (
     <>
       <header className="ai-guide-title">
-        <div><h1>Forbind din <em>AI-assistent</em></h1>
-          <p className="service-lead">Brug din Træningsmester-konto i ChatGPT, Claude eller Codex. Kopiér serveradressen, og følg trinnene for din assistent.</p>
+        <div className="ai-guide-intro">
+          <h1>Forbind din <span className="ai-guide-noun">AI-assistent</span></h1>
+          <p className="service-lead">Kopiér serveradressen til ChatGPT, Claude eller Codex, og godkend forbindelsen med din Træningsmester-konto.</p>
+          <a className="service-link" href="/ai/connections">Dine forbindelser <ArrowMark /></a>
         </div>
-        <a className="service-link" href="/ai/connections">Dine forbindelser <ArrowMark /></a>
+        <ServerAddress />
       </header>
       <div className="ai-guide-grid">
         <Contents entries={chapters} title="I vejledningen" />
         <article className="ai-guidelines" aria-label="Tilslutningsvejledning">
-          <ServerAddress />
           <section aria-labelledby="chatgpt">
             <h2 id="chatgpt" tabIndex={-1}>ChatGPT</h2>
             <ol>

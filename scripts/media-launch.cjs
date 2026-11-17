@@ -12,15 +12,15 @@ const launch = path.join(root, 'marketing', 'launch');
 const product = path.join(root, 'public', 'product');
 const fps = 30;
 
-// Crop coordinates belong to source/product-center-stage.mp4 (1080 × 1920).
-// Set and rest keep the same source origin, scale and photograph position across the edit.
+// Crops refer to the existing 1080 × 1920 Center Stage movie. The last field in the rest crop is
+// the timer, so the viewer can read the completed first set and pause in one shot.
 const shots = [
-  { id: 'intro', duration: 3, zoom: [1, 1.05] },
-  { id: 'program', duration: 3, zoom: [1, 1.025], sourceAt: 0, crop: [628, 814, 225, 486] },
-  { id: 'set', duration: 3, zoom: [1.025, 1.05], sourceAt: 3, crop: [628, 709, 225, 685] },
-  { id: 'rest', duration: 3, zoom: [1.05, 1.075], sourceAt: 6, crop: [628, 913, 225, 685] },
-  { id: 'history', duration: 3, zoom: [1, 1.025], sourceAt: 9, crop: [628, 586, 225, 1012] },
-  { id: 'outro', duration: 4, zoom: [1.035, 1] },
+  { id: 'intro', duration: 3 },
+  { id: 'program', duration: 3, sourceAt: 0, crop: [628, 814, 225, 486] },
+  { id: 'set', duration: 3, sourceAt: 3, crop: [628, 709, 225, 685] },
+  { id: 'rest', duration: 3, sourceAt: 6, crop: [628, 391, 225, 1114] },
+  { id: 'history', duration: 3, sourceAt: 9, crop: [628, 586, 225, 1012] },
+  { id: 'outro', duration: 4 },
 ];
 
 function ffmpeg(args) {
@@ -39,49 +39,55 @@ async function showComposition(page, mode) {
 
 async function renderShot(page, shot, temp, source) {
   await showComposition(page, shot.id);
-  const box = await page.locator('.photo').boundingBox();
-  const rect = Object.fromEntries(Object.entries(box).map(([key, value]) => [key, Math.round(value)]));
-  const imageFile = path.join(temp, shot.id + '-photo.png');
-  const typeFile = path.join(temp, shot.id + '-type.png');
+  const typeFile = path.join(temp, shot.id + '-artwork.png');
   const filmFile = path.join(temp, shot.id + '.mp4');
-  const isolatePhoto = await page.addStyleTag({ content: '#canvas > :not(.photo) { visibility: hidden }' });
-  await page.locator('.photo').screenshot({ path: imageFile });
-  await isolatePhoto.evaluate(el => el.remove());
-
-  // Keep the soft edge of the physical cut even though the final picture inside it is video.
-  const placement = await page.evaluate(sourceRatio => {
-    if (!sourceRatio) return null;
+  const layers = await page.evaluate(sourceRatio => {
+    const coordinates = element => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
+    };
+    const motif = document.querySelector('.moving-motif');
+    const motion = motif ? { ...coordinates(motif), name: motif.getAttribute('src') } : null;
+    if (motif) motif.style.visibility = 'hidden';
     const screen = document.querySelector('.screen');
-    const { x, y, width } = screen.getBoundingClientRect();
-    const height = Math.round(width / sourceRatio);
-    const shadow = document.createElement('div');
-    Object.assign(shadow.style, {
-      position: 'absolute', top: y + 'px', left: x + 'px', width: width + 'px', height: height + 'px',
-      background: 'white', boxShadow: '0 7px 12px rgb(15 23 19 / 11%)',
-    });
-    screen.replaceWith(shadow);
-    return { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
+    let placement = null;
+    if (screen && sourceRatio) {
+      placement = coordinates(screen);
+      placement.height = Math.round(placement.width / sourceRatio);
+      const edge = document.createElement('div');
+      const { x, y, width, height } = placement;
+      Object.assign(edge.style, {
+        position: 'absolute', zIndex: '1', top: y + 'px', left: x + 'px',
+        width: width + 'px', height: height + 'px', background: 'white',
+        boxShadow: '0 7px 12px rgb(18 29 63 / 12%)',
+      });
+      screen.replaceWith(edge);
+    }
+    const paper = getComputedStyle(document.getElementById('canvas')).getPropertyValue('--paper').trim();
+    return { motion, placement, paper };
   }, shot.crop && shot.crop[0] / shot.crop[1]);
-  await page.addStyleTag({ content: 'html,body,#canvas { background: transparent } .photo { visibility: hidden }' });
+  if (layers.motion) await page.addStyleTag({ content: 'html,body,#canvas { background:transparent }' });
   await page.locator('#canvas').screenshot({ path: typeFile, omitBackground: true });
 
+  const { motion, placement, paper } = layers;
   const frames = shot.duration * fps;
-  const [startZoom, endZoom] = shot.zoom;
-  const zoom = startZoom + '+(' + (endZoom - startZoom).toFixed(3) + ')*on/' + (frames - 1);
-  const camera = [
-    'scale=iw*2:ih*2',
-    "zoompan=z='" + zoom + "':x='(iw-iw/zoom)*0.52':y='(ih-ih/zoom)*0.46'",
-  ].join(',') + ':d=' + frames + ':s=' + rect.width + 'x' + rect.height + ':fps=' + fps;
-  const filters = [
-    '[0:v]' + camera + ',format=yuv444p,pad=1080:1920:' + rect.x + ':' + rect.y + ':color=0xf7f6f1[background]',
-    '[1:v]format=rgba[type]',
-    '[background][type]overlay=0:0:format=rgb[layout]',
-  ];
-  const args = ['-framerate', String(fps), '-i', imageFile, '-framerate', String(fps), '-i', typeFile];
-  let picture = 'layout';
+  const background = 'color=c=' + paper.replace('#', '0x') + ':s=1080x1920:r=' + fps + ':d=' + shot.duration;
+  const args = ['-f', 'lavfi', '-i', background, '-framerate', String(fps), '-i', typeFile];
+  const filters = [];
+  let picture = '0:v';
+  if (motion) {
+    args.push('-i', path.join(launch, motion.name));
+    filters.push('[2:v]scale=' + motion.width + ':' + motion.height + ':flags=lanczos,setsar=1[motif]');
+    filters.push('[0:v][motif]overlay=' + motion.x + ':' + motion.y + ':format=rgb[ground]');
+    picture = 'ground';
+  }
+  filters.push('[1:v]format=rgba[type]');
+  filters.push('[' + picture + '][type]overlay=0:0:format=rgb[layout]');
+  picture = 'layout';
   if (placement) {
+    const input = motion ? 3 : 2;
     args.push('-ss', String(shot.sourceAt), '-t', String(shot.duration), '-i', source);
-    filters.push('[2:v]crop=' + shot.crop.join(':') + ',scale=' + placement.width + ':' + placement.height
+    filters.push('[' + input + ':v]crop=' + shot.crop.join(':') + ',scale=' + placement.width + ':' + placement.height
       + ':flags=lanczos,setsar=1,setpts=PTS-STARTPTS[product]');
     filters.push('[layout][product]overlay=' + placement.x + ':' + placement.y + ':format=rgb:shortest=1[scene]');
     picture = 'scene';
@@ -92,13 +98,54 @@ async function renderShot(page, shot, temp, source) {
     '-color_trc', 'bt709', '-colorspace', 'bt709', filmFile]);
 }
 
+// Read the app campaign's own lighting, perspective matrix, catalogue artwork and printed label.
+async function renderSources(browser, studio, temp) {
+  const page = await browser.newPage({
+    viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2, reducedMotion: 'reduce',
+  });
+  const sourcePage = pathToFileURL(path.join(studio, 'layout.html'));
+  sourcePage.hash = '02';
+  await page.goto(sourcePage.href);
+  await page.waitForFunction(() => document.querySelector('#base').complete
+    && document.querySelector('#bench').naturalWidth > 0);
+  await page.evaluate(() => document.fonts.ready);
+  await page.addStyleTag({ content: '#mark,#url,.copy { visibility:hidden }' });
+  const print = path.join(temp, 'print.png');
+  const isolated = path.join(temp, 'isolated.png');
+  await page.screenshot({ path: print });
+  await page.close();
+
+  const sources = path.join(launch, 'source');
+  ffmpeg(['-i', print, '-i', path.join(sources, 'programkort-alpha.png'), '-filter_complex',
+    '[0:v]scale=1122:1402:flags=lanczos,format=rgb24[c];[1:v]format=gray[a];[c][a]alphamerge,crop=1000:880:60:100,format=rgba',
+    '-frames:v', '1', isolated]);
+  for (const [name, width, height, quality] of [
+    ['programkort.webp', 1200, 1056, 90], ['programkort-mobil.webp', 900, 792, 88],
+    ['programkort-lille.webp', 500, 440, 85],
+  ]) {
+    execFileSync('cwebp', ['-quiet', '-q', String(quality), '-m', '6', '-sharp_yuv', '-alpha_q', '100',
+      '-resize', String(width), String(height), isolated, '-o', path.join(product, name)]);
+  }
+  for (const [id, name, crop] of [
+    ['02', 'programkort', '1080:1000:0:50'], ['03', 'timeglas', '1080:960:0:0'],
+  ]) {
+    ffmpeg(['-i', path.join(studio, 'medier', id + '-bevaegelse.mp4'), '-vf', 'crop=' + crop + ',setsar=1',
+      '-t', '3', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p',
+      '-movflags', '+faststart', path.join(sources, name + '-bevaegelse.mp4')]);
+  }
+}
+
 async function main() {
-  const source = process.argv[2] && path.resolve(process.argv[2]);
+  const rebuildSources = process.argv[2] === '--sources';
+  if (rebuildSources && !process.argv[3]) throw new Error('Pass the app campaign’s kilder directory after --sources.');
+  const source = rebuildSources ? path.join(launch, 'source', 'product-center-stage.mp4')
+    : process.argv[2] && path.resolve(process.argv[2]);
   if (source && !fs.existsSync(source)) throw new Error('Center Stage source not found: ' + source);
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-launch-'));
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
+    if (rebuildSources) await renderSources(browser, path.resolve(process.argv[3]), temp);
     const page = await browser.newPage({ viewport: { width: 1200, height: 1920 }, deviceScaleFactor: 1 });
     const canvas = page.locator('#canvas');
     await showComposition(page, 'still');
