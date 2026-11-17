@@ -1,54 +1,113 @@
-<!doctype html><html lang="da"><meta charset="utf-8"><title>Træningsmester – lanceringsmateriale</title><style>
-@font-face{font-family:Cabinet;src:url('../../public/fonts/CabinetGrotesk-800.woff2');font-weight:800}
-@font-face{font-family:Satoshi;src:url('../../public/fonts/Satoshi-400.woff2');font-weight:400}
-@font-face{font-family:Satoshi;src:url('../../public/fonts/Satoshi-700.woff2');font-weight:700}
-*{box-sizing:border-box}html,body{margin:0;background:transparent}body{font-family:Satoshi,Arial,sans-serif;color:#171a19}
-main{position:relative;width:1080px;height:1920px;background:#f6f5f1;overflow:hidden}h1,h2,p{margin:0}
-h1,h2{font-family:Cabinet,Arial,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:1.01}
-.logo{position:absolute;top:90px;left:80px;width:76px;height:76px;object-fit:contain}
-.brand{position:absolute;top:110px;left:180px;font-size:34px;font-weight:700;letter-spacing:-.03em}
-h1{position:absolute;top:330px;left:80px;width:920px;font-size:116px}
-.description{position:absolute;top:635px;left:84px;width:880px;font-size:38px;line-height:1.4;color:#515953}
-.product-full,.product-detail{position:absolute;display:block;object-fit:contain}
-.product-full{top:810px;left:600px;width:390px;height:848px}
-.product-detail{top:1240px;left:74px;width:780px;height:332px;filter:drop-shadow(0 18px 20px #17201b0d)}
-.detail-label{position:absolute;top:1185px;left:84px;font-size:28px;font-weight:700}
-.foot{position:absolute;bottom:82px;left:84px;font-size:25px;line-height:1.4;color:#515953}
-.url{position:absolute;bottom:147px;left:84px;font-size:31px}
-.cta{position:absolute;left:80px;top:1510px;width:920px;padding:33px 40px;border-radius:14px;background:#0759c7;color:#fff;font-size:42px;font-weight:700;text-align:center}
-.outro h1{top:270px;font-size:106px}.outro .description{top:550px;font-size:35px}
-.outro .product-full{top:720px;left:640px;width:330px;height:718px}.outro .product-detail{top:1070px;left:74px;width:780px;height:332px}
-.outro .detail-label{top:1015px}.outro .url{bottom:205px;left:80px;width:920px;text-align:center;font-size:35px}
-.outro .foot{bottom:85px;width:920px;font-size:25px}
-.overlay{background:transparent}.shade-top,.shade-bottom{position:absolute;left:0;width:1080px;background:#f6f5f1}
-.shade-top{top:0;height:270px}.shade-bottom{bottom:0;height:220px}
-.overlay .logo{top:60px;left:66px;width:64px;height:64px}.overlay .brand{top:77px;left:154px;font-size:29px}
-.overlay h2{position:absolute;left:66px;top:160px;width:950px;font-size:56px}
-.overlay .foot{bottom:92px;left:66px;font-size:25px}.overlay .url{bottom:45px;left:66px;font-size:27px}
-.still{height:1350px}.still .logo{top:60px;left:65px;width:60px;height:60px}.still .brand{top:75px;left:148px;font-size:29px}
-.still h1{top:182px;left:65px;width:930px;font-size:94px}.still .description{top:395px;left:69px;width:510px;font-size:30px}
-.still .product-full{top:385px;left:604px;width:350px;height:761px}.still .product-detail{top:775px;left:60px;width:775px;height:329px}
-.still .detail-label{top:727px;left:69px;font-size:25px}
-.still .cta{top:1170px;left:65px;width:950px;padding:0;background:none;color:#0759c7;text-align:left;font-size:38px}
-.still .url{top:1234px;bottom:auto;left:65px;font-size:28px}.still .foot{bottom:30px;left:65px;font-size:21px}
-.og{width:1200px;height:630px}.og .logo{top:48px;left:55px;width:54px;height:54px}.og .brand{top:62px;left:128px;font-size:25px}
-.og h1{top:184px;left:55px;width:600px;font-size:73px}
-.og .product-full{top:39px;left:891px;width:247px;height:537px}.og .product-detail{top:326px;left:628px;width:470px;height:200px}
-.og .detail-label{top:290px;left:635px;font-size:17px}
-.og .cta{top:430px;left:55px;width:555px;padding:0;background:none;color:#0759c7;text-align:left;font-size:27px}
-.og .foot{bottom:60px;left:55px;font-size:21px}.og .data-note{position:absolute;right:52px;bottom:20px;font-size:16px;color:#515953}
-</style><main id="canvas"></main><script>
-const params=new URLSearchParams(location.search);
-const mode=params.get('mode')||'intro';
-const chapter=Number(params.get('chapter')||0);
-const canvas=document.getElementById('canvas');
-const brand='<img class="logo" src="../../public/brand/tm-logo.png" alt="Træningsmester"><p class="brand">Træningsmester</p>';
-const product='<img class="product-full" src="../../public/product/revision-full-set.webp" alt="Overkrop A med Bænkpres Med Stang"><p class="detail-label">Sidste gang. Næste sæt.</p><img class="product-detail" src="../../public/product/revision-detail-set.webp" alt="Sidste sæt 60 kg gange 8. Næste sæt 62,5 kg gange 8.">';
-const dataNote='Eksempeldata · rekonstruerede appvisninger';
-canvas.className=mode;
-if(mode==='intro')canvas.innerHTML=brand+'<h1>Hvad løftede<br>jeg sidst?</h1><p class="description">Træn videre fra sidste gang.</p>'+product+'<p class="url">traeningsmester.dk</p><p class="foot">'+dataNote+'</p>';
-if(mode==='outro')canvas.innerHTML=brand+'<h1>Træn videre<br>fra sidste gang.</h1><p class="description">Træningsmester er under udvikling.<br>Skriv dig op, og få besked om adgang.</p>'+product+'<p class="cta">Få besked om adgang</p><p class="url">traeningsmester.dk</p><p class="foot">Vi skriver, når der er nyt om adgang. Du kan afmelde dig igen.<br>'+dataNote+'</p>';
-if(mode==='overlay')canvas.innerHTML='<div class="shade-top"></div><div class="shade-bottom"></div>'+brand+'<h2>'+['Dit program er klar.','Registrér sættet.','Hold styr på pausen.','Tag det med til næste gang.'][chapter]+'</h2><p class="foot">'+dataNote+'</p><p class="url">traeningsmester.dk</p>';
-if(mode==='still')canvas.innerHTML=brand+'<h1>Hvad løftede<br>jeg sidst?</h1><p class="description">Træn videre fra sidste gang.</p>'+product+'<p class="cta">Få besked om adgang ↗</p><p class="url">traeningsmester.dk · Under udvikling</p><p class="foot">'+dataNote+'</p>';
-if(mode==='og')canvas.innerHTML=brand+'<h1>Træn videre<br>fra sidste gang.</h1>'+product+'<p class="cta">Få besked om adgang ↗</p><p class="foot">Under udvikling · traeningsmester.dk</p><p class="data-note">'+dataNote+'</p>';
-</script></html>
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <title>Træningsmester — Træn videre fra sidste gang.</title>
+  <style>
+    @font-face { font-family: Cabinet; src: url('../../public/fonts/CabinetGrotesk-800.woff2'); font-weight: 800 }
+    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-400.woff2'); font-weight: 400 }
+    @font-face { font-family: Satoshi; src: url('../../public/fonts/Satoshi-700.woff2'); font-weight: 700 }
+    :root { --paper: #f7f6f1; --ink: #161a19; --quiet: #525a56; --rule: #b5b8ae; --blue: #0759c7 }
+    * { box-sizing: border-box }
+    body { margin: 0; color: var(--ink); background: var(--paper); font: 400 34px/1.24 Satoshi, Arial, sans-serif }
+    h1, p, figure { margin: 0 }
+    #canvas { width: 1080px; height: 1920px; position: relative; isolation: isolate; overflow: hidden; background: var(--paper) }
+    .brand { position: absolute; left: 70px; top: 85px; display: flex; align-items: center; gap: 17px; z-index: 2 }
+    .brand img { width: 54px; height: 54px; object-fit: contain }
+    .brand span { font: 800 42px/1 Cabinet, Arial, sans-serif; letter-spacing: -.045em }
+    h1 { position: absolute; top: 213px; left: 63px; font: 800 154px/.89 Cabinet, Arial, sans-serif; letter-spacing: -.061em; z-index: 2 }
+    h1 span, h1 em { display: block; white-space: nowrap }
+    h1 em { margin-top: 15px; font: italic 128px/.97 Georgia, 'Times New Roman', serif; letter-spacing: -.066em }
+    .photo { position: absolute; overflow: hidden; background: #262a28 }
+    .photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--position, 51% 47%); filter: grayscale(1) contrast(1.16) brightness(.91); transform: scale(var(--photo-scale, 1.02)); transform-origin: var(--origin, 52% 46%) }
+    .screen { display: block; position: absolute; height: auto; z-index: 1; filter: drop-shadow(0 7px 12px rgb(15 23 19 / 11%)) }
+    .foot { position: absolute; font-size: 27px; line-height: 1.24; color: var(--quiet) }
+    .cta { position: absolute; display: flex; align-items: center; justify-content: space-between; gap: 32px; border-top: 2px solid var(--rule); padding-top: 24px; color: var(--blue); font-weight: 700; letter-spacing: -.042em }
+    .cta .arrow { flex-shrink: 0; width: 32px; height: 32px }
+    .address { position: absolute; font-weight: 700; letter-spacing: -.015em }
+    .intro .photo { top: 640px; left: 0; width: 1080px; height: 948px; --position: 51% 40% }
+    .intro h1 { top: 228px; font-size: 161px }
+    .intro h1 em { font-size: 160px; margin-top: 5px }
+    .intro .screen { left: 100px; top: 1323px; width: 920px }
+    .intro .foot { left: 125px; top: 1740px }
+    .outro h1 { top: 224px }
+    .outro .photo { left: 0; top: 578px; width: 1080px; height: 666px; --position: 49% 38% }
+    .outro .screen { left: 145px; top: 999px; width: 860px }
+    .outro .foot { left: 163px; top: 1381px }
+    .outro .cta { left: 70px; right: 70px; top: 1490px; font-size: 64px }
+    .outro .address { top: 1630px; left: 71px; font-size: 42px }
+    .outro .status { position: absolute; top: 1712px; left: 71px; color: var(--quiet); font-size: 34px }
+    /* The set and rest exports share a source viewport and keep exactly the same upper left point. */
+    .chapter .brand { top: 79px }
+    .chapter h1 { top: 203px; font-size: 123px }
+    .chapter h1 em { margin-top: 5px; font-size: 106px }
+    .chapter .screen { width: 846px; top: 471px; left: 76px }
+    .chapter .photo { top: 524px; right: 0; width: 406px; height: 801px; --position: 63% 44% }
+    .chapter .caption { position: absolute; bottom: 140px; left: 80px; right: 80px; border-top: 2px solid var(--rule); padding-top: 24px }
+    .chapter .caption p:first-child { font: 700 30px/1.1 Satoshi, Arial, sans-serif; color: var(--quiet); margin-bottom: 9px }
+    .chapter .stat { font: 400 59px/1.1 ui-monospace, 'Menlo', monospace; font-variant-numeric: tabular-nums; letter-spacing: -.075em }
+    .chapter .foot { bottom: 71px; left: 80px }
+    .chapter.rest .screen, .chapter.set .screen { width: 795px; top: 462px; left: 76px }
+    .chapter.history .screen { width: 895px; top: 551px }
+    .chapter.history .photo { top: 480px; right: 0; width: 540px; height: 840px; --position: 61% 39% }
+    .still { height: 1350px !important }
+    .still .brand { top: 62px }
+    .still h1 { top: 169px; font-size: 146px }
+    .still h1 em { font-size: 122px; margin-top: 9px }
+    .still .photo { left: 0; top: 460px; width: 1080px; height: 548px; --position: 48% 43% }
+    .still .screen { left: 184px; top: 775px; width: 822px }
+    .still .foot { left: 203px; top: 1137px; font-size: 24px }
+    .still .cta { left: 70px; right: 70px; top: 1211px; padding-top: 18px; justify-content: flex-start; gap: 15px; font-size: 42px }
+    .still .address { right: 70px; top: 1243px; font-size: 30px }
+    #canvas.og { width: 1200px; height: 630px }
+    .og .brand { top: 46px; left: 49px; gap: 11px }
+    .og .brand img { width: 44px; height: 44px }
+    .og .brand span { font-size: 33px }
+    .og h1 { top: 171px; left: 44px; font-size: 101px }
+    .og h1 em { font-size: 82px; margin-top: 9px }
+    .og .photo { right: 0; top: 0; width: 562px; height: 630px; --position: 57% 37% }
+    .og .screen { left: 584px; top: 321px; width: 576px; filter: drop-shadow(0 4px 9px rgb(14 23 17 / 18%)) }
+    .og .cta { top: 488px; left: 49px; width: 492px; padding-top: 14px; justify-content: flex-start; gap: 14px; font-size: 35px }
+    .og .cta .arrow { width: 23px; height: 23px }
+    .og .foot { left: 50px; top: 565px; font-size: 21px }
+  </style>
+</head>
+<body>
+  <main id="canvas"></main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode') || 'intro';
+    const stage = document.getElementById('canvas');
+    const asset = name => '../../public/product/' + name + '.webp';
+    const brand = '<div class="brand"><img src="../../public/brand/tm-logo-256.webp" alt=""><span>Træningsmester</span></div>';
+    const photo = '<figure class="photo"><img src="' + asset('athlete') + '" alt="En løfter griber stangen i træningslokalet"></figure>';
+    const note = '<p class="foot">Eksempeldata · rekonstruerede appvisninger</p>';
+    const arrow = '<svg class="arrow" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 24 24 4M5 4h19v19" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const cta = '<p class="cta"><span>Få besked om adgang</span>' + arrow + '</p>';
+    const headline = (lead, emphasis) => '<h1><span>' + lead + '</span><em>' + emphasis + '</em></h1>';
+    const product = (frame, alt) => '<img class="screen" src="' + asset('revision-' + frame) + '" alt="' + alt + '">';
+    const detail = product('detail-set', 'Sidste sæt 60 kg × 8. Arbejdssæt 1 af 3, 8 gentagelser ved 62,5 kg.');
+    const scenes = {
+      program: { title: ['Dit program', 'er klar.'], alt: 'Mit styrkeprogram, Overkrop A, Bænkpres Med Stang.', label: 'Overkrop A · Bænkpres med stang', value: '3 sæt × 8' },
+      set: { title: ['Registrér', 'sættet.'], alt: 'Bænkpres Med Stang. Sidste sæt 60 kg × 8. Første sæt står til 62,5 kg × 8.', label: 'Sidste gang', value: '60 kg × 8' },
+      rest: { title: ['Hold styr', 'på pausen.'], alt: 'Første sæt er registreret med 62,5 kg. Andet sæt er aktivt. Der er 01:42 tilbage af pausen.', label: 'Mellem sættene', value: '01:42' },
+      history: { title: ['Tag det med', 'til næste gang.'], alt: 'Tidligere sæt i Bænkpres Med Stang. Den 15. november, 62,5 kg × 8.', label: '15. november · registreret sæt', value: '62,5 kg × 8' }
+    };
+
+    stage.className = mode;
+    const scene = scenes[mode];
+    if (scene) {
+      stage.classList.add('chapter');
+      stage.innerHTML = brand + headline(...scene.title) + photo + product(mode, scene.alt)
+        + '<div class="caption"><p>' + scene.label + '</p><p class="stat">' + scene.value + '</p></div>' + note;
+    } else if (mode === 'intro') {
+      stage.innerHTML = brand + headline('Hvad løftede', 'jeg sidst?') + photo + detail + note;
+    } else if (['outro', 'still', 'og'].includes(mode)) {
+      stage.innerHTML = brand + headline('Træn videre', 'fra sidste gang.') + photo + detail + cta + note;
+      if (mode !== 'og') stage.insertAdjacentHTML('beforeend', '<p class="address">traeningsmester.dk</p>');
+      if (mode === 'outro') stage.insertAdjacentHTML('beforeend', '<p class="status">Træningsmester er under udvikling.</p>');
+    }
+
+  </script>
+</body>
+</html>

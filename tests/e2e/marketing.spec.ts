@@ -34,7 +34,10 @@ test("first screen is readable, single signup, images load and no runtime errors
     // The product must be visible before asking visitors to read the full form.
     const product = await page.locator(".hero-product").boundingBox();
     expect(product!.y).toBeLessThan(page.viewportSize()!.height * 0.65);
-    await page.locator(".hero-mobile-action a").click();
+    await page
+      .locator(".hero-mobile-action")
+      .getByRole("link", { name: "Få besked om adgang" })
+      .click();
     await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   }
@@ -43,8 +46,8 @@ test("first screen is readable, single signup, images load and no runtime errors
   });
   for (const target of [
     "#traeningsforloeb",
-    "#dit-saet",
-    "#din-historik",
+    "#dit-saet .ws-tab",
+    "#din-historik .ws-tab",
     ".training-photo",
     ".story-footer",
   ]) {
@@ -178,36 +181,63 @@ test("keyboard can reach form, open features and return from final CTA", async (
   await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
 });
 
-test("chapter buttons retain context and pause is inspectable", async ({
+test("chapters retain the exercise from the first set through the pause and history", async ({
   page,
-}, testInfo) => {
+}) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "02 Sæt og pause" }).click();
-  if (testInfo.project.name === "desktop") {
-    await page.getByRole("button", { name: "Se pausen" }).click();
-    await expect(page.locator(".story-stage")).toHaveAttribute(
-      "data-frame",
-      "rest",
-    );
-    await expect(page.locator(".story-stage img.is-active")).toHaveAttribute(
-      "src",
-      "/product/revision-rest.webp",
-    );
-  } else {
-    await expect(page.locator(".mobile-rest")).toBeVisible();
-  }
-  await page.getByRole("button", { name: "03 Historik" }).click();
-  await expect(page.locator("#din-historik")).toBeInViewport();
+  const sheet = page.locator(".ws-sheet");
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet).toContainText("3 × 8");
+  await expect(sheet.locator("img")).toHaveAttribute(
+    "src",
+    "/product/revision-program.webp",
+  );
+  const set = page.getByRole("button", { name: "Et sæt ad gangen." });
+  await set.focus();
+  await page.keyboard.press("Enter");
+  await expect(set).toHaveAttribute("aria-expanded", "true");
+  await expect(sheet).toHaveAttribute("data-frame", "set");
+  await expect(sheet).toContainText("60 kg × 8");
+  await page.getByRole("button", { name: "Se pausen" }).click();
+  await expect(sheet.locator("img")).toHaveAttribute(
+    "src",
+    "/product/revision-rest.webp",
+  );
+  await expect(sheet).toContainText("01:42");
+  const history = page.getByRole("button", {
+    name: "Tag det med til næste gang.",
+  });
+  await history.click();
+  await expect(history).toBeInViewport();
+  await expect(sheet.locator("img")).toHaveAttribute(
+    "src",
+    "/product/revision-history.webp",
+  );
+  await expect(sheet).toContainText("62,5");
+  await expect(sheet).toContainText("15. november");
 });
 
-test("reduced motion shows all meaningful states without sticky/scroller dependency", async ({
+test("reduced motion exposes each readable frame in order without chapter navigation", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".story-stage-wrap")).not.toBeVisible();
-  for (const state of ["program", "set", "rest", "history"])
-    await expect(page.locator(`.mobile-${state}`)).toBeVisible();
+  const sheets = page.locator(".ws-sheet");
+  await expect(sheets).toHaveCount(4);
+  for (const [index, state] of [
+    "program",
+    "set",
+    "rest",
+    "history",
+  ].entries()) {
+    const sheet = sheets.nth(index);
+    await expect(sheet).toBeVisible();
+    await expect(sheet.locator("img")).toHaveAttribute(
+      "src",
+      `/product/revision-${state}.webp`,
+    );
+  }
+  await expect(page.locator(".workout-story button")).toHaveCount(0);
   await page.locator(".closing-action").click();
   await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
   expect(
@@ -270,4 +300,29 @@ test("public support, deletion and withdrawal routes and app boundary remain ava
   await expect(
     page.getByRole("button", { name: /Log ind/i }).first(),
   ).toBeVisible();
+});
+
+test.describe("public pages before JavaScript starts", () => {
+  test.use({ javaScriptEnabled: false });
+  test("homepage and deep-linked documents arrive with content, account uses its own shell", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      /Træn videre/,
+    );
+    await expect(page.locator("#adgang noscript p")).toContainText(
+      "Aktivér JavaScript",
+    );
+    await page.locator(".all-features summary").click();
+    await expect(page.locator(".feature-overview")).toBeVisible();
+    await page.goto("/support");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Support");
+    await page.goto("/privatliv");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Privatliv",
+    );
+    await page.goto("/app/programmer");
+    await expect(page.locator("#root")).toBeEmpty();
+  });
 });

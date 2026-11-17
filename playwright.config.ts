@@ -24,7 +24,7 @@ export default defineConfig({
     ? undefined
     : {
         // A separate build keeps synthetic auth settings out of deployable dist/.
-        command: "npm exec -- vite build --outDir qa/playwright-dist && npm run preview -- --host 127.0.0.1 --port 4175 --strictPort --outDir qa/playwright-dist",
+        command: "npm exec -- vite build --outDir qa/playwright-dist && node scripts/prerender.mjs qa/playwright-dist && npm run preview -- --host 127.0.0.1 --port 4175 --strictPort --outDir qa/playwright-dist",
         env: {
           VITE_SUPABASE_URL: "http://127.0.0.1:49951",
           VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_browser_test",

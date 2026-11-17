@@ -24,8 +24,8 @@ test("the installable app stays scoped to the app boundary", async () => {
 
 test("first-party hero and chrome assets stay within mobile budgets", async () => {
   const budgets = new Map([
-    ["public/product/revision-full-set.webp", 120_000],
-    ["public/product/revision-full-set-640.webp", 65_000],
+    ["public/product/athlete.webp", 65_000],
+    ["public/product/baenkpres.webp", 30_000],
     ["public/product/revision-detail-set.webp", 45_000],
     ["public/brand/tm-logo-256.webp", 20_000],
     ["public/brand/app-icon-48.png", 10_000],

@@ -1,45 +1,52 @@
-# Træn videre fra sidste gang
+# Træn videre fra sidste gang.
 
-## Visuel revision
+Lanceringsmaterialet bruger samme sort-hvide træningsfoto, Cabinet Grotesk, kursiv Georgia og blå aktive sætrække som hjemmesiden. Filmen kan ses uden lyd. Opslaget og filmen er klargjort til Christians egen publicering.
 
-Den reviderede hjemmeside, still, delingsbillede og filmens åbning/slutning bruger nu et frontalt helt appviewport og ét læsbart udsnit fra samme skærm. De nye Center Stage-eksporter og reproduktionsindstillinger er beskrevet i [revision-center-stage-origin.md](revision-center-stage-origin.md). Den oprindelige kildefaste produktsekvens i filmen er bevaret. Billedernes skyggeplan er fjernet i studiet, så der ikke opstår grå canvas-kanter. Heleframe leveres også i en optimeret 640-pixelvariant til responsiv indlæsning på hjemmesiden.
+| Fil | Anvendelse | Format |
+| --- | --- | --- |
+| [traen-videre.mp4](traen-videre.mp4) | Lodret film med spørgsmål, træningsforløb og adgangshandling | 1080 × 1920, H.264, 30 billeder/s, 19 s |
+| [traen-videre-still.png](traen-videre-still.png) | Billede til opslag i stående format | 1080 × 1350, PNG |
+| [opslag.md](opslag.md) | Dansk opslag til betatestere og træningspartnere | Klar til kopiering |
+| [og-image.jpg](../../public/product/og-image.jpg) | Hjemmesidens Open Graph- og Twitter-billede | 1200 × 630, JPEG |
 
-Materiale til egen publicering efter godkendelse. Intet er sendt eller publiceret af produktionen.
+**Alternativ tekst til opslagets billede**
 
-- `traen-videre.mp4`: lodret lanceringsklip, 1080 × 1920, 30 fps, uden lyd. Åbning: »Hvad løftede jeg sidst?«. Slutning: »Få besked om adgang«.
-- `traen-videre-still.png`: opslag, 1080 × 1350.
-- `opslag.md`: færdigt dansk opslagudkast.
-- `../../public/product/og-image.jpg`: delingsbillede, 1200 × 630.
-- `composition.html`: redigerbar typografi, opslag og videotekst. Eksisterende Cabinet Grotesk 800 og Satoshi, varm grund #f6f5f1, blå #0759c7.
+Træn videre fra sidste gang. En hånd griber en vægtstang. Foran fotoet viser Træningsmester sidste sæt på 60 kg × 8 og det næste på 62,5 kg × 8. Få besked om adgang på traeningsmester.dk.
 
-## Produktets sandhedsstatus
+## Ét sæt i bænkpres
 
-Billederne er kildefaste, redaktionelle **rekonstruktioner**, ikke nye native screenshots. Der er ingen rigtige brugerdata. Markeringen »Eksempeldata · rekonstruerede appvisninger« skal bevares. Program, aktivt sæt, pause og historik følger appens aktuelle komponenter i `Jegerchristiank/Traeningsmester-app`, kontrolleret 15. november 2026 ved revision `a733bd20614306f3bb754232616aea87266c01e2`. Systemstatusbar og symboler er forenklet. De viser ikke ny servergemning.
+| Tid i filmen | Det, man ser |
+| --- | --- |
+| 0–3 s | »Hvad løftede jeg sidst?« Hånden om stangen og den aktive sætrække. |
+| 3–6 s | Mit styrkeprogram → Overkrop A → Bænkpres Med Stang. Planen er 3 sæt × 8, 60 kg og 2 minutters pause. |
+| 6–9 s | Forrige sæt den 12. november var 60 kg × 8. Den 15. november står første arbejdssæt til 62,5 kg × 8. |
+| 9–12 s | Første sæt er udført, andet sæt er valgt, og pausen viser 01:42. |
+| 12–15 s | Ved næste træning den 17. november kan sættet fra den 15. november genfindes i historikken med 62,5 kg × 8. |
+| 15–19 s | »Træn videre fra sidste gang.« »Få besked om adgang.« Slutbilledet viser webadressen og oplyser, at appen er under udvikling. |
 
-Program: Mit styrkeprogram. Dag: Overkrop A. Bænkpres Med Stang, 3 × 8, plan 60 kg og 2:00 pause. Tidligere sæt 12. november: 60 kg × 8. Første sæt 15. november: 62,5 kg × 8. Efter registrering er første sæt udført, andet aktivt og pausen viser 01:42 i appens bundfelt. I næste træning 17. november genfindes samme sæt fra 15. november. Eksemplet viser ét gennemført sæt, ikke tre.
+Alle appbilleder har synlig markering for eksempeldata og rekonstruerede appvisninger. De viser ét udført arbejdssæt. Kilder, beskæringer og de seks frontale billeder er dokumenteret sammen med de eksisterende [Center Stage-eksporter](revision-center-stage-origin.md).
 
-Kildekomponenter: `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx`, `program-exercise-row.tsx`. Den native QA-reference blev kun brugt til layoutkontrol og indgår ikke i leverancen.
+## Produkt- og billedkilder
 
-## Godkendt katalogindhold
+- Skærmrekonstruktionen bygger på Træningsmester-appens `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx` og `program-exercise-row.tsx`. Grundlaget blev kontrolleret den 15. november 2026 ved revision `a733bd20614306f3bb754232616aea87266c01e2`. Kildeeksemplet er lokalt og fiktivt. Systemstatus og symboler er forenklede.
+- Katalogillustrationen i `source/bench-start.png` kommer fra et read-only-udtræk for øvelsen Bænkpres Med Stang, id `0f93677e-79d9-4e24-ace9-0981e532ec17`, i projekt `rbplnybmjwcoigiwtkuh`. Katalogfilteret var `user_id IS NULL`, `is_private IS FALSE` og `erGodkendt IS TRUE`. De færdige mediefiler indeholder ingen private træninger.
+- Fotoet er samme godkendte motiv som i appens `design/paywall/sport/index.html`. Den lokale version er `public/product/athlete.webp`. [Victor Freitas på Unsplash](https://unsplash.com/photos/man-carrying-barbell-at-the-gym-CQwNdMxwjfk) · [Unsplash License](https://unsplash.com/license).
+- Kapitlerne i filmen er direkte udsnit af det eksisterende [Center Stage-klip](source/product-center-stage.mp4). Produktets program, aktuelle sæt, pause og historik kommer fra sammenhængende tresekunderssekvenser. Sæt og pause bruger samme udsnit og skala ved klippet. Den langsomme kamerabevægelse i fotografiet ligger i den redaktionelle komposition. [React Bits Center Stage](https://www.reactbits.dev/tools/center-stage).
 
-Supabase `rbplnybmjwcoigiwtkuh` blev læst read-only. Kun katalogrækker med `user_id is null`, `is_private is false`, `erGodkendt is true` blev brugt. Valgt øvelse: `0f93677e-79d9-4e24-ace9-0981e532ec17`, Bænkpres Med Stang. Det medfølgende `source/bench-start.png` er den godkendte offentlige katalogillustration, hentet fra `images_workout_days/images_exercises/ai/v7-20261107-r40/0f93677e-79d9-4e24-ace9-0981e532ec17/male/a8/start.png`. Logo og skrifter er projektets eksisterende assets.
+## Reproduktion
 
-## Produktion og reproduktion
+De oprindelige skærme kan genskabes med `node scripts/media-reconstruct-app.cjs`. De fire fulde frames ligger i `public/product/screen-*.webp`. Indstillingerne `center-stage-video.json` og `revision-center-stage-*.json` hører til henholdsvis kildeklippet og de frontale appudsnit. Billedudsnit, typografi og webfilm kan redigeres i [composition.html](composition.html) og [media-launch.cjs](../../scripts/media-launch.cjs).
 
-Skærmrekonstruktionerne genereres med `node scripts/media-reconstruct-app.cjs`; output er som standard `/tmp/tm-product-assets`. De fire optimerede fulde frames ligger i `public/product/screen-*.webp`.
-
-Produktkompositionerne er faktisk eksporteret fra [React Bits Center Stage](https://www.reactbits.dev/tools/center-stage), med egne appframes. `center-stage-hero.json`, `center-stage-chapters.json` og `center-stage-video.json` er de anvendte redigerbare indstillinger. Importér JSON og derefter tilhørende skærmbillede eller optagelse. Ingen Center Stage-/WebGL-runtime indlæses på hjemmesiden.
-
-Hero: udsnit af `active.png`, x0/y760/bredde1206/højde1125, eksporteret 1280 × 1280. Kapiteludsnit: program y380/h1580; sæt y760/h1365; pause y770/h1780; historik y1400/h1180, alle bredde1206 og x0. Kapitelkompositionerne er eksporteret 1024 × 1280. Cropændringer er redaktionelle; de fremstiller ikke appanimation som eksisterende.
-
-Videoens kilde er program → aktivt sæt → pause → historik, hver 3 sekunder. Center Stage bruger Card med eksplicit 9:19.5 viewport, 9:16 output og beskeden Sway (intensity0.06). Phone-rammen fravalgtes, fordi den tilføjede endnu en statusbar over de faktiske frames. WebM anvendes som mellemformat og transkodes til H.264 MP4 med fast start/sluttekst; MP4-renderingen i studiet gav ingen fil i denne browser.
-
-Den leverede film er 18,5 sekunder: åbning 2,5 s, produkt 12 s, slutning 4 s. Det eksporterede Center Stage-klip ligger komprimeret som `source/product-center-stage.mp4`. Genskab slutfilm og stills med:
+Fra roden af projektet med projektets Playwright og ffmpeg installeret:
 
 ```sh
 node scripts/media-launch.cjs marketing/launch/source/product-center-stage.mp4
 ```
 
-Produktdelen har redaktionelle nærbilleder af program, sæt, pause og historik, så de afgørende tal kan læses i telefonstørrelse. Det er filmens kamerabeskæring, ikke nye overgange eller zoomfunktioner i appen. Filmens titel-/slutkort er synlige straks. Ingen lyd eller musikrettigheder kræves.
+Uden argument gendannes opslagets stillbillede og hjemmesidens linkpreview.
 
-Kontrolleret: de faktisk eksporterede billeder er åbnet; hele den færdige MP4 er afspillet i Chromium ved 390 × 844 til `ended=true`, 555 videoframes, 18,5 sekunder, ingen video-fejl. Første/sidste frame og hvert kapitel er gennemset; pauseudsnittet blev rettet for at bevare hele 01:42-feltet. H.264/1080×1920/30fps er kontrolleret med ffprobe. Det er produktions- og afspilningskontrol, ikke bruger- eller konverteringstest.
+## Kontrol den 17. november 2026
+
+Den færdige MP4 blev afspillet ved normal hastighed i Chromium ved 390 × 844 til slutmarkeringen. Afspilleren rapporterede 570 viste billeder, 0 tabte billeder og 19,0 sekunders spilletid. H.264, 1080 × 1920 og 30 billeder/s blev også læst fra filen med ffprobe. Åbning, alle fire appstadier og slutning er gennemset i den kodede film.
+
+Fra den lokale hjemmesides HTML blev Open Graph- og Twitter-billedet fundet på samme adresse. Den lokale server leverede den eksporterede 1200 × 630 JPEG med HTTP 200. Billedet og den tilhørende titel og beskrivelse blev gengivet i en previewbredde på 358 pixels.

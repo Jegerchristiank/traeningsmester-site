@@ -1,11 +1,14 @@
+import "./site.css";
 import { lazy, StrictMode, Suspense } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 
 const Account = lazy(() => import("./Account"));
 const AiAssistants = lazy(() => import("./AiAssistants"));
 import MarketingSite from "./MarketingSite";
 
-const isAiRoute = ["/ai/connect", "/ai/connections", "/ai/help"].includes(window.location.pathname);
+const isAiRoute = ["/ai/connect", "/ai/connections", "/ai/help"].includes(
+  window.location.pathname,
+);
 const isAccountRoute =
   window.location.pathname === "/app" ||
   window.location.pathname.startsWith("/app/");
@@ -45,7 +48,7 @@ function LoadingScreen() {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        background: "#f6f5f1",
+        background: "var(--tm-paper)",
       }}
     >
       <img src="/brand/tm-logo-256.webp" alt="" width="64" height="64" />
@@ -53,10 +56,22 @@ function LoadingScreen() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root")!;
+const page = (
   <StrictMode>
-    <Suspense fallback={<LoadingScreen />}>
-      {isAiRoute ? <AiAssistants /> : isAccountRoute ? <Account /> : <MarketingSite />}
-    </Suspense>
-  </StrictMode>,
+    {isAiRoute || isAccountRoute ? (
+      <Suspense fallback={<LoadingScreen />}>
+        {isAiRoute ? <AiAssistants /> : <Account />}
+      </Suspense>
+    ) : (
+      <MarketingSite />
+    )}
+  </StrictMode>
 );
+
+const path = window.location.pathname.replace(/\/$/, "") || "/";
+if (rootElement.dataset.page === path && rootElement.hasChildNodes()) {
+  hydrateRoot(rootElement, page);
+} else {
+  createRoot(rootElement).render(page);
+}

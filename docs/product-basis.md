@@ -8,6 +8,8 @@ Kontrolleret 15. november 2026. Kilderepo: `Jegerchristiank/Traeningsmester-app`
 - Offentlig adgang er ikke verificeret. Behold »Få besked om adgang« og »under udvikling«. Undlad downloadknapper, adgangsdato og løfte om platformslancering.
 - `src/premium/ui/paywall-details.tsx:45,57,64-65`: priser og indhold er foreløbige; køb er ikke aktiveret i preview; designforslag ændrer ikke adgang. Ingen numeriske priser må kopieres til markedsføringen. Sikker FAQ: »Den endelige pris er ikke offentliggjort. Du får oplysninger om adgang og pris, før du tager stilling.«
 
+Kontrolleret igen 17. november 2026. Build 2.0 (129) beskriver TestFlight for eksisterende testere. Opslag på appens egne pakke-id’er gav 0 resultater i Apples danske butik (`com.traeningsmester.ios`) og HTTP 404 i Google Play (`com.traeningsmester.android`). Forsiden bruger fortsat tilmelding om adgang. Bænkpresillustrationen i funktionsafsnittet er en lokal WebP fra det samme godkendte katalogbillede som programvisningen.
+
 ## Redaktionel funktionsoversigt med kilder
 
 Alle funktioner beskrives som funktioner i appen under udvikling, ikke tilgængelighed for en offentlig køber.

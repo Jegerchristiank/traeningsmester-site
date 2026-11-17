@@ -1,0 +1,63 @@
+@font-face {
+  font-family: Cabinet;
+  src: url("/fonts/CabinetGrotesk-800.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: Satoshi;
+  src: url("/fonts/Satoshi-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Satoshi;
+  src: url("/fonts/Satoshi-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --tm-paper: #f7f6f1;
+  --tm-ink: #161a19;
+  --tm-muted: #535b56;
+  --tm-rule: #d1d3c9;
+  --tm-blue: #0759c7;
+  --tm-display: Cabinet, "Arial Black", sans-serif;
+  --tm-text: Satoshi, Arial, sans-serif;
+  --tm-serif: Georgia, "Times New Roman", serif;
+  --tm-mono:
+    ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --tm-gutter: clamp(1.25rem, 4.4vw, 4.5rem);
+}
+body {
+  margin: 0;
+  color: var(--tm-ink);
+  background: var(--tm-paper);
+  font-family: var(--tm-text);
+}
+.story-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  color: var(--tm-ink);
+  text-decoration: none;
+  font: 800 1.42rem/0.96 var(--tm-display);
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+.story-brand img {
+  display: block;
+  width: 2.15rem;
+  height: 2.15rem;
+  object-fit: contain;
+}
+:focus-visible {
+  outline: 3px solid var(--tm-blue);
+  outline-offset: 4px;
+}
+::selection {
+  background: #c5dbfa;
+  color: var(--tm-ink);
+}

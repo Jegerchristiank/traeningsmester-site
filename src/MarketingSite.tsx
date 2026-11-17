@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import MarketingHome from "./MarketingHome";
+import { ArrowMark, Contents, ServiceShell } from "./components/ServiceLayout";
 import "./marketing.css";
 
 type LegalRoute =
@@ -86,7 +87,7 @@ export const legalDocuments: Record<
       {
         title: "Sundheds-, sensor- og lokationsdata",
         body:
-          "Hvis du selv aktiverer de relevante funktioner og enhedstilladelser, kan iPhone-appen læse eller skrive kropsvægt, workouts, rute, distance, energi, puls, kadence og power via Apple Sundhed. Android-appen kan eksportere gennemførte aktiviteter til Health Connect. Kompatible Bluetooth-sensorer kan levere puls, kadence eller power under en aktivitet. Ved udendørs aktiviteter kan appen bruge omtrentlig eller præcis lokation, afhængigt af den tilladelse du vælger, også mens en aktiv session fortsætter i baggrunden. Det bruges til løbende tid, distance og din private GPS-rute og stopper, når sessionen afsluttes eller kasseres. Lokation kan desuden bruges til at foreslå eller skifte træningscenter, hvis du har slået det til. Disse funktioner er valgfrie; du kan tilbagekalde samtykke og systemtilladelser med virkning for fremtiden. Oplysninger, der kan afsløre helbred eller fysisk tilstand, behandles på grundlag af dit udtrykkelige valg efter GDPR artikel 6, stk. 1, litra a, og artikel 9, stk. 2, litra a. Sundhedsdata og importer deles ikke automatisk i Social."
+          "Hvis du selv aktiverer de relevante funktioner og enhedstilladelser, kan iPhone-appen læse eller skrive kropsvægt, workouts, rute, distance, energi, puls, kadence og power via Apple Sundhed. Bruger du et parret Apple Watch, kan Træningsmester på din iPhone modtage de målinger, som uret har til rådighed under aktiviteten, fx puls og effekt. De tilgængelige målinger afhænger af appversionen, enheden og aktiviteten. Ved udendørs aktiviteter kan appen bruge omtrentlig eller præcis lokation, afhængigt af den tilladelse du vælger, også mens en aktiv session fortsætter i baggrunden. Det bruges til løbende tid, distance og din private GPS-rute og stopper, når sessionen afsluttes eller kasseres. Lokation kan desuden bruges til at foreslå eller skifte træningscenter, hvis du har slået det til. Disse funktioner er valgfrie; du kan tilbagekalde samtykke og systemtilladelser med virkning for fremtiden. Oplysninger, der kan afsløre helbred eller fysisk tilstand, behandles på grundlag af dit udtrykkelige valg efter GDPR artikel 6, stk. 1, litra a, og artikel 9, stk. 2, litra a. Sundhedsdata og importer deles ikke automatisk i Social."
       },
       {
         title: "Social, beskeder og brugerindhold",
@@ -101,7 +102,7 @@ export const legalDocuments: Record<
       {
         title: "AI, integrationer og køb",
         body:
-          "Valgfrie AI- og importfunktioner kan sende programtekst, træningsintention, programsnapshots, importtekst og billedreferencer gennem Supabase til OpenAI for at analysere eller omskrive det indhold, du selv vælger. API-anmodningen bruger indstillingen store: false; OpenAI behandler fortsat det valgte input og det genererede svar for at levere funktionen. Hvis du vælger Apple- eller Google-login, Strava, Apple Sundhed, Health Connect, App Store- eller Google Play-køb, udveksles de nødvendige konto-, token-, aktivitets- eller transaktionsoplysninger med den valgte tjeneste. Træningsmester modtager ikke dine fulde betalingskortoplysninger."
+          "Valgfrie AI- og importfunktioner kan sende programtekst, træningsintention, programsnapshots, importtekst og billedreferencer gennem Supabase til OpenAI for at analysere eller omskrive det indhold, du selv vælger. API-anmodningen bruger indstillingen store: false; OpenAI behandler fortsat det valgte input og det genererede svar for at levere funktionen. Hvis du vælger Apple- eller Google-login, en integration som Strava eller Apple Sundhed, eller et køb i App Store eller Google Play, udveksles de nødvendige konto-, token-, aktivitets- eller transaktionsoplysninger med den valgte tjeneste. Hvilke integrationer du kan vælge, afhænger af din appversion og enhed. Træningsmester modtager ikke dine fulde betalingskortoplysninger."
       },
       {
         title: "Når du forbinder en AI-assistent",
@@ -215,15 +216,15 @@ export const legalDocuments: Record<
     title: "Tilgængelighed",
     intro:
       "Træningsmester arbejder for, at siden kan forstås og bruges med tastatur, hjælpemidler og reduceret bevægelse.",
-    updated: "13. juli 2026",
+    updated: "17. november 2026",
     sections: [
       {
         title: "Tastatur og fokus",
-        body: "Navigation, formularer, FAQ og links er bygget med navngivne standardelementer og synlig fokusmarkering. Mobilmenuen lukker med Escape, låser baggrunden, mens den er åben, og fører fokus tilbage til en logisk placering.",
+        body: "Navigation, formularer, FAQ og links er bygget med navngivne standardelementer og synlig fokusmarkering. På mobil er login og tilmelding tilgængelige øverst på forsiden. Du kan gå direkte til et kapitel i træningsforløbet med kapitelknapperne.",
       },
       {
         title: "Bevægelse og grafik",
-        body: "Hjemmesiden respekterer indstillingen Reducer bevægelse. Den animerede bjørn skifter i så fald til et statisk billede, uden at information går tabt.",
+        body: "Hjemmesiden respekterer indstillingen Reducer bevægelse. Kapitelknapperne viser de enkelte trin i træningen direkte. Du kan også rulle gennem siden i dit eget tempo.",
       },
       {
         title: "Kontrast og tekst",
@@ -340,69 +341,30 @@ export const legalDocuments: Record<
   },
 };
 
-function Arrow({ direction = "right" }: { direction?: "right" | "left" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d={
-          direction === "right"
-            ? "M5 12h14M14 7l5 5-5 5"
-            : "M19 12H5m5-5-5 5 5 5"
-        }
-      />
-    </svg>
-  );
+function documentAnchor(title: string) {
+  return title.toLocaleLowerCase("da-DK").replaceAll("æ", "ae").replaceAll("ø", "oe")
+    .replaceAll("å", "aa").replace(/[^a-z0-9]+/g, "-").replace(/-$/, "");
 }
 
-function Brand({ compact = false }: { compact?: boolean }) {
+function OperatorAddress() {
   return (
-    <span className="mk-brand">
-      <img src="/brand/tm-logo-256.webp" alt="" width="46" height="46" />
-      {!compact ? <strong>Træningsmester</strong> : null}
-    </span>
-  );
-}
-
-function SkipLink() {
-  return (
-    <a className="mk-skip-link" href="#main-content">
-      Gå til hovedindhold
-    </a>
-  );
-}
-
-function MarketingFooter() {
-  return (
-    <footer className="mk-footer">
-      <div className="mk-footer-brand">
-        <Brand />
-        <address>
-          {company.legalName} · CVR {company.cvr}
-          <br />
-          {company.address}
-          <br />
-          <a href={`mailto:${company.email}`}>{company.email}</a>
-          <br />
-          <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>
-        </address>
-      </div>
-      <nav aria-label="Juridiske links">
-        <a href="/support">Support</a>
-        <a href="/slet-konto">Slet konto</a>
-        <a href="/privatliv">Privatliv</a>
-        <a href="/cookies">Cookiepolitik</a>
-        <a href="/tilgaengelighed">Tilgængelighed</a>
-        <a href="/vilkaar">Vilkår</a>
-        <a href="/afmeld">Afmelding</a>
-      </nav>
-    </footer>
+    <address>
+      {company.legalName} · CVR {company.cvr}<br />{company.address}<br />
+      <a href={`mailto:${company.email}`}>{company.email}</a><br />
+      <a href={`tel:${company.phoneHref}`}>{company.phoneDisplay}</a>
+    </address>
   );
 }
 
 export function LegalPage({ route }: { route: LegalRoute }) {
   const document = legalDocuments[route];
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const fragment = window.location.hash.slice(1);
+    if (fragment) {
+      window.document.getElementById(fragment)?.scrollIntoView({ behavior: "instant" });
+    } else {
+      window.scrollTo(0, 0);
+    }
     window.document.title = `${document.title} — Træningsmester`;
     const canonicalUrl = new URL(`/${route}`, siteUrl).href;
     const canonical = window.document.querySelector<HTMLLinkElement>(
@@ -425,36 +387,44 @@ export function LegalPage({ route }: { route: LegalRoute }) {
     });
   }, [document.intro, document.title, route]);
 
+  const sections = document.sections.map((section) => ({ ...section, id: documentAnchor(section.title) }));
+  const serviceRoute = route === "support" || route === "slet-konto";
   return (
-    <div className="tm-marketing mk-legal-page">
-      <SkipLink />
-      <header className="mk-legal-header">
-        <a href="/" aria-label="Tilbage til Træningsmester">
-          <Brand />
-        </a>
-        <a className="mk-back-link" href="/">
-          <Arrow direction="left" /> Tilbage
-        </a>
-      </header>
-      <main id="main-content">
-        <div className="mk-legal-hero">
-          <h1>{document.title}</h1>
-          <p>{document.intro}</p>
-          <p className="mk-legal-updated">
-            Senest opdateret {document.updated}
-          </p>
+    <ServiceShell area={serviceRoute ? "Hjælp og kontakt" : "Om hjemmesiden"}
+      className="document-page" address={<OperatorAddress />}>
+      <header className="document-masthead">
+        <div className="document-heading">
+          <h1 className={document.title.length > 12 ? "document-long-title" : undefined}>{document.title}</h1>
+          <p className="service-lead">{document.intro}</p>
         </div>
-        <div className="mk-legal-content">
-          {document.sections.map((section) => (
-            <section key={section.title}>
-              <h2>{section.title}</h2>
-              <p>{section.body}</p>
+        <div className="document-meta">
+          {route === "support" ? (
+            <>
+              <a className="service-action" href={`mailto:${company.email}`}>Skriv til support <ArrowMark diagonal /></a>
+              <a className="service-link" href={`tel:${company.phoneHref}`}>Ring {company.phoneDisplay}</a>
+            </>
+          ) : (
+            <><span className="service-caption">Senest opdateret</span><span className="document-date">{document.updated}</span></>
+          )}
+        </div>
+      </header>
+      <div className="document-layout">
+        <Contents entries={sections} />
+        <article className="document-body" aria-label={document.title}>
+          {sections.map((section, index) => (
+            <section key={section.id} aria-labelledby={section.id} className="document-section">
+              <span className="document-section-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h2 id={section.id} tabIndex={-1}>{section.title}</h2>
+                <p>{section.body}</p>
+              </div>
             </section>
           ))}
-        </div>
-      </main>
-      <MarketingFooter />
-    </div>
+          {route === "support" && <p className="document-revision">Senest opdateret {document.updated}</p>}
+          <a className="service-link document-top" href="#hovedindhold">Til toppen <span aria-hidden="true">↑</span></a>
+        </article>
+      </div>
+    </ServiceShell>
   );
 }
 
@@ -523,51 +493,29 @@ function UnsubscribePage() {
         : "Afmeldingslinket er ugyldigt, allerede brugt eller mangler. Brug det fulde link fra din bekræftelsesmail.";
 
   return (
-    <div className="tm-marketing mk-legal-page mk-unsubscribe-page">
-      <SkipLink />
-      <header className="mk-legal-header">
-        <a href="/" aria-label="Tilbage til Træningsmester">
-          <Brand />
-        </a>
-        <a className="mk-back-link" href="/">
-          <Arrow direction="left" /> Tilbage
-        </a>
-      </header>
-      <main id="main-content">
-        <div className="mk-legal-hero">
-          <p className="mk-eyebrow">Samtykke</p>
-          <h1 ref={headingRef} tabIndex={state === "success" ? -1 : undefined}>
-            {heading}
-          </h1>
-          <p>{body}</p>
+    <ServiceShell area="Om hjemmesiden" className="unsubscribe-page" address={<OperatorAddress />}>
+      <div className="unsubscribe-layout">
+        <div className="unsubscribe-copy">
+          <h1 ref={headingRef} tabIndex={state === "success" ? -1 : undefined}>{heading}</h1>
+          <p className="service-lead">{body}</p>
         </div>
-        <div className="mk-unsubscribe-action">
+        <div className="unsubscribe-actions">
           {state === "success" ? (
-            <a className="mk-unsubscribe-link" href="/">
-              Tilbage til forsiden <Arrow />
-            </a>
+            <a className="service-action" href="/">Tilbage til forsiden <ArrowMark /></a>
           ) : validToken ? (
             <form onSubmit={withdraw}>
-              <button type="submit" disabled={state === "submitting"}>
-                {state === "submitting"
-                  ? "Afmelder…"
-                  : "Ja, slet min tilmelding"}
+              <button className="service-action" type="submit" disabled={state === "submitting"}>
+                {state === "submitting" ? "Afmelder…" : "Ja, slet min tilmelding"} <ArrowMark />
               </button>
-              {state === "error" ? (
-                <p role="alert">
-                  Afmeldingen kunne ikke gennemføres lige nu. Prøv igen om lidt.
-                </p>
-              ) : null}
+              {state === "error" && <p role="alert">Afmeldingen kunne ikke gennemføres lige nu. Prøv igen om lidt.</p>}
             </form>
           ) : (
-            <a className="mk-unsubscribe-link" href="/privatliv">
-              Læs privatlivspolitikken <Arrow />
-            </a>
+            <a className="service-link" href="/privatliv">Læs privatlivspolitikken <ArrowMark /></a>
           )}
+          {state !== "success" && <a className="service-link" href="/support">Kontakt support <ArrowMark /></a>}
         </div>
-      </main>
-      <MarketingFooter />
-    </div>
+      </div>
+    </ServiceShell>
   );
 }
 

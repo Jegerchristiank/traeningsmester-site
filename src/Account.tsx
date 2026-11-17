@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import AccountForm from "./components/AccountForm";
-import SiteBrand from "./components/SiteBrand";
+import { ArrowMark, ServiceShell } from "./components/ServiceLayout";
 import { getSupabaseClient } from "./supabaseClient";
 import "./account.css";
 
@@ -54,35 +54,39 @@ export default function Account() {
   }
 
   return (
-    <div className="training-site account-page">
-      <header className="story-header">
-        <SiteBrand />
-        <a className="account-support" href="/support">Support</a>
-      </header>
-      <main className="account-content">
-        {session === undefined ? (
-          <p role="status">Henter din konto…</p>
-        ) : session ? (
-          <>
+    <ServiceShell area="Konto" className="account-page">
+      {session === undefined ? (
+        <p className="account-loading" role="status">Henter din konto…</p>
+      ) : session ? (
+        <div className="account-desk">
+          <header className="account-identity">
             <h1>Din konto</h1>
-            <p className="account-intro">Logget ind som <strong>{session.user.email}</strong></p>
-            <nav className="account-tools" aria-label="Værktøjer">
-              <a href="/ai/connections">Forbundne AI-assistenter <span aria-hidden="true">→</span></a>
-              <a href="/ai/help">Sådan forbinder du en assistent <span aria-hidden="true">→</span></a>
-            </nav>
-            {error && <p className="account-error" role="alert">{error}</p>}
-            <button className="account-text-action" disabled={signingOut} onClick={logout}>
-              {signingOut ? "Logger ud…" : "Log ud"}
-            </button>
-          </>
-        ) : (
+            <p className="service-lead">Her kan du se og styre forbindelsen mellem din konto og de værktøjer, du bruger.</p>
+            <div className="account-owner">
+              <p className="service-caption">Logget ind som</p>
+              <strong>{session.user.email}</strong>
+              <button className="account-text-action" disabled={signingOut} onClick={logout}>
+                {signingOut ? "Logger ud…" : "Log ud"}
+              </button>
+              {error && <p className="account-error" role="alert">{error}</p>}
+            </div>
+          </header>
+          <nav className="account-tools" aria-label="Værktøjer">
+            <h2>Værktøjer</h2>
+            <div><a href="/ai/connections">Forbundne AI-assistenter <ArrowMark /></a>
+              <p>Se rettigheder, og træk en adgang tilbage.</p></div>
+            <div><a href="/ai/help">Sådan forbinder du en assistent <ArrowMark /></a>
+              <p>Find serveradressen og vejledningen til din assistent.</p></div>
+          </nav>
+        </div>
+      ) : (
+        <div className="account-desk account-login-desk">
           <AccountForm client={client} />
-        )}
-      </main>
-      <footer className="account-footer">
-        <a href="/privatliv">Privatliv</a>
-        <a href="/vilkaar">Vilkår</a>
-      </footer>
-    </div>
+          <aside className="account-guide-link">
+            <a className="service-link" href="/ai/help">Sådan forbinder du en assistent <ArrowMark /></a>
+          </aside>
+        </div>
+      )}
+    </ServiceShell>
   );
 }

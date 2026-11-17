@@ -1,0 +1,470 @@
+.workout-story {
+  --ws-dark: #1c211f;
+  --ws-light: #f6f5ee;
+  --ws-secondary: #c0c6bc;
+  --ws-divider: #4e554f;
+  --ws-sheet: #e9ece4;
+  --ws-sheet-rule: #b5bdb1;
+  --ws-active: #91c1ff;
+  --ws-index-space: clamp(34px, 3vw, 43px);
+  --ws-index-gap: 14px;
+  color: var(--ws-light);
+  background: var(--ws-dark);
+  font-family: var(--tm-text, Satoshi, system-ui, sans-serif);
+  scroll-margin-top: 0;
+}
+.workout-story *,
+.workout-story *::before,
+.workout-story *::after {
+  box-sizing: border-box;
+}
+.workout-story :is(h2, h3, p, figure) {
+  margin: 0;
+}
+.ws-inner {
+  width: min(100% - clamp(40px, 8vw, 128px), 1312px);
+  margin-inline: auto;
+  padding-block: clamp(68px, 8vw, 124px) clamp(48px, 7vw, 104px);
+}
+.ws-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(185px, 0.55fr);
+  align-items: end;
+  column-gap: clamp(32px, 6vw, 90px);
+  margin-bottom: clamp(42px, 5vw, 76px);
+}
+.workout-story .ws-masthead h2 {
+  font-family: var(--tm-display, Cabinet, system-ui, sans-serif);
+  font-size: clamp(64px, 6.8vw, 104px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.032em;
+  color: var(--ws-light);
+}
+.ws-masthead em {
+  font-family: var(--tm-serif, Georgia, serif);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+.ws-masthead > p {
+  max-width: 33ch;
+  padding-bottom: 0.23em;
+  color: var(--ws-secondary);
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.46;
+}
+.ws-book {
+  display: grid;
+  grid-template-columns: minmax(306px, 0.78fr) minmax(0, 1.33fr);
+  grid-template-rows: repeat(4, max-content) 1fr;
+  column-gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.ws-chapter,
+.ws-chapter-body:not([hidden]) {
+  display: contents;
+}
+.ws-chapter-body[hidden] {
+  display: none;
+}
+.ws-tab-heading,
+.ws-copy {
+  grid-column: 1;
+  min-width: 0;
+}
+.ws-tab-heading {
+  border-top: 1px solid var(--ws-divider);
+}
+.ws-tab {
+  display: grid;
+  width: 100%;
+  grid-template-columns: var(--ws-index-space) minmax(0, 1fr) 18px;
+  align-items: baseline;
+  column-gap: var(--ws-index-gap);
+  margin: 0;
+  border: 0;
+  padding: 22px 0;
+  background: transparent;
+  text-align: left;
+  color: var(--ws-secondary);
+}
+.workout-story .ws-tab {
+  font-family: var(--tm-display, Cabinet, system-ui, sans-serif);
+  font-size: clamp(24px, 2.4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.028em;
+  line-height: 1.06;
+}
+.ws-tab > span:nth-child(2) {
+  text-wrap: balance;
+}
+.ws-summary {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--ws-secondary);
+  font: 400 0.77rem/1.45 var(--tm-mono);
+  letter-spacing: 0;
+}
+.ws-tab:focus-visible,
+.ws-steps button:focus-visible {
+  outline: 2px solid var(--ws-active);
+  outline-offset: 4px;
+}
+.ws-tab:not([aria-disabled]):hover {
+  color: white;
+}
+.ws-chapter[data-current] .ws-tab {
+  color: var(--ws-light);
+}
+.workout-story .ws-index {
+  font-family: var(--tm-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  color: #bec4ba;
+  font-variant-numeric: tabular-nums;
+}
+.ws-chapter[data-current] .ws-index {
+  color: var(--ws-active);
+}
+.workout-story .ws-pointer {
+  color: #949f94;
+  width: 18px;
+  height: 18px;
+  justify-self: end;
+  align-self: center;
+}
+.ws-chapter[data-current] .ws-pointer {
+  color: var(--ws-active);
+  transform: none;
+}
+.ws-copy {
+  margin: -6px 0 25px;
+  padding-left: calc(var(--ws-index-space) + var(--ws-index-gap));
+  color: var(--ws-secondary);
+}
+.ws-copy p {
+  max-width: 31ch;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ws-copy p + p {
+  margin-top: 9px;
+}
+.ws-steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+.workout-story .ws-steps button {
+  min-height: 44px;
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: var(--ws-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.workout-story
+  .ws-steps
+  button:is([aria-pressed="true"], :focus-visible, :hover) {
+  color: var(--ws-active);
+  border-bottom-color: currentColor;
+}
+.ws-sheet {
+  grid-column: 2;
+  grid-row: 1 / 6;
+  align-self: start;
+  min-width: 0;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--ws-sheet);
+  color: #202720;
+  padding: 0 clamp(18px, 2.05vw, 31px);
+}
+.ws-sheet-heading,
+.ws-sheet-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+}
+.ws-sheet-heading {
+  border-bottom: 1px solid var(--ws-sheet-rule);
+  padding: 15px 0 12px;
+}
+.ws-sheet-heading > :first-child {
+  font-family: var(--tm-display, Cabinet, system-ui, sans-serif);
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+.ws-sheet-heading > :last-child,
+.ws-sheet-footer > :last-child {
+  font-size: 12px;
+  color: #4b564a;
+}
+.ws-sheet-footer {
+  border-top: 1px solid var(--ws-sheet-rule);
+  padding: 10px 0 12px;
+  line-height: 1.4;
+}
+.ws-sheet-footer > :first-child {
+  font-weight: 700;
+  font-size: 13px;
+}
+.ws-sheet-body {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.7fr) minmax(205px, 1.36fr);
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 28px);
+  position: relative;
+  min-height: clamp(386px, 35.3vw, 510px);
+  padding: 18px 0;
+}
+.ws-sheet-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 41px,
+    rgba(107, 121, 102, 0.15) 41px 42px
+  );
+}
+.ws-readout {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  align-self: center;
+  min-width: 0;
+  padding-block: 10px;
+}
+.ws-readout-label,
+.ws-note {
+  color: #4b564a;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.ws-value {
+  display: block;
+  margin: 7px 0 clamp(24px, 3.25vw, 50px);
+  font-family: var(--tm-display, Cabinet, system-ui, sans-serif);
+  font-size: clamp(44px, 5.35vw, 82px);
+  line-height: 0.87;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  color: var(--tm-blue, #0759c7);
+  font-variant-numeric: tabular-nums;
+}
+.ws-value small {
+  margin-left: 0.15em;
+  font: 700 0.32em/1 var(--tm-text, Satoshi, sans-serif);
+  letter-spacing: -0.04em;
+}
+.ws-note {
+  display: grid;
+  gap: 4px;
+}
+.ws-note strong {
+  color: #253125;
+  font: 700 16px/1.15 var(--tm-text, Satoshi, sans-serif);
+  white-space: nowrap;
+}
+.ws-window {
+  --screen-max: 388px;
+  position: relative;
+  width: min(100%, var(--screen-max));
+  margin-inline: auto;
+}
+.ws-sheet[data-frame="program"] .ws-window {
+  --screen-max: 348px;
+}
+.ws-sheet[data-frame="rest"] .ws-window {
+  --screen-max: 322px;
+}
+.ws-sheet[data-frame="history"] .ws-window {
+  --screen-max: 388px;
+}
+.ws-window img {
+  display: block;
+  height: auto;
+  width: 100%;
+  filter: drop-shadow(0 4px 6px rgb(45 56 43 / 12%));
+}
+.workout-story .ws-disclosure {
+  margin-top: 14px;
+  color: var(--ws-secondary);
+  font-size: 12px;
+  text-align: right;
+}
+
+.ws-book[data-all-states] {
+  display: block;
+}
+.ws-book[data-all-states] .ws-chapter {
+  display: grid;
+  grid-template-columns: minmax(306px, 0.78fr) minmax(0, 1.33fr);
+  column-gap: clamp(32px, 5vw, 80px);
+  grid-template-rows: auto 1fr;
+  align-items: start;
+}
+.ws-book[data-all-states] .ws-chapter + .ws-chapter {
+  margin-top: 36px;
+}
+.ws-book[data-all-states] .ws-sheet {
+  grid-row: 1 / 3;
+}
+.ws-book[data-all-states] .ws-sheet + .ws-sheet {
+  grid-row: 3;
+  margin-top: 12px;
+}
+
+@media (max-width: 1090px) and (min-width: 960px) {
+  .ws-book,
+  .ws-book[data-all-states] .ws-chapter {
+    grid-template-columns: minmax(260px, 0.74fr) minmax(0, 1.34fr);
+    column-gap: 30px;
+  }
+  .ws-sheet-body {
+    grid-template-columns: minmax(100px, 0.62fr) minmax(200px, 1.35fr);
+  }
+}
+@media (max-width: 959px) {
+  .ws-inner {
+    width: min(100% - clamp(36px, 8vw, 76px), 680px);
+    padding-block: clamp(56px, 9vw, 88px) 54px;
+  }
+  .ws-masthead {
+    display: block;
+    margin-bottom: 32px;
+  }
+  .workout-story .ws-masthead h2 {
+    font-size: clamp(55px, 9.3vw, 81px);
+  }
+  .ws-masthead > p {
+    max-width: 38ch;
+    margin-top: 20px;
+  }
+  .ws-book,
+  .ws-book[data-all-states] .ws-chapter,
+  .ws-chapter,
+  .ws-chapter-body:not([hidden]) {
+    display: block;
+  }
+  .ws-chapter {
+    scroll-margin-block-start: 16px;
+  }
+  .ws-tab {
+    padding: 16px 0;
+    grid-template-columns: 24px minmax(0, 1fr) 18px;
+    gap: 10px;
+    scroll-margin-block-start: 14px;
+  }
+  .workout-story .ws-tab {
+    font-size: clamp(25px, 4.7vw, 34px);
+  }
+  .ws-chapter[data-current] .ws-pointer {
+    transform: rotate(90deg);
+  }
+  .ws-copy {
+    margin: -3px 0 19px;
+    padding-left: 34px;
+  }
+  .ws-copy p {
+    max-width: 42ch;
+    font-size: 15px;
+  }
+  .workout-story .ws-sheet {
+    padding-inline: clamp(15px, 4vw, 27px);
+    margin-bottom: 18px;
+  }
+  .ws-sheet-body {
+    min-height: initial;
+    grid-template-columns: minmax(95px, 0.6fr) minmax(0, 1.4fr);
+    gap: 12px;
+    padding-block: 19px;
+  }
+  .ws-value {
+    font-size: clamp(43px, 8.3vw, 63px);
+  }
+  .ws-sheet-heading {
+    padding: 12px 0 10px;
+  }
+  .ws-sheet-heading > :first-child {
+    font-size: 22px;
+  }
+  .ws-book[data-all-states] .ws-chapter + .ws-chapter {
+    margin-top: 14px;
+  }
+  .workout-story .ws-disclosure {
+    margin-top: 12px;
+    text-align: left;
+  }
+}
+@media (max-width: 570px) {
+  .workout-story .ws-masthead h2 {
+    font-size: clamp(38px, 10.7vw, 60px);
+  }
+  .ws-masthead > p {
+    font-size: 16px;
+  }
+  .ws-sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 0 18px;
+  }
+  .ws-readout {
+    width: 100%;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    align-items: end;
+  }
+  .ws-readout-label {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+  .ws-value {
+    grid-column: 1 / 2;
+    grid-row: 2;
+    font-size: 40px;
+    margin: 3px 0 0;
+  }
+  .ws-note {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    justify-items: end;
+    align-self: end;
+    text-align: right;
+    gap: 3px;
+  }
+  .ws-note strong {
+    font-size: 14px;
+  }
+  .ws-window,
+  .ws-sheet[data-frame] .ws-window {
+    width: min(100%, 320px);
+  }
+  .ws-sheet-footer {
+    padding-block: 8px;
+  }
+  .ws-sheet-footer > :is(:first-child, :last-child) {
+    font-size: 11px;
+  }
+}

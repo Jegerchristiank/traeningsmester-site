@@ -165,6 +165,12 @@ export default function AccessForm() {
       tabIndex={-1}
       aria-label="Få besked om adgang"
     >
+      <noscript>
+        <p>
+          Aktivér JavaScript i din browser for at sende tilmeldingen. Du kan
+          også <a href="/support">kontakte support</a>.
+        </p>
+      </noscript>
       {state.type === "success" ? (
         <div className="access-success">
           <div>
@@ -193,7 +199,13 @@ export default function AccessForm() {
           )}
         </div>
       ) : (
-        <form onSubmit={submit} noValidate aria-busy={submitting}>
+        <form
+          action="/api/waitlist"
+          method="post"
+          onSubmit={submit}
+          noValidate
+          aria-busy={submitting}
+        >
           <p className="access-intro">
             Træningsmester er under udvikling. Skriv dig op, og få besked om
             adgang.

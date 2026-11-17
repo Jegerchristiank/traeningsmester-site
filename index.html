@@ -10,11 +10,7 @@
         const hero = document.createElement("link");
         hero.rel = "preload";
         hero.as = "image";
-        hero.href = "/product/revision-full-set.webp";
-        hero.imageSrcset =
-          "/product/revision-full-set-640.webp 640w, /product/revision-full-set.webp 960w";
-        hero.imageSizes =
-          "(max-width: 480px) 170px, (max-width: 899px) 224px, 274px";
+        hero.href = "/product/athlete.webp";
         hero.fetchPriority = "high";
         document.head.append(hero);
       }
@@ -28,7 +24,14 @@
       content="Dit program, dine sæt og dine pauser samlet i én app. Træningsmester er under udvikling. Få besked om adgang."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#f6f5f1" />
+    <meta name="theme-color" content="#f7f6f1" />
+    <noscript
+      ><style>
+        .access-form form {
+          display: none;
+        }
+      </style></noscript
+    >
     <meta name="application-name" content="Træningsmester" />
     <meta name="apple-mobile-web-app-title" content="Træningsmester" />
     <link rel="canonical" href="https://www.traeningsmester.dk/" />
@@ -56,7 +59,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Træn videre fra sidste gang. Træningsmester med eksempel fra samme træning."
+      content="Træn videre fra sidste gang. En hånd om vægtstangen og appens sætrække med 60 kg × 8 sidst og 62,5 kg i dag."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
@@ -73,7 +76,7 @@
     />
     <meta
       name="twitter:image:alt"
-      content="Træn videre fra sidste gang. Træningsmester med eksempel fra samme træning."
+      content="Træn videre fra sidste gang. En hånd om vægtstangen og appens sætrække med 60 kg × 8 sidst og 62,5 kg i dag."
     />
     <link
       rel="icon"
