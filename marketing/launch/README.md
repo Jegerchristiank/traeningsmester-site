@@ -1,45 +1,64 @@
-# Træn videre fra sidste gang
+# Træn videre fra sidste gang.
 
-## Visuel revision
+Mens du står ved bænken, viser Træningsmester, hvad du løftede sidst. I eksemplet går første sæt fra 60 kg × 8 til 62,5 kg × 8. I næste træning kan du genfinde sættet i historikken.
 
-Den reviderede hjemmeside, still, delingsbillede og filmens åbning/slutning bruger nu et frontalt helt appviewport og ét læsbart udsnit fra samme skærm. De nye Center Stage-eksporter og reproduktionsindstillinger er beskrevet i [revision-center-stage-origin.md](revision-center-stage-origin.md). Den oprindelige kildefaste produktsekvens i filmen er bevaret. Billedernes skyggeplan er fjernet i studiet, så der ikke opstår grå canvas-kanter. Heleframe leveres også i en optimeret 640-pixelvariant til responsiv indlæsning på hjemmesiden.
+## Materiale til omtale
 
-Materiale til egen publicering efter godkendelse. Intet er sendt eller publiceret af produktionen.
+| Fil | Brug | Format |
+| --- | --- | --- |
+| [Lanceringsfilm](traen-videre.mp4) | Lodret, lydløs film | 1080 × 1920, H.264, 30 billeder/s, 19 sekunder |
+| [Stillbillede](traen-videre-still.png) | Opslag | 1080 × 1350, PNG |
+| [Dansk opslag](opslag.md) | Tekst til betatestere og træningspartnere | Markdown |
+| [Delingsbillede](../../public/product/og-image.jpg) | Linkpreview for traeningsmester.dk | 1200 × 630, JPEG |
 
-- `traen-videre.mp4`: lodret lanceringsklip, 1080 × 1920, 30 fps, uden lyd. Åbning: »Hvad løftede jeg sidst?«. Slutning: »Få besked om adgang«.
-- `traen-videre-still.png`: opslag, 1080 × 1350.
-- `opslag.md`: færdigt dansk opslagudkast.
-- `../../public/product/og-image.jpg`: delingsbillede, 1200 × 630.
-- `composition.html`: redigerbar typografi, opslag og videotekst. Eksisterende Cabinet Grotesk 800 og Satoshi, varm grund #f6f5f1, blå #0759c7.
+**Alternativ tekst til stillbilledet**
 
-## Produktets sandhedsstatus
+Træn videre fra sidste gang. På telefonen står »Bænkpres Med Stang«. For tre dage siden løftede du 60 kg otte gange. Første sæt i dag står til 62,5 kg og otte gentagelser. Få besked om adgang på traeningsmester.dk. Tallene er et eksempel.
 
-Billederne er kildefaste, redaktionelle **rekonstruktioner**, ikke nye native screenshots. Der er ingen rigtige brugerdata. Markeringen »Eksempeldata · rekonstruerede appvisninger« skal bevares. Program, aktivt sæt, pause og historik følger appens aktuelle komponenter i `Jegerchristiank/Traeningsmester-app`, kontrolleret 15. november 2026 ved revision `a733bd20614306f3bb754232616aea87266c01e2`. Systemstatusbar og symboler er forenklet. De viser ikke ny servergemning.
+## Skærmbilledet på forsiden
 
-Program: Mit styrkeprogram. Dag: Overkrop A. Bænkpres Med Stang, 3 × 8, plan 60 kg og 2:00 pause. Tidligere sæt 12. november: 60 kg × 8. Første sæt 15. november: 62,5 kg × 8. Efter registrering er første sæt udført, andet aktivt og pausen viser 01:42 i appens bundfelt. I næste træning 17. november genfindes samme sæt fra 15. november. Eksemplet viser ét gennemført sæt, ikke tre.
+Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Skærmens skarpe bogstaver kommer fra [kilderekonstruktionen af det aktive sæt](../../public/product/screen-set.webp). Visningen gengiver appens scroll med en fast træningsoverskrift og øvelse, sidste vægt og aktivt sæt i den rullende liste. Kildedimensionen er 1206 × 2622. De enkelte formater placerer kameraet, så både den tidligere vægt og det aktive sæts blå afkrydsning er med. Billedkanten ligger i den hvide afstand mellem rækkerne. Hver WebP-eksport har mindst fire hele pixelrækker med fri bund langs sætrækkens samlede bredde.
 
-Kildekomponenter: `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx`, `program-exercise-row.tsx`. Den native QA-reference blev kun brugt til layoutkontrol og indgår ikke i leverancen.
+| Visning | Eksporter |
+| --- | --- |
+| Desktop, 3:2 | [960 × 640](../../public/product/fokus-desktop-960.webp) og [1620 × 1080](../../public/product/fokus-desktop-1620.webp) |
+| Mobil, 1,35:1 | [540 × 400](../../public/product/fokus-mobil-540.webp) og [1080 × 800](../../public/product/fokus-mobil-1080.webp) |
+| Bred, lav skærm, 2,5:1 | [1800 × 720](../../public/product/fokus-panorama.webp) |
+| Billedplade til deling | [1200 × 630](source/fokus-deling.webp) med plads til overskriften til venstre |
 
-## Godkendt katalogindhold
+## Filmens forløb
 
-Supabase `rbplnybmjwcoigiwtkuh` blev læst read-only. Kun katalogrækker med `user_id is null`, `is_private is false`, `erGodkendt is true` blev brugt. Valgt øvelse: `0f93677e-79d9-4e24-ace9-0981e532ec17`, Bænkpres Med Stang. Det medfølgende `source/bench-start.png` er den godkendte offentlige katalogillustration, hentet fra `images_workout_days/images_exercises/ai/v7-20261107-r40/0f93677e-79d9-4e24-ace9-0981e532ec17/male/a8/start.png`. Logo og skrifter er projektets eksisterende assets.
+| Tid | Billede |
+| --- | --- |
+| 0–3 s | »Hvad løftede jeg sidst?« Telefonen viser bænkpres og det sidste sæt på 60 kg × 8. |
+| 3–6 s | `Mit styrkeprogram` → `Overkrop A` → `Bænkpres Med Stang`. Tre sæt med otte gentagelser, 60 kg og to minutters pause er planlagt. |
+| 6–9 s | Den 15. november står første sæt til 62,5 kg × 8. Lige ovenfor står de 60 kg × 8 fra den 12. november. |
+| 9–12 s | Første sæt er registreret, andet sæt er aktivt, og pausen viser 01:42. |
+| 12–15 s | Ved træningen den 17. november kan man i historikken se sættet fra den 15. november. |
+| 15–19 s | »Træn videre fra sidste gang.« Slutbilledet viser »Få besked om adgang«, webadressen og appens udviklingsstatus. |
 
-## Produktion og reproduktion
+## Kilder og genbygning
 
-Skærmrekonstruktionerne genereres med `node scripts/media-reconstruct-app.cjs`; output er som standard `/tmp/tm-product-assets`. De fire optimerede fulde frames ligger i `public/product/screen-*.webp`.
+Sætrækker, registrering, pause og historik er rekonstrueret efter den officielle mobilapp og mærket som eksempeldata. Systemstatus og enkelte ikoner er forenklet. Skærmenes grundlag er `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx` og `program-exercise-row.tsx` ved apprevision `a733bd20614306f3bb754232616aea87266c01e2`. Sætrække, pause og historik er også kontrolleret mod `e9d7df52a973`. Det originale katalogmotiv for Bænkpres Med Stang er `0f93677e-79d9-4e24-ace9-0981e532ec17`. Den tidligere read-only-udvælgelse i `rbplnybmjwcoigiwtkuh` brugte `user_id IS NULL`, `is_private IS FALSE` og `erGodkendt IS TRUE`. [Kildedokumentation](revision-center-stage-origin.md) · [katalogillustration](source/bench-start.png).
 
-Produktkompositionerne er faktisk eksporteret fra [React Bits Center Stage](https://www.reactbits.dev/tools/center-stage), med egne appframes. `center-stage-hero.json`, `center-stage-chapters.json` og `center-stage-video.json` er de anvendte redigerbare indstillinger. Importér JSON og derefter tilhørende skærmbillede eller optagelse. Ingen Center Stage-/WebGL-runtime indlæses på hjemmesiden.
+Filmens fire appudsnit kommer fra det eksisterende Center Stage-masterklip. Studiets hardwarekontur, lys og kamerabeskæringer er egne. Kabinet, display og appindhold eksporteres som én fil. Typografien uden for telefonen er Cabinet Grotesk og Satoshi. [Center Stage-master](source/product-center-stage.mp4) · [React Bits Center Stage](https://www.reactbits.dev/tools/center-stage) · [studie og kamera](source/fokus-studio.html) · [film- og opslagssats](composition.html).
 
-Hero: udsnit af `active.png`, x0/y760/bredde1206/højde1125, eksporteret 1280 × 1280. Kapiteludsnit: program y380/h1580; sæt y760/h1365; pause y770/h1780; historik y1400/h1180, alle bredde1206 og x0. Kapitelkompositionerne er eksporteret 1024 × 1280. Cropændringer er redaktionelle; de fremstiller ikke appanimation som eksisterende.
+Kør fra projektets rod med projektets Playwright Chromium, `cwebp` og `ffmpeg` tilgængelige. Den fulde kommando bygger først alle telefonudsnit og derefter film, stillbillede og delingsbillede.
 
-Videoens kilde er program → aktivt sæt → pause → historik, hver 3 sekunder. Center Stage bruger Card med eksplicit 9:19.5 viewport, 9:16 output og beskeden Sway (intensity0.06). Phone-rammen fravalgtes, fordi den tilføjede endnu en statusbar over de faktiske frames. WebM anvendes som mellemformat og transkodes til H.264 MP4 med fast start/sluttekst; MP4-renderingen i studiet gav ingen fil i denne browser.
+```sh
+node scripts/media-launch.cjs --studio
+```
 
-Den leverede film er 18,5 sekunder: åbning 2,5 s, produkt 12 s, slutning 4 s. Det eksporterede Center Stage-klip ligger komprimeret som `source/product-center-stage.mp4`. Genskab slutfilm og stills med:
+Når telefonudsnittene allerede findes, kan film og stillbilleder genbygges direkte fra masterklippet.
 
 ```sh
 node scripts/media-launch.cjs marketing/launch/source/product-center-stage.mp4
 ```
 
-Produktdelen har redaktionelle nærbilleder af program, sæt, pause og historik, så de afgørende tal kan læses i telefonstørrelse. Det er filmens kamerabeskæring, ikke nye overgange eller zoomfunktioner i appen. Filmens titel-/slutkort er synlige straks. Ingen lyd eller musikrettigheder kræves.
+`node scripts/media-launch.cjs` genbygger kun opslagets stillbillede og delingsbilledet. De oprindelige skærmrekonstruktioner kan eksporteres med `node scripts/media-reconstruct-app.cjs`. Deres Center Stage-indstillinger er `center-stage-video.json` og `revision-center-stage-*.json`.
 
-Kontrolleret: de faktisk eksporterede billeder er åbnet; hele den færdige MP4 er afspillet i Chromium ved 390 × 844 til `ended=true`, 555 videoframes, 18,5 sekunder, ingen video-fejl. Første/sidste frame og hvert kapitel er gennemset; pauseudsnittet blev rettet for at bevare hele 01:42-feltet. H.264/1080×1920/30fps er kontrolleret med ffprobe. Det er produktions- og afspilningskontrol, ikke bruger- eller konverteringstest.
+## Kontrol den 18. november 2026
+
+Den færdige MP4 blev afspillet ved normal hastighed i Chromium i en mobilvisning på 390 × 844. Afspilleren nåede 19,0 sekunder og rapporterede 570 billeder, 0 tabte og ingen afspilningsfejl. Åbning, program, registrering, pause, historik og adgang blev kontrolleret i den kodede film.
+
+Projektets lokale side leverede delingsbilledet med HTTP 200 som JPEG i 1200 × 630. Filen var byteidentisk med eksporten, og billedtekst, titel og beskrivelse blev kontrolleret i en gengivelse af et linkpreview på 358 pixels.

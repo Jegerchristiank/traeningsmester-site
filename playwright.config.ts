@@ -23,8 +23,15 @@ export default defineConfig({
   webServer: process.env.TM_PREVIEW_URL
     ? undefined
     : {
-        command: "npm run preview -- --port 4175",
+        // A separate build keeps synthetic auth settings out of deployable dist/.
+        command: "npm exec -- vite build --outDir qa/playwright-dist && node scripts/prerender.mjs qa/playwright-dist && npm run preview -- --host 127.0.0.1 --port 4175 --strictPort --outDir qa/playwright-dist",
+        env: {
+          VITE_SUPABASE_URL: "http://127.0.0.1:49951",
+          VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_browser_test",
+          VITE_POSTHOG_HOST: "https://eu.i.posthog.com",
+          VITE_POSTHOG_PROJECT_TOKEN: "phc_browsertest",
+        },
         port: 4175,
-        reuseExistingServer: true,
+        reuseExistingServer: false,
       },
 });

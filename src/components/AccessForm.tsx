@@ -61,15 +61,13 @@ const errorMessages: Record<AccessError, string> = {
 };
 
 export function focusAccessForm() {
-  const section = document.getElementById("adgang");
-  const target = document.getElementById("access-email") ?? section;
+  const dialog = document.getElementById("access-dialog");
+  if (!(dialog instanceof HTMLDialogElement)) return;
+  if (!dialog.open) dialog.showModal();
+  const target =
+    document.getElementById("access-email") ??
+    document.getElementById("access-title");
   target?.focus({ preventScroll: true });
-  section?.scrollIntoView({
-    block: "center",
-    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? "auto"
-      : "smooth",
-  });
 }
 
 export default function AccessForm() {
@@ -80,13 +78,36 @@ export default function AccessForm() {
   const [shareMessage, setShareMessage] = useState("");
   const [showShareLink, setShowShareLink] = useState(false);
   const inFlight = useRef(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const openedFromHash = useRef(false);
   const successRef = useRef<HTMLHeadingElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const consentRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (state.type === "success")
-      successRef.current?.focus({ preventScroll: true });
+    const openFromLink = () => {
+      if (window.location.hash !== "#adgang" || dialogRef.current?.open) return;
+      openedFromHash.current = true;
+      document
+        .querySelector<HTMLElement>(".hero-access-link")
+        ?.focus({ preventScroll: true });
+      focusAccessForm();
+    };
+    openFromLink();
+    window.addEventListener("hashchange", openFromLink);
+    return () => window.removeEventListener("hashchange", openFromLink);
+  }, []);
+
+  useEffect(() => {
+    if (!dialogRef.current?.open) return;
+    if (state.type === "success") {
+      const title = successRef.current;
+      title?.focus({ preventScroll: true });
+      title?.closest(".access-success")?.scrollIntoView({
+        block: "nearest",
+        behavior: "instant",
+      });
+    }
     if (state.type !== "error") return;
     if (state.reason === "email") emailRef.current?.focus();
     if (state.reason === "consent") consentRef.current?.focus();
@@ -159,16 +180,48 @@ export default function AccessForm() {
   const submitting = state.type === "submitting";
 
   return (
-    <section
+    <dialog
+      ref={dialogRef}
+      id="access-dialog"
       className="access-form"
-      id="adgang"
-      tabIndex={-1}
-      aria-label="Få besked om adgang"
+      aria-labelledby="access-title"
+      onClose={() => {
+        if (!openedFromHash.current || dialogRef.current?.open) return;
+        openedFromHash.current = false;
+        if (window.location.hash === "#adgang") {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            window.location.pathname + window.location.search,
+          );
+        }
+      }}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        ) {
+          event.currentTarget.close();
+        }
+      }}
     >
+      <button
+        className="access-close"
+        type="button"
+        onClick={() => dialogRef.current?.close()}
+        aria-label="Luk vinduet"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
       {state.type === "success" ? (
         <div className="access-success">
           <div>
             <h2
+              id="access-title"
               ref={successRef}
               tabIndex={-1}
               aria-describedby="access-success-description"
@@ -193,10 +246,17 @@ export default function AccessForm() {
           )}
         </div>
       ) : (
-        <form onSubmit={submit} noValidate aria-busy={submitting}>
+        <form
+          action="/api/waitlist"
+          method="post"
+          onSubmit={submit}
+          noValidate
+          aria-busy={submitting}
+        >
+          <h2 id="access-title">Få besked om adgang</h2>
           <p className="access-intro">
-            Træningsmester er under udvikling. Skriv dig op, og få besked om
-            adgang.
+            Træningsmester er under udvikling. Vi skriver, når der er nyt om at
+            prøve appen.
           </p>
           <label className="access-label" htmlFor="access-email">
             Din e-mail
@@ -228,14 +288,6 @@ export default function AccessForm() {
                 if (error?.reason !== "consent") setState({ type: "idle" });
               }}
             />
-            <button
-              className="access-submit"
-              type="submit"
-              disabled={submitting}
-            >
-              {submitting ? "Sender…" : "Få besked om adgang"}
-              <span aria-hidden="true">{submitting ? "" : "↗"}</span>
-            </button>
           </div>
           {error && error.reason !== "consent" && (
             <p className="access-error" id="access-error" role="status">
@@ -261,9 +313,8 @@ export default function AccessForm() {
               }}
             />
             <span>
-              Jeg giver KRISTENSON (CVR 40679456) samtykke til at sende mig
-              e-mails om Træningsmesters lancering og adgangsrunder. Jeg kan
-              altid afmelde mig gratis via linket i mails.
+              Ja, KRISTENSON (CVR 40679456) må sende mig e-mails om
+              Træningsmesters lancering og adgangsrunder.
             </span>
           </label>
           {error?.reason === "consent" && (
@@ -271,12 +322,15 @@ export default function AccessForm() {
               {error.message}
             </p>
           )}
+          <button className="access-submit" type="submit" disabled={submitting}>
+            {submitting ? "Sender…" : "Få besked om adgang"}
+          </button>
           <p className="access-support" id="access-support">
-            Vi skriver, når der er nyt om adgang. Du kan afmelde dig igen.
+            Du kan afmelde dig gratis i hver mail.{" "}
+            <a className="access-privacy" href="/privatliv">
+              Læs om privatliv.
+            </a>
           </p>
-          <a className="access-privacy" href="/privatliv">
-            Se privatlivspolitikken
-          </a>
           <div hidden inert aria-hidden="true">
             <label htmlFor="access-website">Lad dette felt stå tomt</label>
             <input
@@ -294,6 +348,6 @@ export default function AccessForm() {
           </span>
         </form>
       )}
-    </section>
+    </dialog>
   );
 }

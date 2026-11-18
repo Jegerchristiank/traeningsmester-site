@@ -1,7 +1,7 @@
 {
   "name": "Træningsmester",
   "short_name": "Træningsmester",
-  "description": "Dansk app til personlig træning, træningslog og historik.",
+  "description": "Log ind på din Træningsmester-konto, og administrér dine forbindelser til AI-assistenter.",
   "lang": "da-DK",
   "id": "/app/",
   "start_url": "/app/",

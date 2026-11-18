@@ -121,15 +121,15 @@
   "rewrites": [
     {
       "source": "/app",
-      "destination": "/index.html"
+      "destination": "/shell.html"
     },
     {
       "source": "/app/",
-      "destination": "/index.html"
+      "destination": "/shell.html"
     },
     {
       "source": "/app/:path*",
-      "destination": "/index.html"
+      "destination": "/shell.html"
     },
     {
       "source": "/privatliv",
@@ -137,27 +137,27 @@
     },
     {
       "source": "/vilkaar",
-      "destination": "/index.html"
+      "destination": "/vilkaar.html"
     },
     {
       "source": "/cookies",
-      "destination": "/index.html"
+      "destination": "/cookies.html"
     },
     {
       "source": "/tilgaengelighed",
-      "destination": "/index.html"
+      "destination": "/tilgaengelighed.html"
     },
     {
       "source": "/support",
-      "destination": "/index.html"
+      "destination": "/support.html"
     },
     {
       "source": "/slet-konto",
-      "destination": "/index.html"
+      "destination": "/slet-konto.html"
     },
     {
       "source": "/afmeld",
-      "destination": "/index.html"
+      "destination": "/shell.html"
     },
     {
       "source": "/mcp",
@@ -185,7 +185,7 @@
     },
     {
       "source": "/ai/:path*",
-      "destination": "/index.html"
+      "destination": "/shell.html"
     }
   ]
 }

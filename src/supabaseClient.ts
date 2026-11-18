@@ -1,4 +1,4 @@
-import { createClient, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type SupabaseStatus = {
   configured: boolean;
@@ -77,10 +77,6 @@ export function getSupabaseStatus(): SupabaseStatus {
   };
 }
 
-export function isSupabaseConfigured() {
-  return getSupabaseStatus().configured;
-}
-
 export function getSupabaseClient() {
   const status = getSupabaseStatus();
   if (!status.configured) return null;
@@ -95,36 +91,3 @@ export function getSupabaseClient() {
   }
   return client;
 }
-
-export async function getSupabaseSession() {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
-  const { data, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return data.session;
-}
-
-export async function signOutSupabase() {
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
-  await supabase.auth.signOut();
-}
-
-export function resolveSupabaseAssetUrl(value: string | null | undefined, bucket = "workout_images") {
-  const rawValue = value?.trim();
-  if (!rawValue) return undefined;
-  if (/^(https?:|data:|blob:)/i.test(rawValue) || rawValue.startsWith("/")) return rawValue;
-  const status = getSupabaseStatus();
-  if (!status.url) return undefined;
-  const encodedPath = rawValue
-    .replace(/^\/+/, "")
-    .split("/")
-    .map((part) => encodeURIComponent(part))
-    .join("/");
-  return `${status.url}/storage/v1/object/public/${bucket}/${encodedPath}`;
-}
-
-export type SupabaseAuthSession = {
-  session: Session;
-  user: User;
-};

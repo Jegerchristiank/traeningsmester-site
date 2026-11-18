@@ -6,6 +6,7 @@ Disse seks filer er faktisk eksporteret fra React Bits Center Stage med projekte
 | --- | --- | --- |
 | revision-full-set.webp | RGBA WebP | 960 × 2088, 106.1 KB |
 | revision-detail-set.webp | RGBA WebP | 1200 × 510, 31.7 KB |
+| saetraekke-600.webp | Nedskaleret udgave af samme sætrække til smalle visninger | 600 × 255 |
 | revision-program.webp | RGBA WebP | 960 × 1250, 54.2 KB |
 | revision-set.webp | RGBA WebP | 960 × 1083, 56.7 KB |
 | revision-rest.webp | RGBA WebP | 960 × 1403, 70.8 KB |

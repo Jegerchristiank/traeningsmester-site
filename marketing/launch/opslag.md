@@ -1,13 +1,11 @@
 Hvad løftede jeg sidst?
 
-Jeg bygger Træningsmester, så du kan tage udgangspunkt i din sidste træning. Åbn programmet, se hvad du løftede sidst, registrér næste sæt og hold styr på pausen.
+Du åbner bænkpres i dit program. Lige over dit næste sæt kan du se de 60 kg og otte gentagelser fra sidste træning. I dag skriver du 62,5 kg. Når du kommer tilbage næste gang, kan du finde sættet igen.
 
-Appen er under udvikling. Vil du afprøve den, når der bliver åbnet for adgang? Skriv dig op, så giver jeg besked. Du er også velkommen til at sende linket til en træningsmakker.
+Jeg bygger Træningsmester og søger folk, der vil prøve appen i deres egen træning. Har du eller din træningsmakker lyst til at være med?
 
-Skriv dig op på https://www.traeningsmester.dk/
-
-Vi skriver, når der er nyt om adgang. Du kan afmelde dig igen.
+Få besked om adgang på https://www.traeningsmester.dk/
 
 / Christian
 
-Materialet viser eksempeldata og rekonstruerede appvisninger baseret på den aktuelle app.
+Klippet viser rekonstruerede appvisninger med eksempeldata.

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getMarketingAnalyticsConsent,
   marketingAnalyticsConfigured,
@@ -6,7 +6,8 @@ import {
 } from "../marketingAnalytics";
 
 export default function AnalyticsConsent() {
-  const [allowed, setAllowed] = useState(getMarketingAnalyticsConsent);
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => setAllowed(getMarketingAnalyticsConsent()), []);
   return (
     <details className="analytics-consent">
       <summary>Statistik</summary>

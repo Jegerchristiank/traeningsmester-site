@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <title>Træningsmester · skærmstudie</title>
+  <style>
+    * { box-sizing: border-box }
+    html, body { margin: 0; padding: 0 }
+    #studio {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background: linear-gradient(126deg, #e9edef 0%, #dbe3e7 50%, #bfcdd3 100%);
+    }
+    .light {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 13% 12%, rgb(255 255 255 / 34%), transparent 58%);
+    }
+    .phone {
+      position: absolute;
+      transform-origin: 50% 28%;
+      transform-style: preserve-3d;
+      transform: perspective(1900px) rotateY(-5.7deg) rotateX(1.4deg) rotateZ(-1.8deg);
+      border-radius: var(--outer);
+      box-shadow: 10px 17px 23px -11px rgb(28 49 63 / 22%), 28px 57px 70px -21px rgb(32 49 60 / 23%);
+    }
+    .edge {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(99deg, #576369 0%, #c3cbce .5%, #374246 .9%, #9aa3a7 1.8%, #b0b7ba 25%, #dde1e1 47%, #6a7276 77%, #343f44 97.6%, #8b969b 99%, #414b50 99.7%);
+      box-shadow: inset 0 1.4px 1.5px #edf1f0, inset -1.6px -.9px 2px #68757a, inset .8px 0 #5d6a6f;
+    }
+    .inside {
+      position: absolute;
+      inset: 4px;
+      border: 1px solid #1b2022;
+      border-radius: calc(var(--outer) - 4px);
+      background: #171c20;
+      box-shadow: inset .6px 1.4px 1px #475258, 0 1px 1px #b0b8ba;
+    }
+    .display {
+      position: absolute;
+      inset: var(--bezel);
+      overflow: hidden;
+      isolation: isolate;
+      border-radius: calc(var(--outer) - var(--bezel) + 1px);
+      background: white;
+    }
+    .capture { position: relative; width: 1206px; height: 2622px; transform-origin: 0 0 }
+    .capture img { position: absolute; top: 0; left: 0; width: 1206px; height: 2622px }
+    .list-window { position: absolute; left: 0; top: 418px; width: 1206px; height: 1930px; overflow: hidden }
+    .receiver {
+      position: absolute;
+      top: 4px;
+      left: 44%;
+      width: 12%;
+      height: 1.7px;
+      border-radius: 4px;
+      background: linear-gradient(0deg, #141a1c, #30393c 60%, #151a1b);
+      opacity: .84;
+    }
+    .key {
+      position: absolute;
+      z-index: -1;
+      width: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #6c797d, #c0c8ca 62%, #727f84);
+      box-shadow: 0 .8px 1px #39444b77;
+    }
+    .key.one { left: -2px; top: 15%; height: 4% }
+    .key.two { left: -2px; top: 22%; height: 7% }
+    .key.three { right: -2px; top: 22%; height: 11% }
+  </style>
+</head>
+<body>
+  <main id="studio" aria-label="Appens aktive bænkpressæt i en neutral telefon">
+    <div class="light"></div>
+    <div class="phone">
+      <div class="key one"></div>
+      <div class="key two"></div>
+      <div class="key three"></div>
+      <div class="edge"></div>
+      <div class="inside"></div>
+      <div class="display">
+        <div class="capture">
+          <img class="native" alt="" src="../../../public/product/screen-set.webp">
+          <div class="list-window">
+            <img class="list" alt="" src="../../../public/product/screen-set.webp">
+          </div>
+        </div>
+      </div>
+      <div class="receiver"></div>
+    </div>
+  </main>
+  <script>
+    // The app keeps the 418-pixel session header fixed while its FlatList scrolls beneath it.
+    // Camera framing is in artboard pixels. List offsets are in the 1206 × 2622 source image.
+    // Frame ends inside the real white gutter between rows, including at the highest point of the tilt.
+    const artboards = {
+      desktop:  { size: [1200, 800], phone: [286, 54, 632],   scroll: 443, bezel: 10,  radius: 75 },
+      mobil:    { size: [1080, 800], phone: [154, -115, 775], scroll: 445, bezel: 11,  radius: 87 },
+      panorama: { size: [1800, 720], phone: [605, 35, 582],   scroll: 445, bezel: 9.5, radius: 68 },
+      deling:   { size: [1200, 630], phone: [641, 23, 515],   scroll: 445, bezel: 8,   radius: 59 },
+    };
+    const requested = new URLSearchParams(location.search).get('view');
+    const artboard = artboards[requested] || artboards.desktop;
+    const [width, height] = artboard.size;
+    const [frameLeft, frameTop, frameWidth] = artboard.phone;
+    const displayWidth = frameWidth - 2 * artboard.bezel;
+    const scale = displayWidth / 1206;
+    const studio = document.getElementById('studio');
+    const phone = document.querySelector('.phone');
+    Object.assign(studio.style, { width: width + 'px', height: height + 'px' });
+    Object.assign(phone.style, {
+      width: frameWidth + 'px',
+      height: (displayWidth * 2622 / 1206 + 2 * artboard.bezel) + 'px',
+      left: frameLeft + 'px',
+      top: frameTop + 'px',
+    });
+    phone.style.setProperty('--outer', artboard.radius + 'px');
+    phone.style.setProperty('--bezel', artboard.bezel + 'px');
+    document.querySelector('.capture').style.transform = 'scale(' + scale + ')';
+    document.querySelector('.list').style.top = -(418 + artboard.scroll) + 'px';
+  </script>
+</body>
+</html>
