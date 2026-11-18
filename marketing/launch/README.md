@@ -15,7 +15,7 @@ Mens du står ved bænken, viser Træningsmester, hvad du løftede sidst. I ekse
 
 Træn videre fra sidste gang. På telefonen står »Bænkpres Med Stang«. For tre dage siden løftede du 60 kg otte gange. Første sæt i dag står til 62,5 kg og otte gentagelser. Få besked om adgang på traeningsmester.dk. Tallene er et eksempel.
 
-## Skærmbilledet på forsiden
+## Produktbilleder i filmen og opslaget
 
 Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Skærmens skarpe bogstaver kommer fra [kilderekonstruktionen af det aktive sæt](../../public/product/screen-set.webp). Visningen gengiver appens scroll med en fast træningsoverskrift og øvelse, sidste vægt og aktivt sæt i den rullende liste. Kildedimensionen er 1206 × 2622. De enkelte formater placerer kameraet, så både den tidligere vægt og det aktive sæts blå afkrydsning er med. Billedkanten ligger i den hvide afstand mellem rækkerne. Hver WebP-eksport har mindst fire hele pixelrækker med fri bund langs sætrækkens samlede bredde.
 
@@ -38,6 +38,18 @@ Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Sk
 | 15–19 s | »Træn videre fra sidste gang.« Slutbilledet viser »Få besked om adgang«, webadressen og appens udviklingsstatus. |
 
 ## Kilder og genbygning
+
+Den 8,5 sekunder lange baggrundsfilm åbner midt i et bænkpres. Tima Miroshnichenko har filmet løftet fra to vinkler. K (@kelly) har filmet hænderne, der klapper magnesiumstøv op i luften. Støvet samler sig til »62,5« som en redaktionel effekt, der forbinder løftet med vægten i træningsloggen. Scenen med telefonen på træningsbænken er iscenesat med ImageGen. På skærmen ses en rekonstruktion af Træningsmester med eksempeldata. [Løfteren](https://www.pexels.com/video/a-person-doing-bench-press-exercise-5320004/) · [Vægtskiven](https://www.pexels.com/video/a-person-doing-bench-press-exercise-5320001/) · [Originaloptagelse af magnesiumskyen](https://www.pexels.com/video/chalk-dust-clouds-from-clapping-hands-31794153/) · [Pexels’ licens](https://www.pexels.com/license/).
+
+[Landskabsfilmen](../../public/product/cover/saet-landskab.mp4) og [portrætfilmen](../../public/product/cover/saet-portraet.mp4) har hver sin kamerabeskæring og sit eget WebP-startbillede. Træningsfilmen på 19 sekunder åbnes separat fra forsiden.
+
+Til genbygning bruges 4K-originalerne fra de tre Pexels-links ovenfor, ffmpeg og Python med Pillow, NumPy og OpenCV. Den tabsfri [telefonmaster](source/magnesium/baenk.webp) indeholder skærmtilstandene og vægtfeltets placering på glasset. Talformen er taget fra appens eget felt, og [støvmasken](source/magnesium/stoevkorn.png) er udtrukket af magnesiumoptagelsen.
+
+```sh
+python scripts/media-unpack-bench.py /tmp/tm-baenk
+python scripts/media-cover-motion.py --bench /tmp/tm-baenk \
+  --greb 5320004.mp4 --loeft 5320001.mp4 --kalk 31794153.mp4
+```
 
 Sætrækker, registrering, pause og historik er rekonstrueret efter den officielle mobilapp og mærket som eksempeldata. Systemstatus og enkelte ikoner er forenklet. Skærmenes grundlag er `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx` og `program-exercise-row.tsx` ved apprevision `a733bd20614306f3bb754232616aea87266c01e2`. Sætrække, pause og historik er også kontrolleret mod `e9d7df52a973`. Det originale katalogmotiv for Bænkpres Med Stang er `0f93677e-79d9-4e24-ace9-0981e532ec17`. Den tidligere read-only-udvælgelse i `rbplnybmjwcoigiwtkuh` brugte `user_id IS NULL`, `is_private IS FALSE` og `erGodkendt IS TRUE`. [Kildedokumentation](revision-center-stage-origin.md) · [katalogillustration](source/bench-start.png).
 

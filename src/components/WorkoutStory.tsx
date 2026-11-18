@@ -162,7 +162,7 @@ export default function WorkoutStory() {
     >
       <div className="ws-inner">
         <header className="ws-header">
-          <h2 id="workout-story-heading">Sådan virker appen.</h2>
+          <h2 id="workout-story-heading">Fra sidste sæt til næste træning.</h2>
         </header>
         <nav
           className="ws-nav"

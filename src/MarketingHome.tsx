@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import AccessForm, { focusAccessForm } from "./components/AccessForm";
 import AnalyticsConsent from "./components/AnalyticsConsent";
 import SiteBrand from "./components/SiteBrand";
 import WorkoutStory from "./components/WorkoutStory";
 import TrainingInformation from "./components/TrainingInformation";
+import WorkoutFilm from "./components/WorkoutFilm";
+import CoverMotion from "./components/CoverMotion";
 import { recordMarketingVisit } from "./marketingAnalytics";
 import "./training-story.css";
 
@@ -92,53 +94,27 @@ function SiteNavigation() {
   );
 }
 
-function WorkoutExample() {
-  return (
-    <figure className="hero-example" aria-labelledby="example-exercise">
-      <picture className="focus-picture">
-        <source
-          media="(min-width: 900px) and (min-aspect-ratio: 2.65/1)"
-          srcSet="/product/fokus-panorama.webp"
-          width="1800"
-          height="720"
-        />
-        <source
-          media="(max-width: 899px)"
-          srcSet="/product/fokus-mobil-540.webp 540w, /product/fokus-mobil-1080.webp 1080w"
-          sizes="100vw"
-          width="540"
-          height="400"
-        />
-        <img
-          className="focus-photo"
-          src="/product/fokus-desktop-960.webp"
-          srcSet="/product/fokus-desktop-960.webp 960w, /product/fokus-desktop-1620.webp 1620w"
-          sizes="55vw"
-          width="960"
-          height="640"
-          fetchPriority="high"
-          alt="I programmet Overkrop A viser appen sidste bænkpres på 60 kg × 8. Første sæt i dag er klar med 8 gentagelser på 62,5 kg."
-        />
-      </picture>
-      <figcaption>
-        <span id="example-exercise">60 kg sidst. 62,5 kg i dag.</span>
-        <span>Eksempeldata</span>
-      </figcaption>
-    </figure>
-  );
-}
-
 export default function MarketingHome() {
+  const topMarker = useRef<HTMLSpanElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+
   useEffect(() => {
     document.title = "Træningsmester — Træn videre fra sidste gang.";
     recordMarketingVisit();
+    if (!topMarker.current || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setScrolled(entry.boundingClientRect.bottom <= 0);
+    });
+    observer.observe(topMarker.current);
+    return () => observer.disconnect();
   }, []);
   return (
     <div className="edition-home" id="top">
       <a className="story-skip" href="#main-content">
         Gå til indhold
       </a>
-      <header className="cover-header">
+      <span className="cover-origin" ref={topMarker} aria-hidden="true" />
+      <header className="cover-header" data-scrolled={scrolled || undefined}>
         <div className="edition-shell header-inner">
           <SiteBrand />
           <SiteNavigation />
@@ -146,14 +122,16 @@ export default function MarketingHome() {
       </header>
       <main id="main-content">
         <section className="story-hero" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <h1 id="hero-title">
-              Træn videre <span>fra sidste gang.</span>
-            </h1>
-            <p className="hero-lead">
-              Se, hvad du løftede sidst. Registrér dit næste sæt, og lad appen
-              holde styr på pausen.
-            </p>
+          <div className="cover-content">
+            <div className="hero-copy">
+              <h1 id="hero-title">
+                Træn videre <span>fra sidste gang.</span>
+              </h1>
+              <p className="hero-lead">
+                Se, hvad du løftede sidst. Registrér dit næste sæt, og lad appen
+                holde styr på pausen.
+              </p>
+            </div>
             <div className="hero-access" id="adgang">
               <AccessLink className="hero-access-link" />
               <p>Under udvikling til iPhone og Android.</p>
@@ -164,8 +142,9 @@ export default function MarketingHome() {
                 </p>
               </noscript>
             </div>
+            <WorkoutFilm />
           </div>
-          <WorkoutExample />
+          <CoverMotion />
         </section>
         <WorkoutStory />
         <TrainingInformation />

@@ -1,9 +1,19 @@
+/* Keep both cover lines in place while the Cabinet webfont is downloading. */
+@font-face {
+  font-family: "Cabinet Cover Fallback";
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Roboto Bold"),
+    local("Liberation Sans Bold");
+  font-weight: 800;
+  size-adjust: 90%;
+}
 .edition-home {
   --tm-paper: #faf9f6;
   --tm-ink: #17212a;
   --tm-muted: #53616a;
   --tm-rule: #d7dcda;
-  --mast-height: clamp(4rem, 7.5svh, 6rem);
+  --mast-height: clamp(4.4rem, 8.5svh, 6rem);
+  --mast-compact: 3.55rem;
   --page-inset: clamp(1.25rem, 5vw, 15rem);
   color: var(--tm-ink);
   background: var(--tm-paper);
@@ -48,12 +58,12 @@
   padding-inline: var(--tm-gutter);
 }
 .story-skip {
-  position: absolute;
-  z-index: 5;
+  position: fixed;
+  z-index: 9;
   top: 0.6rem;
-  left: 0.8rem;
+  left: var(--page-inset);
   padding: 0.75rem 1rem;
-  transform: translateY(-160%);
+  transform: translateY(-180%);
   border-radius: 0.4rem;
   background: white;
   color: var(--tm-blue);
@@ -61,8 +71,36 @@
 .story-skip:focus {
   transform: none;
 }
+.cover-origin {
+  position: absolute;
+  inset: 48px auto auto 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
 .cover-header {
-  background: var(--tm-paper);
+  position: fixed;
+  isolation: isolate;
+  z-index: 6;
+  inset: 0 0 auto;
+  color: #fff;
+  border-bottom: 1px solid transparent;
+}
+.cover-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1rem;
+  z-index: -1;
+  pointer-events: none;
+  background: rgb(10 16 13 / 0.67);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  -webkit-mask-image: linear-gradient(
+    #000 26%,
+    rgb(0 0 0 / 0.94) 62%,
+    transparent
+  );
+  mask-image: linear-gradient(#000 26%, rgb(0 0 0 / 0.94) 62%, transparent);
 }
 .header-inner {
   position: relative;
@@ -73,11 +111,19 @@
   gap: 1rem;
   padding-inline: var(--page-inset);
 }
+.cover-header .story-brand {
+  color: inherit;
+  min-height: 44px;
+}
+.cover-header .story-brand img {
+  width: 2.35rem;
+  height: 2.35rem;
+}
 .header-inner nav,
 .header-links {
   display: flex;
   align-items: center;
-  gap: clamp(1.25rem, 2.5vw, 3rem);
+  gap: clamp(1.3rem, 2.7vw, 3.6rem);
 }
 .header-inner nav a,
 .contents-menu summary {
@@ -85,52 +131,151 @@
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
-  font-size: clamp(0.94rem, 0.9vw, 1.15rem);
+  font-size: clamp(0.94rem, 0.92vw, 1.1rem);
   font-weight: 700;
 }
 .header-inner nav a:hover,
 .contents-menu summary:hover {
-  color: var(--tm-blue);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
 }
 .header-inner .header-login {
-  padding-inline: 1.15em;
-  border-radius: 99px;
-  background: #e9edeb;
   white-space: nowrap;
+  gap: 0.45rem;
+}
+.header-login::after {
+  content: "↗";
+  font-family: Arial, sans-serif;
+  font-weight: 400;
 }
 .contents-menu {
   display: none;
 }
+.cover-header[data-scrolled] {
+  color: var(--tm-ink);
+  border-color: rgb(23 33 42 / 0.12);
+}
+.cover-header[data-scrolled]::before {
+  inset-block-end: 0;
+  background: rgb(250 249 246 / 0.93);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.cover-header[data-scrolled] .header-inner {
+  min-height: var(--mast-compact);
+}
+.cover-header[data-scrolled] .story-brand img {
+  width: 2rem;
+  height: 2rem;
+}
+:is(.cover-header:not([data-scrolled]), .story-hero) :focus-visible {
+  outline-color: white;
+}
 .story-hero {
-  min-height: calc(100svh - var(--mast-height));
+  isolation: isolate;
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.91fr) minmax(0, 1.09fr);
-  align-items: center;
-  padding-block: clamp(2rem, 4.2svh, 4.5rem) clamp(2.65rem, 6svh, 6rem);
+  align-items: end;
+  min-height: 100vh;
+  min-height: 100svh;
+  color: #fff;
+  background: var(--tm-paper);
+}
+.cover-visual {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  background: #202623;
+  pointer-events: none;
+}
+.cover-visual picture,
+.focus-photo,
+.cover-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.cover-visual picture {
+  position: relative;
+  z-index: 1;
+}
+.cover-visual[data-has-frame] picture {
+  opacity: 0;
+}
+.cover-video {
+  position: absolute;
+  inset: 0;
+}
+.focus-photo,
+.cover-video {
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+.cover-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(
+      0deg,
+      rgb(10 15 14 / 0.83),
+      rgb(10 15 14 / 0.28) 32%,
+      transparent 63%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(13 18 16 / 0.66),
+      rgb(15 20 18 / 0.48) 36%,
+      transparent 72%
+    );
+}
+.cover-motion-toggle:not([hidden]) {
+  position: absolute;
+  inset-block-start: calc(var(--mast-height) + 0.8rem);
+  inset-inline-end: var(--page-inset);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.65);
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(15 20 18 / 0.6);
+}
+.cover-motion-toggle:hover {
+  background: #fff;
+  color: #18221d;
+}
+.cover-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: clamp(1.4rem, 3.6svh, 2.8rem) clamp(1.5rem, 4vw, 6rem);
+  padding: calc(var(--mast-height) + 3rem) var(--page-inset)
+    clamp(3rem, 7svh, 7.5rem);
 }
 .hero-copy {
   min-width: 0;
-  padding: 0 2vw 0 var(--page-inset);
+  grid-column: 1 / -1;
 }
 .hero-copy h1 {
-  max-width: 11.2ch;
-  font: 800 clamp(3.8rem, min(6.3vw, 12.4svh), 11.5rem)/0.98 var(--tm-display);
-  letter-spacing: -0.046em;
+  font: 800 clamp(4.5rem, min(8.2vw, 14.4svh), 13rem)/0.92 var(--tm-display);
+  letter-spacing: -0.036em;
+  font-family: Cabinet, "Cabinet Cover Fallback", Arial, sans-serif;
 }
 .hero-copy h1 span {
   display: block;
-  white-space: nowrap;
 }
 .hero-lead {
-  max-width: 36ch;
-  margin-top: clamp(1.2rem, 2.7svh, 3rem);
-  font-size: clamp(1.14rem, min(1.54vw, 2.7svh), 2.3rem);
-  line-height: 1.45;
-  color: #3b4a52;
+  max-width: 24em;
+  margin-top: clamp(1rem, 2.3svh, 2rem);
+  font-size: clamp(1.1rem, min(1.48vw, 2.7svh), 1.7rem);
+  line-height: 1.43;
   text-wrap: pretty;
-}
-.hero-access {
-  margin-top: clamp(1.7rem, 4.2svh, 3.8rem);
+  color: #f0f1eb;
 }
 .hero-access-link,
 .closing-action,
@@ -138,9 +283,9 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: 1em;
+  gap: 1.05em;
   min-height: 3.15rem;
-  padding: 0.77em 1.5em;
+  padding: 0.8em 1.4em;
   border: 0;
   border-radius: 99px;
   background: var(--tm-blue);
@@ -150,12 +295,11 @@
 }
 .hero-access-link,
 .closing-action {
-  font-size: clamp(1rem, 1.12vw, 1.4rem);
+  font-size: clamp(1rem, 1.15vw, 1.35rem);
 }
 .hero-access-link:hover,
-.closing-action:hover,
 .access-submit:hover {
-  background: #004cae;
+  background: #064fac;
 }
 .edition-arrow {
   font:
@@ -163,49 +307,127 @@
     sans-serif;
 }
 .hero-access > p {
-  margin-top: 0.85rem;
-  font-size: clamp(0.86rem, 0.95vw, 1.12rem);
-  color: var(--tm-muted);
-}
-.hero-access noscript p {
-  margin-top: 1rem;
+  margin-top: 0.65rem;
+  color: #d6dcd7;
+  font-size: clamp(0.85rem, 0.9vw, 1.03rem);
 }
 .hero-access noscript a {
   text-decoration: underline;
 }
-.hero-example {
-  min-width: 0;
-  padding: 0 var(--page-inset) 0 0.75vw;
+.film-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.85rem;
+  min-height: 48px;
+  color: #fff;
 }
-.focus-picture {
-  display: block;
-  aspect-ratio: 3 / 2;
-  isolation: isolate;
-  overflow: hidden;
-  background: #dce4e8;
-  border-radius: clamp(1rem, 1.45vw, 3rem);
+.film-play {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 50%;
+  background: rgb(20 24 24 / 0.18);
 }
-.focus-photo {
+.film-trigger:hover .film-play {
+  background: #fff;
+  color: #18221d;
+}
+.film-label {
+  display: grid;
+  gap: 0.12em;
+}
+.film-label strong {
+  display: flex;
+  align-items: baseline;
+  gap: 0.64em;
+  font-size: clamp(1rem, 1.15vw, 1.35rem);
+}
+.film-label small,
+.film-label > span {
+  font-size: clamp(0.8rem, 0.88vw, 1rem);
+  color: #e1e5de;
+}
+.film-label small {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.workout-film {
+  position: fixed;
+  inset: 0;
+  width: min(28rem, calc(100% - 1.5rem), calc((100dvh - 8rem) * 9 / 16));
+  min-width: min(15.5rem, calc(100% - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #43504b;
+  border-radius: 0.9rem;
+  background: #17211c;
+  color: #fff;
+}
+.workout-film::backdrop {
+  background: rgb(8 13 10 / 0.84);
+}
+.film-bar,
+.film-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-inline: 1rem;
+}
+.film-bar h2 {
+  font: 700 1rem/1.2 var(--tm-text);
+}
+.film-close {
+  width: 44px;
+  height: 48px;
+  margin-right: -0.6rem;
+  font:
+    400 1.5rem/1 Arial,
+    sans-serif;
+  background: none;
+  color: inherit;
+  border: 0;
+}
+.workout-film video:not([hidden]) {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-height: calc(100dvh - 8rem);
+  aspect-ratio: 9 / 16;
+  background: #101413;
 }
-.hero-example figcaption {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: baseline;
-  margin-top: 0.75em;
-  color: var(--tm-muted);
-  font-size: clamp(0.81rem, 0.87vw, 1.12rem);
-}
-.hero-example figcaption > :first-child {
-  color: var(--tm-ink);
+.film-action {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 0.94rem;
   font-weight: 700;
+}
+.film-action:hover {
+  text-decoration: underline;
+}
+.film-error {
+  padding: 1.5rem 1rem;
 }
 #main-content :is(#traeningsforloeb, #funktioner, #faq):focus-visible {
   outline: none;
+}
+#main-content :is(#funktioner, #faq),
+#main-content,
+#adgang {
+  scroll-margin-top: calc(var(--mast-compact) + 1rem);
+}
+#main-content #traeningsforloeb {
+  scroll-margin-top: var(--mast-compact);
 }
 #main-content :is(#traeningsforloeb, #funktioner, #faq):focus-visible h2 {
   text-decoration: underline;
@@ -213,7 +435,7 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 0.14em;
 }
-html:has(.access-form[open]) {
+html:has(.access-form[open], .workout-film[open]) {
   overflow: hidden;
 }
 dialog.access-form {
@@ -369,7 +591,7 @@ dialog.access-form::backdrop {
 }
 .closing-inner {
   width: 100%;
-  padding: clamp(2.6rem, 5.5vw, 5rem) var(--tm-gutter);
+  padding: clamp(2.6rem, 5.5vw, 5rem) var(--page-inset);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -399,6 +621,9 @@ dialog.access-form::backdrop {
 }
 .story-footer .story-brand {
   color: #fff;
+}
+.story-footer .edition-shell {
+  padding-inline: var(--page-inset);
 }
 .footer-maker p {
   max-width: 33ch;
@@ -469,27 +694,47 @@ dialog.access-form::backdrop {
   text-decoration: underline;
 }
 
-@media (min-width: 900px) and (min-aspect-ratio: 2.65/1) {
-  .focus-picture {
-    aspect-ratio: 5 / 2;
+@media (prefers-reduced-motion: no-preference) {
+  .cover-header {
+    transition:
+      color 160ms,
+      border-color 220ms;
   }
-  .story-hero {
-    grid-template-columns: minmax(0, 0.83fr) minmax(0, 1.17fr);
+  .cover-header::before {
+    transition: background-color 220ms;
+  }
+  .header-inner {
+    transition: min-height 220ms;
+  }
+  .cover-header .story-brand img {
+    transition:
+      width 220ms,
+      height 220ms;
+  }
+  .film-play {
+    transition:
+      background-color 160ms,
+      color 160ms;
+  }
+  @supports (animation-timeline: view()) {
+    .cover-visual {
+      animation: cover-recede linear both;
+      animation-timeline: view(block);
+      animation-range: exit 0% exit 85%;
+    }
+    @keyframes cover-recede {
+      from {
+        clip-path: inset(0 round 0);
+      }
+      to {
+        clip-path: inset(0 1.6% round 1.5rem);
+      }
+    }
   }
 }
 @media (max-width: 899px) {
-  .edition-home {
-    --page-inset: clamp(1.25rem, 5vw, 2.75rem);
-  }
-  .header-inner {
-    min-height: 4rem;
-  }
   .header-inner nav {
-    gap: clamp(0.5rem, 2.5vw, 1.35rem);
-  }
-  .header-inner nav a,
-  .contents-menu summary {
-    font-size: 0.94rem;
+    gap: 1.25rem;
   }
   .header-links {
     display: none;
@@ -512,69 +757,90 @@ dialog.access-form::backdrop {
   }
   .contents-links {
     position: absolute;
-    top: calc(100% - 0.25rem);
+    top: calc(100% + 0.35rem);
     right: var(--page-inset);
-    z-index: 3;
     display: grid;
     min-width: 13rem;
-    padding: 0.55rem 1.1rem;
+    padding: 0.5rem 1.1rem;
     border: 1px solid var(--tm-rule);
-    background: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 25px #17212a12;
+    border-radius: 0.65rem;
+    background: var(--tm-paper);
+    color: var(--tm-ink);
+    box-shadow: 0 8px 25px rgb(15 22 18 / 0.15);
   }
-  .story-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    min-height: auto;
-    padding: clamp(2.1rem, 6vw, 4rem) 0 1.7rem;
-  }
-  .hero-copy {
-    padding-inline: var(--page-inset);
+  .contents-links a:focus-visible {
+    outline-color: var(--tm-blue);
   }
   .hero-copy h1 {
-    font-size: clamp(3rem, 9.55vw, 5.5rem);
-    max-width: none;
+    font-size: clamp(3.6rem, min(9.8vw, 14svh), 5.8rem);
+  }
+}
+/* Keep both the weight in the chalk and the completed set below the masthead. */
+@media (min-aspect-ratio: 11/5) {
+  .focus-photo,
+  .cover-video {
+    object-position: 50% 24%;
+  }
+}
+@media (min-aspect-ratio: 1/1) and (max-aspect-ratio: 5/4) {
+  .focus-photo,
+  .cover-video {
+    object-position: 70% 55%;
+  }
+}
+@media (max-aspect-ratio: 1/1) {
+  .focus-photo,
+  .cover-video {
+    object-position: 50% 10%;
+  }
+  .cover-visual::after {
+    background: linear-gradient(
+      0deg,
+      rgb(10 16 14 / 0.95),
+      rgb(10 16 14 / 0.83) 23%,
+      rgb(10 16 14 / 0.64) max(41%, 23rem),
+      rgb(10 16 14 / 0.14) max(68%, 32rem),
+      transparent max(83%, 36rem)
+    );
+  }
+}
+@media (max-width: 760px), (max-width: 1000px) and (max-aspect-ratio: 4/5) {
+  .cover-content {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: clamp(1.35rem, 3.4svh, 2.3rem);
+    padding-bottom: max(1.4rem, env(safe-area-inset-bottom), 3.8svh);
+  }
+  .film-trigger {
+    justify-self: start;
+  }
+  .film-play {
+    width: 2.6rem;
+    height: 2.6rem;
   }
   .hero-lead {
-    font-size: clamp(1.06rem, 2.8vw, 1.3rem);
-    max-width: 39ch;
-    margin-top: 1rem;
-  }
-  .hero-access {
-    margin-top: 1.3rem;
-  }
-  .hero-access-link {
-    min-height: 3rem;
-  }
-  .hero-access > p {
-    margin-top: 0.55rem;
-  }
-  .hero-example {
-    margin-top: clamp(1.5rem, 5vw, 2.75rem);
-    padding-inline: var(--page-inset);
-  }
-  .hero-example figcaption {
-    margin-top: 0.5rem;
-  }
-  .focus-picture {
-    aspect-ratio: 27 / 20;
-    border-radius: 1rem;
+    font-size: clamp(1rem, 3.8vw, 1.2rem);
   }
 }
 @media (max-width: 600px) {
-  .story-brand {
+  .edition-home {
+    --mast-height: 4rem;
+    --mast-compact: 3.35rem;
+  }
+  .hero-copy h1 {
+    font-size: clamp(2.62rem, 14.1vw, 4.9rem);
+  }
+  .cover-header .story-brand {
     font-size: 1.18rem;
-    gap: 0.3rem;
+    gap: 0.4rem;
   }
-  .story-brand img {
-    width: 1.8rem;
-    height: 1.8rem;
+  .cover-header .story-brand img {
+    width: 1.9rem;
+    height: 1.9rem;
   }
-  .header-inner .header-login {
-    padding-inline: 0.9em;
-    min-height: 40px;
+  .cover-header[data-scrolled] .story-brand img {
+    width: 1.7rem;
+    height: 1.7rem;
   }
   .closing-inner {
     align-items: flex-start;
@@ -596,18 +862,36 @@ dialog.access-form::backdrop {
     white-space: nowrap;
   }
 }
-@media (max-width: 360px) {
-  .header-inner {
-    gap: 0.5rem;
+@media (max-width: 380px) {
+  .header-inner nav {
+    gap: 0.8rem;
   }
   .header-inner nav a,
   .contents-menu summary {
     font-size: 0.88rem;
   }
-  .story-brand {
-    font-size: 1.04rem;
+}
+@media (max-height: 550px) and (min-aspect-ratio: 3/2) {
+  .edition-home {
+    --mast-height: 3.45rem;
+    --mast-compact: 3rem;
+  }
+  .cover-content {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding-block: calc(var(--mast-height) + 1.2rem) 1.4rem;
   }
   .hero-copy h1 {
-    font-size: 2.68rem;
+    font-size: clamp(2.5rem, 10.8svh, 3.75rem);
+  }
+  .hero-lead {
+    margin-top: 0.6rem;
+    font-size: 1rem;
+  }
+  .hero-access > p {
+    margin-top: 0.35rem;
+  }
+  .film-trigger {
+    justify-self: end;
   }
 }
