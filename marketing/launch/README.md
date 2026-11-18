@@ -39,9 +39,17 @@ Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Sk
 
 ## Kilder og genbygning
 
-Forsidens træningsfoto er Victor Freitas’ billede af en vægtløfter med stangen over hovedet. Det er samme fotografi som i appens godkendte paywall-reference. [Originalfoto](https://unsplash.com/photos/man-carrying-barbell-at-the-gym-CQwNdMxwjfk) · [3600 × 2400-kilde](https://images.unsplash.com/photo-1520948013839-62020f374478?w=3600&q=93&fm=jpg&fit=max) · [Rettighedsgrundlag](../../docs/product-basis.md#afsenderbrandfoto).
+Den 8,5 sekunder lange baggrundsfilm åbner midt i et bænkpres. Tima Miroshnichenko har filmet løftet fra to vinkler. K (@kelly) har filmet hænderne, der klapper magnesiumstøv op i luften. Støvet samler sig til »62,5« som en redaktionel effekt, der forbinder løftet med vægten i træningsloggen. Scenen med telefonen på træningsbænken er iscenesat med ImageGen. På skærmen ses en rekonstruktion af Træningsmester med eksempeldata. [Løfteren](https://www.pexels.com/video/a-person-doing-bench-press-exercise-5320004/) · [Vægtskiven](https://www.pexels.com/video/a-person-doing-bench-press-exercise-5320001/) · [Originaloptagelse af magnesiumskyen](https://www.pexels.com/video/chalk-dust-clouds-from-clapping-hands-31794153/) · [Pexels’ licens](https://www.pexels.com/license/).
 
-I `public/product/cover/` viser landskabsudsnittet `loeft` skuldrene, grebet og vægtskiven. Portrætudsnittet `greb` går tættere på hånden. På kilden i 3600 × 2400 pixels er udsnittene henholdsvis x=0, y=150, 3600 × 2250 og x=1200, y=300, 1134 × 2100. Begge bruger samme let dæmpede farver. Alle fire størrelser findes i AVIF og WebP fra samme beskårne master. AVIF-filerne fylder 16,5–68,7 kB. Overskrift og handling sættes i HTML.
+[Landskabsfilmen](../../public/product/cover/saet-landskab.mp4) og [portrætfilmen](../../public/product/cover/saet-portraet.mp4) har hver sin kamerabeskæring og sit eget WebP-startbillede. Træningsfilmen på 19 sekunder åbnes separat fra forsiden.
+
+Til genbygning bruges 4K-originalerne fra de tre Pexels-links ovenfor, ffmpeg og Python med Pillow, NumPy og OpenCV. Den tabsfri [telefonmaster](source/magnesium/baenk.webp) indeholder skærmtilstandene og vægtfeltets placering på glasset. Talformen er taget fra appens eget felt, og [støvmasken](source/magnesium/stoevkorn.png) er udtrukket af magnesiumoptagelsen.
+
+```sh
+python scripts/media-unpack-bench.py /tmp/tm-baenk
+python scripts/media-cover-motion.py --bench /tmp/tm-baenk \
+  --greb 5320004.mp4 --loeft 5320001.mp4 --kalk 31794153.mp4
+```
 
 Sætrækker, registrering, pause og historik er rekonstrueret efter den officielle mobilapp og mærket som eksempeldata. Systemstatus og enkelte ikoner er forenklet. Skærmenes grundlag er `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx` og `program-exercise-row.tsx` ved apprevision `a733bd20614306f3bb754232616aea87266c01e2`. Sætrække, pause og historik er også kontrolleret mod `e9d7df52a973`. Det originale katalogmotiv for Bænkpres Med Stang er `0f93677e-79d9-4e24-ace9-0981e532ec17`. Den tidligere read-only-udvælgelse i `rbplnybmjwcoigiwtkuh` brugte `user_id IS NULL`, `is_private IS FALSE` og `erGodkendt IS TRUE`. [Kildedokumentation](revision-center-stage-origin.md) · [katalogillustration](source/bench-start.png).
 

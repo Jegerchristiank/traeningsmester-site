@@ -22,16 +22,12 @@ test("the installable app stays scoped to the app boundary", async () => {
   );
 });
 
-test("first-party hero and chrome assets stay within mobile budgets", async () => {
+test("the hero films, first frames and supporting images stay within their transfer budgets", async () => {
   const budgets = new Map([
-    ["public/product/cover/greb-540.avif", 20_000],
-    ["public/product/cover/greb-864.avif", 38_000],
-    ["public/product/cover/loeft-1440.avif", 35_000],
-    ["public/product/cover/loeft-2560.avif", 82_000],
-    ["public/product/cover/greb-540.webp", 30_000],
-    ["public/product/cover/greb-864.webp", 68_000],
-    ["public/product/cover/loeft-1440.webp", 65_000],
-    ["public/product/cover/loeft-2560.webp", 165_000],
+    ["public/product/cover/saet-portraet.webp", 25_000],
+    ["public/product/cover/saet-landskab.webp", 40_000],
+    ["public/product/cover/saet-portraet.mp4", 1_000_000],
+    ["public/product/cover/saet-landskab.mp4", 1_600_000],
     ["public/product/baenkpres.webp", 30_000],
     ["public/product/saetraekke-600.webp", 18_000],
     ["public/product/revision-detail-set.webp", 45_000],

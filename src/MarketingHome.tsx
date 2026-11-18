@@ -5,6 +5,7 @@ import SiteBrand from "./components/SiteBrand";
 import WorkoutStory from "./components/WorkoutStory";
 import TrainingInformation from "./components/TrainingInformation";
 import WorkoutFilm from "./components/WorkoutFilm";
+import CoverMotion from "./components/CoverMotion";
 import { recordMarketingVisit } from "./marketingAnalytics";
 import "./training-story.css";
 
@@ -93,47 +94,6 @@ function SiteNavigation() {
   );
 }
 
-function CoverPhoto() {
-  return (
-    <div className="cover-visual" aria-hidden="true">
-      <picture>
-        <source
-          type="image/avif"
-          media="(max-aspect-ratio: 4/5)"
-          srcSet="/product/cover/greb-540.avif 540w, /product/cover/greb-864.avif 864w"
-          sizes="100vw"
-          width="864"
-          height="1600"
-        />
-        <source
-          media="(max-aspect-ratio: 4/5)"
-          srcSet="/product/cover/greb-540.webp 540w, /product/cover/greb-864.webp 864w"
-          sizes="100vw"
-          width="864"
-          height="1600"
-        />
-        <source
-          type="image/avif"
-          srcSet="/product/cover/loeft-1440.avif 1440w, /product/cover/loeft-2560.avif 2560w"
-          sizes="100vw"
-          width="1440"
-          height="900"
-        />
-        <img
-          className="focus-photo"
-          src="/product/cover/loeft-1440.webp"
-          srcSet="/product/cover/loeft-1440.webp 1440w, /product/cover/loeft-2560.webp 2560w"
-          sizes="100vw"
-          width="1440"
-          height="900"
-          fetchPriority="high"
-          alt=""
-        />
-      </picture>
-    </div>
-  );
-}
-
 export default function MarketingHome() {
   const topMarker = useRef<HTMLSpanElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -162,7 +122,6 @@ export default function MarketingHome() {
       </header>
       <main id="main-content">
         <section className="story-hero" aria-labelledby="hero-title">
-          <CoverPhoto />
           <div className="cover-content">
             <div className="hero-copy">
               <h1 id="hero-title">
@@ -185,6 +144,7 @@ export default function MarketingHome() {
             </div>
             <WorkoutFilm />
           </div>
+          <CoverMotion />
         </section>
         <WorkoutStory />
         <TrainingInformation />
