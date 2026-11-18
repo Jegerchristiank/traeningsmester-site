@@ -752,9 +752,9 @@ dialog.access-form::backdrop {
       0deg,
       rgb(10 16 14 / 0.95),
       rgb(10 16 14 / 0.83) 23%,
-      rgb(10 16 14 / 0.64) 41%,
-      rgb(10 16 14 / 0.14) 68%,
-      transparent 83%
+      rgb(10 16 14 / 0.64) max(41%, 23rem),
+      rgb(10 16 14 / 0.14) max(68%, 32rem),
+      transparent max(83%, 36rem)
     );
   }
 }
