@@ -15,7 +15,7 @@ Mens du står ved bænken, viser Træningsmester, hvad du løftede sidst. I ekse
 
 Træn videre fra sidste gang. På telefonen står »Bænkpres Med Stang«. For tre dage siden løftede du 60 kg otte gange. Første sæt i dag står til 62,5 kg og otte gentagelser. Få besked om adgang på traeningsmester.dk. Tallene er et eksempel.
 
-## Skærmbilledet på forsiden
+## Produktbilleder i filmen og opslaget
 
 Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Skærmens skarpe bogstaver kommer fra [kilderekonstruktionen af det aktive sæt](../../public/product/screen-set.webp). Visningen gengiver appens scroll med en fast træningsoverskrift og øvelse, sidste vægt og aktivt sæt i den rullende liste. Kildedimensionen er 1206 × 2622. De enkelte formater placerer kameraet, så både den tidligere vægt og det aktive sæts blå afkrydsning er med. Billedkanten ligger i den hvide afstand mellem rækkerne. Hver WebP-eksport har mindst fire hele pixelrækker med fri bund langs sætrækkens samlede bredde.
 
@@ -38,6 +38,10 @@ Alle udsnit viser samme telefon og samme træning på en blågrå studiebund. Sk
 | 15–19 s | »Træn videre fra sidste gang.« Slutbilledet viser »Få besked om adgang«, webadressen og appens udviklingsstatus. |
 
 ## Kilder og genbygning
+
+Forsidens træningsfoto er Victor Freitas’ billede af en vægtløfter med stangen over hovedet. Det er samme fotografi som i appens godkendte paywall-reference. [Originalfoto](https://unsplash.com/photos/man-carrying-barbell-at-the-gym-CQwNdMxwjfk) · [3600 × 2400-kilde](https://images.unsplash.com/photo-1520948013839-62020f374478?w=3600&q=93&fm=jpg&fit=max) · [Rettighedsgrundlag](../../docs/product-basis.md#afsenderbrandfoto).
+
+I `public/product/cover/` viser landskabsudsnittet `loeft` skuldrene, grebet og vægtskiven. Portrætudsnittet `greb` går tættere på hånden. På kilden i 3600 × 2400 pixels er udsnittene henholdsvis x=0, y=150, 3600 × 2250 og x=1200, y=300, 1134 × 2100. Begge bruger samme let dæmpede farver. Alle fire størrelser findes i AVIF og WebP fra samme beskårne master. AVIF-filerne fylder 16,5–68,7 kB. Overskrift og handling sættes i HTML.
 
 Sætrækker, registrering, pause og historik er rekonstrueret efter den officielle mobilapp og mærket som eksempeldata. Systemstatus og enkelte ikoner er forenklet. Skærmenes grundlag er `workout-session-screen.tsx`, `workout-exercise-targets.tsx`, `exercise-history-sheet.tsx`, `history/set-values.ts`, `program-detail-screen.tsx` og `program-exercise-row.tsx` ved apprevision `a733bd20614306f3bb754232616aea87266c01e2`. Sætrække, pause og historik er også kontrolleret mod `e9d7df52a973`. Det originale katalogmotiv for Bænkpres Med Stang er `0f93677e-79d9-4e24-ace9-0981e532ec17`. Den tidligere read-only-udvælgelse i `rbplnybmjwcoigiwtkuh` brugte `user_id IS NULL`, `is_private IS FALSE` og `erGodkendt IS TRUE`. [Kildedokumentation](revision-center-stage-origin.md) · [katalogillustration](source/bench-start.png).
 

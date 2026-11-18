@@ -24,11 +24,14 @@ test("the installable app stays scoped to the app boundary", async () => {
 
 test("first-party hero and chrome assets stay within mobile budgets", async () => {
   const budgets = new Map([
-    ["public/product/fokus-mobil-540.webp", 30_000],
-    ["public/product/fokus-mobil-1080.webp", 65_000],
-    ["public/product/fokus-desktop-960.webp", 55_000],
-    ["public/product/fokus-desktop-1620.webp", 90_000],
-    ["public/product/fokus-panorama.webp", 65_000],
+    ["public/product/cover/greb-540.avif", 20_000],
+    ["public/product/cover/greb-864.avif", 38_000],
+    ["public/product/cover/loeft-1440.avif", 35_000],
+    ["public/product/cover/loeft-2560.avif", 82_000],
+    ["public/product/cover/greb-540.webp", 30_000],
+    ["public/product/cover/greb-864.webp", 68_000],
+    ["public/product/cover/loeft-1440.webp", 65_000],
+    ["public/product/cover/loeft-2560.webp", 165_000],
     ["public/product/baenkpres.webp", 30_000],
     ["public/product/saetraekke-600.webp", 18_000],
     ["public/product/revision-detail-set.webp", 45_000],

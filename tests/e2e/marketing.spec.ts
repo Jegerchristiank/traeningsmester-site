@@ -393,8 +393,10 @@ test("the workout example uses the available width and keeps the next step in re
   expect(section?.width).toBe(size.width);
   if (onDesktop) {
     expect(product!.width).toBeGreaterThan(1000);
-    expect(heading!.x).toBeGreaterThan(product!.x + product!.width);
-    expect(product!.x).toBeCloseTo(size.width * 0.05, 0);
+    const viewer = await story.locator(".ws-viewer").boundingBox();
+    expect(heading!.x).toBeCloseTo(size.width * 0.05, 0);
+    expect(product!.x).toBeGreaterThan(heading!.x + heading!.width);
+    expect(viewer!.x + viewer!.width).toBeCloseTo(size.width * 0.95, 0);
   } else {
     const controls = await story.locator("nav").boundingBox();
     const caption = await story

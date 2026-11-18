@@ -1,7 +1,7 @@
 .workout-story {
   --ws-ink: #17212a;
   --ws-muted: #52616b;
-  background: #eef2f2;
+  background: var(--tm-paper);
   color: var(--ws-ink);
   font-family: var(--tm-text, Satoshi, Arial, sans-serif);
   scroll-margin-top: 32px;
@@ -24,7 +24,7 @@
 }
 
 .workout-story .ws-header h2 {
-  max-width: 12ch;
+  max-width: 16ch;
   font: 800 clamp(36px, 5vw, 60px)/1.02 var(--tm-display, Cabinet, sans-serif);
   letter-spacing: -0.035em;
   color: var(--ws-ink);
@@ -113,8 +113,11 @@
 .ws-product {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   height: clamp(300px, 53vw, 460px);
+  padding: clamp(0.75rem, 2.8vw, 4rem);
+  border-radius: 0.75rem;
+  background: #e8eeeb;
 }
 
 .ws-product img {
@@ -125,7 +128,7 @@
   max-height: 100%;
   border-radius: 4px;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
   filter: drop-shadow(0 12px 24px rgb(23 33 42 / 0.04));
 }
 
@@ -171,33 +174,33 @@
 
 @media (min-width: 1000px) {
   .ws-inner {
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    grid-template-columns: minmax(0, 0.87fr) minmax(0, 1.13fr);
     grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
     column-gap: clamp(48px, 6vw, 220px);
     padding-block: clamp(72px, 5vw, 160px);
   }
 
   .ws-header {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
     align-self: end;
   }
   .ws-nav {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 2;
     gap: clamp(26px, 2vw, 60px);
   }
   .ws-descriptions {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 3;
   }
   .ws-disclosure {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 4;
     align-self: start;
   }
   .ws-viewer {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1 / 5;
     margin: 0;
     align-self: center;
@@ -212,7 +215,7 @@
   }
 
   .ws-product {
-    height: clamp(420px, 24vw, 780px);
+    height: clamp(330px, 29vw, 780px);
   }
 
   .ws-descriptions {
