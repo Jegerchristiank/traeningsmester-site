@@ -3,13 +3,14 @@ import AccessForm, { focusAccessForm } from "./components/AccessForm";
 import AnalyticsConsent from "./components/AnalyticsConsent";
 import SiteBrand from "./components/SiteBrand";
 import WorkoutStory from "./components/WorkoutStory";
+import TrainingInformation from "./components/TrainingInformation";
 import { recordMarketingVisit } from "./marketingAnalytics";
 import "./training-story.css";
 
-function Arrow({ down = false }: { down?: boolean }) {
+function Arrow() {
   return (
     <span className="edition-arrow" aria-hidden="true">
-      {down ? "↓" : "↗"}
+      →
     </span>
   );
 }
@@ -19,8 +20,13 @@ function AccessLink({ className }: { className: string }) {
     <a
       className={className}
       href="#adgang"
+      aria-haspopup="dialog"
+      aria-controls="access-dialog"
       onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
         event.preventDefault();
+        event.currentTarget.focus({ preventScroll: true });
         focusAccessForm();
       }}
     >
@@ -30,7 +36,7 @@ function AccessLink({ className }: { className: string }) {
 }
 
 const navigation = [
-  ["traeningsforloeb", "Træningsforløb"],
+  ["traeningsforloeb", "Sådan virker appen"],
   ["funktioner", "Funktioner"],
   ["faq", "Spørgsmål"],
 ] as const;
@@ -62,7 +68,7 @@ function SiteNavigation() {
         }}
       >
         <summary>
-          Indhold <span aria-hidden="true">⌄</span>
+          Menu <span aria-hidden="true" className="menu-chevron" />
         </summary>
         <div className="contents-links">
           {navigation.map(([id, label]) => (
@@ -80,244 +86,45 @@ function SiteNavigation() {
         </div>
       </details>
       <a className="header-login" href="/app">
-        Log ind <Arrow />
+        Log ind
       </a>
     </nav>
   );
 }
 
-const features = [
-  [
-    "Programmer",
-    "Byg træningsdage med egne rækkefølger, mål og pauser. Periodiserede programmer kan fordele arbejdet over flere uger. Oprettelse af egne øvelser kræver Premium.",
-  ],
-  [
-    "Øvelsesbibliotek",
-    "Filtrér øvelser efter muskelgruppe og træningsform. I Match kan du gemme dem, du vil vende tilbage til, under Dine valg. Adgangen kan afhænge af medlemskab.",
-  ],
-  [
-    "Sæt og historik",
-    "Registrér opvarmning og arbejdssæt hver for sig. Følg vægt, gentagelser og volumen i historikken, og angiv tempo, RIR eller RPE, når det er relevant. Du kan bruge kg eller lbs.",
-  ],
-  [
-    "Kondition",
-    "Registrér løb, gang og cykling. Vælger du at bruge GPS udendørs, kan appen registrere din rute og distance.",
-  ],
-  [
-    "Træningscentre",
-    "Vælg center manuelt, og se, hvad du tidligere har løftet der. Du kan også give tilladelse til, at appen genkender dit center via din placering.",
-  ],
-  [
-    "Import og AI",
-    "Med Premium, internetforbindelse og dit AI-samtykke kan du importere indhold eller få forslag til et program. Gennemgå resultatet, før du gemmer det. Adgang og kapacitet kan variere.",
-  ],
-  [
-    "Træningsmakkere",
-    "Tilføj venner, send beskeder, og vælg, hvem der må se et træningsresumé. Deler du et program via en kode, beholder du retten til at redigere det.",
-  ],
-  [
-    "Apple Sundhed og Watch",
-    "På iPhone kan du forbinde Apple Sundhed og vælge, hvad appen må dele. Watch-funktionerne kræver et parret Apple Watch med urappen installeret.",
-  ],
-  [
-    "Strava",
-    "Valgfri forbindelse til eksport af aktiviteter. Integrationen er under udvikling. Tilgængeligheden afhænger af platform, opsætning og release.",
-  ],
-];
-
-const questions = [
-  [
-    "Hvornår kan jeg prøve appen?",
-    "Der er endnu ingen offentlig adgangsdato. Skriv dig op, så får du en e-mail, når der er nyt om at prøve Træningsmester.",
-  ],
-  [
-    "Hvilke enheder understøttes?",
-    "Træningsmester udvikles til iPhone og Android. Apple Sundhed og Apple Watch hører til Apple-platformen. De konkrete enhedskrav følger med, når adgangen åbner.",
-  ],
-  [
-    "Hvad kommer det til at koste?",
-    "Det er gratis at skrive sig op. Der er endnu ingen offentlig pris for appen. Du får adgangsvilkårene at se, før du skal beslutte dig.",
-  ],
-  [
-    "Hvad sker der med min e-mail?",
-    "KRISTENSON bruger din e-mail til beskeder om lancering og adgangsrunder. Du kan afmelde dig gratis via linket i hver mail.",
-  ],
-];
-
 function WorkoutExample() {
   return (
-    <section className="hero-product" aria-labelledby="example-exercise">
-      <div className="sample-heading">
-        <p className="sample-context">
-          <span>Overkrop A</span>
-          <small>Eksempeldata</small>
-        </p>
-        <h2 id="example-exercise">Bænkpres med stang</h2>
-      </div>
-      <dl className="sample-values">
-        <div>
-          <dt>Sidste træning</dt>
-          <dd>
-            60 <span>kg × 8</span>
-          </dd>
-        </div>
-        <div className="sample-today">
-          <dt>Dagens første sæt</dt>
-          <dd>
-            62,5 <span>kg × 8</span>
-          </dd>
-        </div>
-      </dl>
-      <div className="sample-window">
-        <p>Sætrækken i appen</p>
-        <img
-          src="/product/revision-detail-set.webp"
-          srcSet="/product/saetraekke-600.webp 600w, /product/revision-detail-set.webp 1200w"
-          sizes="(max-width: 699px) 92vw, (max-width: 1023px) 48vw, (min-width: 2300px) and (min-aspect-ratio: 2.75/1) 24vw, 33vw"
-          width="1200"
-          height="510"
-          decoding="async"
-          alt="Rekonstrueret appvisning. Sidste sæt var 60 kg × 8. Den aktive række viser 8 gentagelser med 62,5 kg."
+    <figure className="hero-example" aria-labelledby="example-exercise">
+      <picture className="focus-picture">
+        <source
+          media="(min-width: 900px) and (min-aspect-ratio: 2.65/1)"
+          srcSet="/product/fokus-panorama.webp"
+          width="1800"
+          height="720"
         />
-        <a className="edition-text-link" href="#traeningsforloeb">
-          Se et træningsforløb <Arrow down />
-        </a>
-      </div>
-      <figure className="plate-figure">
-        <picture>
-          <source
-            media="(min-width: 1024px) and (min-aspect-ratio: 2/1)"
-            srcSet="/product/vaegtskiver-panorama.webp"
-            width="1920"
-            height="800"
-          />
-          <img
-            className="plate-image"
-            src="/product/vaegtskiver-1024.webp"
-            srcSet="/product/vaegtskiver-560.webp 560w, /product/vaegtskiver-1024.webp 1024w, /product/vaegtskiver-1800.webp 1800w"
-            sizes="(max-width: 699px) 47vw, (max-width: 1023px) 25vw, 31vw"
-            width="1024"
-            height="768"
-            fetchPriority="high"
-            alt="To små blå vægtskiver på 1,25 kg hver."
-          />
-        </picture>
-        <figcaption>
-          <strong>
-            +2,5 <span>kg</span>
-          </strong>
-          <span>
-            En skive på 1,25 kg
-            <br />i hver side af stangen.
-          </span>
-        </figcaption>
-      </figure>
-    </section>
-  );
-}
-
-function FeatureIndex() {
-  return (
-    <section
-      id="funktioner"
-      tabIndex={-1}
-      className="edition-features edition-shell"
-      aria-labelledby="feature-heading"
-    >
-      <header className="feature-heading">
-        <h2 id="feature-heading">
-          Til din måde
-          <br />
-          at træne på.
-        </h2>
-      </header>
-      <div className="features-content">
-        <dl className="feature-register">
-          <div>
-            <dt>Eget program</dt>
-            <dd>
-              Vælg øvelser og træningsdage. Læg vægt, gentagelser og pauser ind,
-              så programmet er klar, når du møder op.
-            </dd>
-          </div>
-          <div>
-            <dt>Styrke og kondition</dt>
-            <dd>
-              Hold opvarmning og arbejdssæt adskilt i styrketræningen. Registrér
-              tid og distance, når du løber, går eller cykler.
-            </dd>
-          </div>
-          <div>
-            <dt>Dine forbindelser</dt>
-            <dd>
-              Forbind Apple Sundhed på iPhone, eller brug et parret Apple Watch.
-              Forbindelsen til Strava er under udvikling.
-            </dd>
-          </div>
-        </dl>
-        <details className="all-features">
-          <summary>
-            Se alle funktioner{" "}
-            <span className="toggle-mark" aria-hidden="true" />
-          </summary>
-          <div className="feature-overview">
-            <p>
-              Funktioner i mobilappen under udvikling. Adgang afhænger af
-              platform og medlemskab.
-            </p>
-            <dl>
-              {features.map(([name, detail]) => (
-                <div key={name}>
-                  <dt>{name}</dt>
-                  <dd>{detail}</dd>
-                </div>
-              ))}
-            </dl>
-            <a className="edition-text-link" href="/ai/help">
-              Sådan forbinder du en AI-assistent til din konto <Arrow />
-            </a>
-          </div>
-        </details>
-      </div>
-    </section>
-  );
-}
-
-function Questions() {
-  return (
-    <section
-      className="questions-block"
-      id="faq"
-      tabIndex={-1}
-      aria-labelledby="questions-title"
-    >
-      <div className="edition-shell questions-spread">
-        <h2 id="questions-title">
-          Inden du
-          <br />
-          skriver dig op.
-        </h2>
-        <div className="question-list">
-          {questions.map(([question, answer], index) => (
-            <details className="question" key={question} open={index === 0}>
-              <summary>
-                {question}
-                <span className="toggle-mark" aria-hidden="true" />
-              </summary>
-              <p>
-                {answer}
-                {index === 3 && (
-                  <>
-                    {" "}
-                    <a href="/privatliv">Læs om privatliv.</a>
-                  </>
-                )}
-              </p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
+        <source
+          media="(max-width: 899px)"
+          srcSet="/product/fokus-mobil-540.webp 540w, /product/fokus-mobil-1080.webp 1080w"
+          sizes="100vw"
+          width="540"
+          height="400"
+        />
+        <img
+          className="focus-photo"
+          src="/product/fokus-desktop-960.webp"
+          srcSet="/product/fokus-desktop-960.webp 960w, /product/fokus-desktop-1620.webp 1620w"
+          sizes="55vw"
+          width="960"
+          height="640"
+          fetchPriority="high"
+          alt="I programmet Overkrop A viser appen sidste bænkpres på 60 kg × 8. Første sæt i dag er klar med 8 gentagelser på 62,5 kg."
+        />
+      </picture>
+      <figcaption>
+        <span id="example-exercise">60 kg sidst. 62,5 kg i dag.</span>
+        <span>Eksempeldata</span>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -339,31 +146,35 @@ export default function MarketingHome() {
       </header>
       <main id="main-content">
         <section className="story-hero" aria-labelledby="hero-title">
-          <div className="poster-heading">
+          <div className="hero-copy">
             <h1 id="hero-title">
               Træn videre <span>fra sidste gang.</span>
             </h1>
-          </div>
-          <div className="cover-layout">
-            <div className="cover-access">
-              <p className="hero-lead">
-                <strong>En træningsapp, der husker dine sæt.</strong> Åbn dit
-                program, se dit sidste løft, og hold styr på pausen.
-              </p>
-              <AccessForm />
+            <p className="hero-lead">
+              Se, hvad du løftede sidst. Registrér dit næste sæt, og lad appen
+              holde styr på pausen.
+            </p>
+            <div className="hero-access" id="adgang">
+              <AccessLink className="hero-access-link" />
+              <p>Under udvikling til iPhone og Android.</p>
+              <noscript>
+                <p>
+                  Aktivér JavaScript for at skrive dig op, eller{" "}
+                  <a href="/support">kontakt support</a>.
+                </p>
+              </noscript>
             </div>
-            <WorkoutExample />
           </div>
+          <WorkoutExample />
         </section>
         <WorkoutStory />
-        <FeatureIndex />
-        <Questions />
-        <section className="closing" aria-label="Tilmelding">
-          <div className="edition-shell closing-inner">
-            <p>Træningsmester er under udvikling.</p>
+        <TrainingInformation />
+        <div className="closing">
+          <div className="closing-inner">
+            <p>Vil du prøve Træningsmester?</p>
             <AccessLink className="closing-action" />
           </div>
-        </section>
+        </div>
       </main>
       <footer className="story-footer">
         <div className="edition-shell">
@@ -403,6 +214,7 @@ export default function MarketingHome() {
           </div>
         </div>
       </footer>
+      <AccessForm />
     </div>
   );
 }

@@ -38,11 +38,10 @@ test("the cover uses the available screen and keeps its controls and example leg
         headingFits: Array.from(title.getClientRects()).every(
           (r) => r.left >= -1 && r.right <= innerWidth + 1,
         ),
-        layout: box(".cover-layout"),
+        layout: box(".story-hero"),
         hero: box(".story-hero"),
-        submit: box(".access-submit"),
-        plate: box(".plate-image"),
-        app: box(".sample-window img"),
+        trigger: box(".hero-access-link"),
+        app: box(".focus-photo"),
         singleForm: document.forms.length,
       };
     });
@@ -50,12 +49,10 @@ test("the cover uses the available screen and keeps its controls and example leg
     expect(data.layout.left).toBe(0);
     expect(data.layout.right).toBe(data.width);
     expect(data.headingFits).toBe(true);
-    expect(data.submit.bottom).toBeLessThanOrEqual(height);
+    expect(data.trigger.bottom).toBeLessThanOrEqual(height);
     expect(data.singleForm).toBe(1);
-    for (const box of [data.plate, data.app]) {
-      expect(box.left).toBeGreaterThanOrEqual(0);
-      expect(box.right).toBeLessThanOrEqual(data.width);
-    }
+    expect(data.app.left).toBeGreaterThanOrEqual(0);
+    expect(data.app.right).toBeLessThanOrEqual(data.width);
     if (landscape) {
       expect(
         data.hero.bottom,
@@ -64,10 +61,6 @@ test("the cover uses the available screen and keeps its controls and example leg
       expect(
         data.app.bottom,
         `complete set at ${width}×${height}`,
-      ).toBeLessThanOrEqual(height + 1);
-      expect(
-        data.plate.bottom,
-        `complete illustration at ${width}×${height}`,
       ).toBeLessThanOrEqual(height + 1);
     }
   }
@@ -101,18 +94,16 @@ test.describe("Pre-rendered training example", () => {
     page,
   }) => {
     await page.goto("/");
-    const example = page.getByRole("region", { name: "Bænkpres med stang" });
-    await expect(example).toContainText("Overkrop A");
-    await expect(example.locator(".sample-values dd").first()).toHaveText(
-      "60 kg × 8",
+    const image = page.getByRole("img", { name: /I programmet Overkrop A/ });
+    await expect(image).toBeVisible();
+    await expect(image).toHaveAccessibleName(/60 kg × 8.*62,5 kg/);
+    await expect(page.locator(".hero-example figcaption")).toContainText(
+      "Eksempeldata",
     );
-    await expect(example.locator(".sample-values dd").last()).toHaveText(
-      "62,5 kg × 8",
-    );
-    await expect(
-      example.getByRole("img", { name: /Rekonstrueret appvisning/ }),
-    ).toBeVisible();
-    await example.getByRole("link", { name: "Se et træningsforløb" }).click();
+    const nav = page.getByRole("navigation", { name: "Hovednavigation" });
+    const menu = nav.locator("summary");
+    if (await menu.isVisible()) await menu.click();
+    await nav.getByRole("link", { name: "Sådan virker appen" }).click();
     await expect(page.locator("#workout-story-heading")).toBeInViewport();
   });
 });

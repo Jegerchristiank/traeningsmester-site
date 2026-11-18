@@ -22,32 +22,21 @@ test("first screen is readable, single signup, images load and no runtime errors
   await expect(page.locator("h1")).toHaveText(
     /Træn videre\s*fra sidste\s*gang\./,
   );
-  await expect(page.getByLabel("Din e-mail", { exact: true })).toBeVisible();
+  await expect(page.locator(".hero-access-link")).toBeInViewport();
+  await expect(page.locator(".access-form")).toBeHidden();
   await expect(page.locator("form")).toHaveCount(1);
   await page.evaluate(() => document.fonts.ready);
   await page
-    .locator(".plate-image")
+    .locator(".focus-photo")
     .evaluate((img) => (img as HTMLImageElement).decode());
-  if (testInfo.project.name === "mobile") {
-    // Visitors can type their e-mail immediately. The same exercise is also
-    // introduced on that first screen without opening additional controls.
-    await expect(
-      page.getByLabel("Din e-mail", { exact: true }),
-    ).toBeInViewport();
-    await expect(
-      page.getByRole("button", { name: "Få besked om adgang" }),
-    ).toBeInViewport();
-    await expect(page.locator("#example-exercise")).toBeInViewport();
-  }
+  await expect(page.locator(".focus-photo")).toBeInViewport({ ratio: 1 });
   await page.screenshot({
     path: `/tmp/tm-site-evidence/${testInfo.project.name}-hero-final.png`,
   });
   for (const target of [
     "#traeningsforloeb",
-    "#dit-saet",
-    "#din-pause",
-    "#din-historik",
-    ".feature-register",
+    "#funktioner",
+    "#faq",
     ".story-footer",
   ]) {
     await page.locator(target).scrollIntoViewIfNeeded();
@@ -77,6 +66,7 @@ test("field errors preserve values and server errors never claim success", async
   page,
 }) => {
   await page.goto("/");
+  await page.locator(".hero-access-link").click();
   const input = page.getByLabel("Din e-mail", { exact: true });
   const submit = page.getByRole("button", { name: "Få besked om adgang" });
   await input.fill("forkert");
@@ -158,12 +148,14 @@ test("only accepted response confirms once; sharing is a separate action", async
   });
   await page.getByRole("button", { name: "Del Træningsmester" }).click();
   await expect(page.getByText("Linket er kopieret.")).toBeVisible();
-  await page.locator("#adgang").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("dialog")).toBeVisible();
   await page.screenshot({
     path: `/tmp/tm-site-evidence/${testInfo.project.name}-signup-success.png`,
   });
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".closing-action")).toBeFocused();
   await page.locator(".closing-action").click();
-  await expect(page.locator("#adgang")).toBeFocused();
+  await expect(page.locator(".access-success h2")).toBeFocused();
   expect(requests).toBe(1);
 });
 
@@ -173,11 +165,19 @@ test("keyboard can reach form, open features and return from final CTA", async (
   await page.goto("/");
   await page.keyboard.press("Tab");
   await expect(page.locator(".story-skip")).toBeFocused();
-  await page.getByLabel("Din e-mail", { exact: true }).focus();
+  const trigger = page.locator(".hero-access-link");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
+  await page
+    .getByLabel("Din e-mail", { exact: true })
+    .fill("bevar@example.test");
   await page.keyboard.press("Tab");
-  await expect(
-    page.getByRole("button", { name: "Få besked om adgang" }),
-  ).toBeFocused();
+  await expect(page.locator("#access-consent")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".access-submit")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
   const summary = page.locator(".all-features > summary");
   await summary.focus();
   await page.keyboard.press("Enter");
@@ -187,87 +187,227 @@ test("keyboard can reach form, open features and return from final CTA", async (
   await page.locator(".closing-action").focus();
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
+  await expect(page.locator("#access-email")).toHaveValue("bevar@example.test");
+  await page.getByRole("button", { name: "Luk vinduet" }).click();
+  await expect(page.locator(".closing-action")).toBeFocused();
+  await page.goto("/#adgang");
+  await expect(page.locator("#access-email")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#access-dialog")).toBeHidden();
+  await expect(page.locator(".hero-access-link")).toBeFocused();
 });
 
-test("ordinary scrolling follows one exercise through the set, its pause and the next session", async ({
+test("compact workout story follows one exercise through direct choices", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
+  const motionRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/\/Flip-[^/]+\.js/.test(request.url()))
+      motionRequests.push(request.url());
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/#traeningsforloeb");
+  await expect(page).toHaveTitle(/Træningsmester/);
   const story = page.locator(".workout-story");
-  const wide = testInfo.project.name === "desktop";
-  const steps = [
-    ["program", "story-program-day"],
-    ["set", "revision-detail-set"],
-    ["rest", "story-rest-detail"],
-    ["history", "revision-history"],
-  ] as const;
-  await expect(story.locator(".ws-stage")).toHaveCount(wide ? 1 : 0);
-  for (const [frame, image] of steps) {
-    const step = story.locator(`[data-reading-step="${frame}"]`);
-    const distance = await step.evaluate(
-      (el) => el.getBoundingClientRect().top - 124,
-    );
-    await page.mouse.wheel(0, Math.round(distance));
-    const scene = wide
-      ? story.locator(".ws-stage .ws-scene")
-      : step.locator(".ws-scene");
-    await expect(scene).toHaveAttribute("data-frame", frame);
-    await expect(scene).toBeInViewport();
-    await expect(scene.locator(".ws-window img")).toHaveAttribute(
-      "src",
-      `/product/${image}.webp`,
-    );
-    if (frame === "set") {
-      await expect(scene.locator(".ws-comparison")).toContainText("60 kg × 8");
-      await expect(scene.locator(".ws-comparison")).toContainText(
-        "62,5 kg × 8",
-      );
-    }
-    if (frame === "rest") {
-      await expect(scene).toContainText("01:42");
-      const scale = scene.getByRole("meter", { name: "Forløbet pausetid" });
-      await expect(scale).toHaveAttribute("aria-valuenow", "18");
-      await expect(scale).toHaveAttribute("aria-valuemax", "120");
-    }
-    if (frame === "history") {
-      await expect(scene.locator("time")).toHaveCount(3);
-      await expect(scene.locator(".ws-saved")).toContainText("62,5 kg × 8");
-    }
-  }
-  await expect(story.locator("[aria-current=step]")).toContainText("Historik");
-  const chapter = story.getByRole("link", { name: "02 Sæt og pause" });
+  await expect(story).toHaveAttribute("data-enhanced", "true");
+  await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+  await expect(story.locator("#dit-program")).toBeVisible();
+  await expect(story.locator(".ws-nav a")).toHaveText([
+    "Program",
+    "Sæt og pause",
+    "Historik",
+  ]);
+  await expect(
+    story.locator(".ws-stage, [data-reading-step], [role=meter]"),
+  ).toHaveCount(0);
+  await expect(story).toContainText(
+    "Eksempeldata · Appvisningerne er rekonstrueret.",
+  );
+  await expect(story.locator("h2, h3, h4")).toHaveCount(1);
+  await story.scrollIntoViewIfNeeded();
+  await story
+    .locator("#dit-program img")
+    .evaluate((img) => (img as HTMLImageElement).decode());
+  await story.screenshot({
+    path: `/tmp/tm-site-evidence/story-${testInfo.project.name}-program.png`,
+  });
+  await page.screenshot({
+    path: `/tmp/tm-site-evidence/story-${testInfo.project.name}-page.png`,
+    fullPage: true,
+  });
+
+  expect(motionRequests).toHaveLength(0);
+  const chapter = story.getByRole("link", {
+    name: "Sæt og pause",
+    exact: true,
+  });
   await chapter.focus();
+  await expect.poll(() => motionRequests.length).toBe(1);
+  const before = await page.evaluate(() => scrollY);
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#dit-saet$/);
+  await expect(chapter).toBeFocused();
   await expect(chapter).toHaveAttribute("aria-current", "step");
-  await expect(story.locator("#ws-set-title")).toBeInViewport();
+  await expect(story.locator("#dit-saet img")).toHaveAttribute(
+    "src",
+    "/product/revision-detail-set.webp",
+  );
+  expect(Math.abs((await page.evaluate(() => scrollY)) - before)).toBeLessThan(
+    3,
+  );
+  await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+  await story
+    .locator("#dit-saet img")
+    .evaluate((img) => (img as HTMLImageElement).decode());
+  await story.screenshot({
+    path: `/tmp/tm-site-evidence/story-${testInfo.project.name}-set.png`,
+  });
+
+  await story.getByRole("link", { name: "Se pausen" }).click();
+  await expect(page).toHaveURL(/#din-pause$/);
+  await expect(story.locator("#din-pause")).toBeFocused();
+  await expect(chapter).toHaveAttribute("aria-current", "step");
+  await expect(story.locator("#din-pause img")).toHaveAttribute(
+    "alt",
+    /62,5 kg × 8.*01:42/,
+  );
+  await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+  await story
+    .locator("#din-pause img")
+    .evaluate((img) => (img as HTMLImageElement).decode());
+  await story.screenshot({
+    path: `/tmp/tm-site-evidence/story-${testInfo.project.name}-pause.png`,
+  });
+  await page.keyboard.press("Tab");
+  await expect(
+    story.getByRole("link", { name: "Se historikken", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(story.locator("#din-historik")).toBeFocused();
+  await expect(story.locator("#din-historik img")).toHaveAttribute(
+    "src",
+    "/product/story-history-detail.webp",
+  );
+  await expect(story.locator("#din-historik img")).toHaveAttribute(
+    "alt",
+    /62,5 kg × 8/,
+  );
+  await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+  await story
+    .locator("#din-historik img")
+    .evaluate((img) => (img as HTMLImageElement).decode());
+  await story.screenshot({
+    path: `/tmp/tm-site-evidence/story-${testInfo.project.name}-history.png`,
+  });
+  await page.goBack();
+  await expect(story.locator("#din-pause")).toBeVisible();
+  await page.goForward();
+  await expect(story.locator("#din-historik")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  expect(errors).toEqual([]);
 });
 
-test("reduced motion shows four static app frames in reading order", async ({
+test("workout story preserves deep links and static reduced-motion states", async ({
   page,
 }) => {
+  const motionRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/\/Flip-[^/]+\.js/.test(request.url()))
+      motionRequests.push(request.url());
+  });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  const story = page.locator(".workout-story");
-  const scenes = story.locator(".ws-scene");
-  await expect(story.locator(".ws-stage")).toHaveCount(0);
-  await expect(scenes).toHaveCount(4);
-  for (const [index, state] of [
-    "program",
-    "set",
-    "rest",
-    "history",
-  ].entries()) {
-    const scene = scenes.nth(index);
-    await expect(scene).toBeVisible();
-    await expect(scene).toHaveAttribute("data-frame", state);
-    await expect(scene.locator(".ws-window img")).toHaveAttribute("alt", /./);
+  for (const anchor of [
+    "dit-program",
+    "dit-saet",
+    "din-pause",
+    "din-historik",
+  ]) {
+    await page.goto(`/#${anchor}`);
+    const story = page.locator(".workout-story");
+    await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+    await expect(story.locator(`#${anchor}`)).toBeInViewport();
+    await expect(story.locator(`#${anchor} img`)).toHaveCSS(
+      "transform",
+      "none",
+    );
+    await expect(story.locator("video")).toHaveCount(0);
   }
-  await expect(story.locator("video")).toHaveCount(0);
-  await story.getByRole("link", { name: "03 Historik" }).click();
-  await expect(story.locator("#ws-history-title")).toBeInViewport();
-  await page.locator(".closing-action").click();
-  await expect(page.getByLabel("Din e-mail", { exact: true })).toBeFocused();
+  const story = page.locator(".workout-story");
+  await story.getByRole("link", { name: "Sæt og pause", exact: true }).click();
+  await story.getByRole("link", { name: "Se pausen" }).click();
+  await expect(story.locator("#din-pause img")).toHaveCSS("transform", "none");
+  await expect(story.locator("#din-pause")).toBeFocused();
+  expect(motionRequests).toHaveLength(0);
+});
+
+test.describe("workout story without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+  test("native chapter links show one complete example at a time", async ({
+    page,
+  }) => {
+    await page.goto("/#traeningsforloeb");
+    const story = page.locator(".workout-story");
+    await expect(story.locator("#dit-program")).toBeVisible();
+    await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+    await story.getByRole("link", { name: "Se sættet", exact: true }).click();
+    await expect(story.locator("#dit-saet")).toBeVisible();
+    await story.getByRole("link", { name: "Se pausen" }).click();
+    await expect(story.locator("#din-pause")).toBeVisible();
+    await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+    await story
+      .getByRole("link", { name: "Se historikken", exact: true })
+      .click();
+    await expect(story.locator("#din-historik")).toBeVisible();
+    await page.goto("/#din-pause");
+    await expect(story.locator("#din-pause")).toBeVisible();
+    await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+});
+
+test("the workout example uses the available width and keeps the next step in reading order", async ({
+  page,
+}, testInfo) => {
+  const onDesktop = testInfo.project.name === "desktop";
+  const size = onDesktop
+    ? { width: 3440, height: 1440 }
+    : { width: 390, height: 844 };
+  await page.setViewportSize(size);
+  await page.goto("/#traeningsforloeb");
+  const story = page.locator(".workout-story");
+  await story
+    .locator("#dit-program img")
+    .evaluate((img) => (img as HTMLImageElement).decode());
+  const product = await story.locator("#dit-program img").boundingBox();
+  const heading = await story.locator("h2").boundingBox();
+  const section = await story.boundingBox();
+  expect(section?.width).toBe(size.width);
+  if (onDesktop) {
+    expect(product!.width).toBeGreaterThan(1000);
+    expect(heading!.x).toBeGreaterThan(product!.x + product!.width);
+    expect(product!.x).toBeCloseTo(size.width * 0.05, 0);
+  } else {
+    const controls = await story.locator("nav").boundingBox();
+    const caption = await story
+      .locator(".ws-description:visible")
+      .boundingBox();
+    expect(heading!.y + heading!.height).toBeLessThanOrEqual(controls!.y);
+    expect(controls!.y + controls!.height).toBeLessThanOrEqual(product!.y);
+    expect(product!.y + product!.height).toBeLessThanOrEqual(caption!.y);
+  }
+  await story.getByRole("link", { name: "Se sættet", exact: true }).click();
+  await expect(story.locator("#dit-saet")).toBeFocused();
+  await expect(page).toHaveURL(/#dit-saet$/);
+  await expect(story.locator(".ws-panel:visible")).toHaveCount(1);
 });
 
 test("statistics are opt-in, payloads exclude personal content and withdrawal stops events", async ({
@@ -279,15 +419,18 @@ test("statistics are opt-in, payloads exclude personal content and withdrawal st
     await route.fulfill({ json: { status: 1 } });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Få besked om adgang" }).click();
+  await page.locator(".hero-access-link").click();
+  await page.locator(".access-submit").click();
+  await page.keyboard.press("Escape");
   expect(payloads).toHaveLength(0);
   await page.locator(".analytics-consent summary").click();
   await page.locator(".analytics-consent input").check();
   await expect.poll(() => payloads.length).toBe(1);
+  await page.locator(".closing-action").click();
   await page
     .getByLabel("Din e-mail", { exact: true })
     .fill("private@example.test");
-  await page.getByRole("button", { name: "Få besked om adgang" }).click();
+  await page.locator(".access-submit").click();
   await expect.poll(() => payloads.length).toBe(3);
   expect(JSON.stringify(payloads)).not.toMatch(
     /private@|workout|training_data|current_url/,
@@ -297,8 +440,10 @@ test("statistics are opt-in, payloads exclude personal content and withdrawal st
     "marketing_attempt",
     "marketing_error",
   ]);
+  await page.keyboard.press("Escape");
   await page.locator(".analytics-consent input").uncheck();
-  await page.getByRole("button", { name: "Få besked om adgang" }).click();
+  await page.locator(".closing-action").click();
+  await page.locator(".access-submit").click();
   expect(payloads).toHaveLength(3);
 });
 

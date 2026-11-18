@@ -1,5 +1,5 @@
 // Render campaign artwork in Chromium, then cut the four views from the original Center Stage film.
-// A source MP4 adds the film; --studio BLENDER also regenerates all original weight-plate frames.
+// A source MP4 adds the film. --studio also builds all optical crops of the source-faithful screen.
 const { chromium } = require('@playwright/test');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
@@ -77,8 +77,8 @@ async function renderShot(page, shot, temp, source) {
   let picture = '0:v';
   if (motion) {
     args.push('-i', path.join(launch, motion.name));
-    const pan = "zoompan=z='1.05-.05*on/" + (frames - 1)
-      + "':x='(iw-iw/zoom)*.54':y='(ih-ih/zoom)*.53':d=" + frames
+    const pan = "zoompan=z='1.012-.012*on/" + (frames - 1)
+      + "':x='(iw-iw/zoom)*.54':y='(ih-ih/zoom)*.86':d=" + frames
       + ':s=' + motion.width + 'x' + motion.height + ':fps=' + fps;
     filters.push('[2:v]' + pan + ',setsar=1[motif]');
     filters.push('[0:v][motif]overlay=' + motion.x + ':' + motion.y + ':format=rgb[ground]');
@@ -101,43 +101,51 @@ async function renderShot(page, shot, temp, source) {
     '-color_trc', 'bt709', '-colorspace', 'bt709', '-threads', '4', filmFile]);
 }
 
-// Author once in 3D. Each wider frame uses an actual camera projection through the same studio.
-function renderStudio(blender, temp) {
-  const scene = path.join(launch, 'source', 'vaegtskiver.py');
-  const shots = [
-    { png: 'master', width: 1800, samples: 40, camera: [], files: [
-      ['vaegtskiver-1800.webp', 1800, 1350, 84], ['vaegtskiver-1024.webp', 1024, 768, 83],
-      ['vaegtskiver-560.webp', 560, 420, 82],
-    ] },
-    { png: 'panorama', width: 1920, samples: 36, camera: ['--panorama'],
-      files: [['vaegtskiver-panorama.webp', 1920, 800, 84]] },
-    { png: 'share', width: 1200, samples: 34, camera: ['--share'],
-      files: [['vaegtskiver-deling.webp', 1200, 630, 91]] },
+// The set image is mounted at its native proportions. Each artboard has its own framing, so the
+// previous value and all of the active confirmation control survive mobile and panoramic delivery.
+async function renderStudio(browser, temp) {
+  const composition = path.join(launch, 'source', 'fokus-studio.html');
+  const views = [
+    ['desktop', [
+      [product, 'fokus-desktop-960.webp', 960, 640, 88],
+      [product, 'fokus-desktop-1620.webp', 1620, 1080, 90],
+    ]],
+    ['mobil', [
+      [product, 'fokus-mobil-540.webp', 540, 400, 87],
+      [product, 'fokus-mobil-1080.webp', 1080, 800, 90],
+    ]],
+    ['panorama', [[product, 'fokus-panorama.webp', 1800, 720, 89]]],
+    ['deling', [[path.join(launch, 'source'), 'fokus-deling.webp', 1200, 630, 93]]],
   ];
-  for (const shot of shots) {
-    const png = path.join(temp, shot.png + '.png');
-    execFileSync(blender, ['-b', '--python-exit-code', '1', '-t', '5', '-P', scene, '--', ...shot.camera,
-      '--width', String(shot.width), '--samples', String(shot.samples), '--out', png], { stdio: 'inherit' });
-    for (const [name, width, height, quality] of shot.files) {
-      const target = path.join(shot.png === 'share' ? path.join(launch, 'source') : product, name);
-      const resize = width !== shot.width ? ['-resize', String(width), String(height)] : [];
-      execFileSync('cwebp', ['-quiet', '-f', '30', '-q', String(quality), '-m', '6', '-sharp_yuv',
-        ...resize, png, '-o', target]);
+  const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, deviceScaleFactor: 1.8 });
+  try {
+    for (const [view, files] of views) {
+      const url = pathToFileURL(composition);
+      url.searchParams.set('view', view);
+      await page.goto(url.href);
+      await page.evaluate(() => Promise.all([...document.images].map(image => image.decode())));
+      const png = path.join(temp, view + '.png');
+      await page.locator('#studio').screenshot({ path: png });
+      for (const [destination, name, width, height, quality] of files) {
+        execFileSync('cwebp', ['-quiet', '-q', String(quality), '-m', '6', '-sharp_yuv',
+          '-resize', String(width), String(height), png, '-o', path.join(destination, name)]);
+      }
     }
+  } finally {
+    await page.close();
   }
 }
 
 async function main() {
   const rebuildSources = process.argv[2] === '--studio';
-  if (rebuildSources && !process.argv[3]) throw new Error('Pass the Blender executable after --studio.');
   const source = rebuildSources ? path.join(launch, 'source', 'product-center-stage.mp4')
     : process.argv[2] && path.resolve(process.argv[2]);
   if (source && !fs.existsSync(source)) throw new Error('Center Stage source not found: ' + source);
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-launch-'));
   let browser;
   try {
-    if (rebuildSources) renderStudio(process.argv[3], temp);
     browser = await chromium.launch({ headless: true });
+    if (rebuildSources) await renderStudio(browser, temp);
     const page = await browser.newPage({ viewport: { width: 1200, height: 1920 }, deviceScaleFactor: 1 });
     const canvas = page.locator('#canvas');
     await showComposition(page, 'still');
