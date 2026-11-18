@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const backgroundMovie = /\/product\/cover\/saet-(landskab|portraet)\.mp4$/;
+const workoutMovie = /\/product\/film\/baenkpres-(bred|hoej)\.mp4$/;
 
 function requestedCoverMovies(page: Page) {
   const paths = new Set<string>();
@@ -9,6 +10,50 @@ function requestedCoverMovies(page: Page) {
     if (backgroundMovie.test(path)) paths.add(path);
   });
   return paths;
+}
+
+function requestedWorkoutMovies(page: Page) {
+  const paths = new Set<string>();
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname;
+    if (workoutMovie.test(path)) paths.add(path);
+  });
+  return paths;
+}
+
+async function expectPlayingWorkoutFilm(page: Page, mobile: boolean) {
+  const film = page.locator("#workout-film");
+  await expect.poll(() => film.evaluate((el: HTMLVideoElement) =>
+    !el.paused && el.currentTime > 0.1 && el.readyState >= 2,
+  )).toBe(true);
+  const media = await film.evaluate((el: HTMLVideoElement) => ({
+    controls: el.controls,
+    muted: el.muted,
+    volume: el.volume,
+    duration: el.duration,
+    source: new URL(el.currentSrc).pathname,
+    width: el.videoWidth,
+    height: el.videoHeight,
+  }));
+  expect(media.controls).toBe(true);
+  expect(media.muted).toBe(false);
+  expect(media.volume).toBeGreaterThan(0);
+  expect(media.duration).toBeCloseTo(40, 1);
+  expect(media.source).toBe(`/product/film/baenkpres-${mobile ? "hoej" : "bred"}.mp4`);
+  expect(mobile ? media.height > media.width : media.width > media.height).toBe(true);
+  await expect.poll(() => film.evaluate((el) =>
+    (el as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount,
+  )).toBeGreaterThan(0);
+  const captions = film.locator('track[srclang="da"]');
+  await expect(captions).toHaveCount(1);
+  await expect(captions).toHaveAttribute("kind", /^(captions|subtitles)$/);
+  await expect(captions).toHaveAttribute("label", "Dansk");
+  await expect(captions).toHaveAttribute("src", /\.vtt$/);
+  await captions.evaluate((el: HTMLTrackElement) => { el.track.mode = "hidden"; });
+  await expect.poll(() => captions.evaluate((el: HTMLTrackElement) => ({
+    state: el.readyState,
+    hasCues: (el.track.cues?.length || 0) > 0,
+  }))).toEqual({ state: 2, hasCues: true });
 }
 
 test("the poster and background film reach every edge and keep signup in reach", async ({
@@ -191,46 +236,72 @@ test("ordinary scrolling changes the frosted header and scrolling back restores 
   await expect.poll(photoClip).toBe(initialClip);
 });
 
-test("the product film loads on demand, pauses the background and returns focus on close", async ({
+test("the hero starts the narrated bench film from one ordinary link activation", async ({
   page,
 }, info) => {
-  const mediaRequests: string[] = [];
-  page.on("request", (request) => {
-    if (/\/traen-videre(?:-[^/]*)?\.mp4$/.test(new URL(request.url()).pathname))
-      mediaRequests.push(request.url());
-  });
+  const requested = requestedWorkoutMovies(page);
   await page.goto("/", { waitUntil: "networkidle" });
-  const trigger = page.locator('[aria-controls="workout-film"]');
-  expect(mediaRequests).toHaveLength(0);
-  if (info.project.name === "mobile") {
-    await trigger.tap();
-  } else {
+  expect(requested.size).toBe(0);
+  const trigger = page.locator(".story-hero").getByRole("link", {
+    name: /^Se bænkpres i appen/,
+  });
+  await expect(trigger).toHaveAttribute("href", "#traeningsforloeb");
+  await expect(trigger).not.toHaveAttribute("aria-haspopup", "dialog");
+  await expect(trigger).toBeInViewport();
+  if (info.project.name === "mobile") await trigger.tap();
+  else {
     await trigger.focus();
     await page.keyboard.press("Enter");
   }
-  const dialog = page.locator("#workout-film");
-  await expect(dialog).toBeVisible();
-  const background = page.locator(".cover-video");
-  await expect
-    .poll(() => background.evaluate((el: HTMLVideoElement) => el.paused))
-    .toBe(true);
-  const video = dialog.locator("video");
-  await expect(video).toBeVisible();
-  await expect
-    .poll(() => video.evaluate((el: HTMLVideoElement) => el.currentTime))
-    .toBeGreaterThan(0);
-  expect(mediaRequests.length).toBeGreaterThan(0);
-  if (info.project.name === "mobile")
-    await dialog.getByRole("button", { name: /luk/i }).tap();
-  else await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-  await expect(trigger).toBeFocused();
-  await expect
-    .poll(() => video.evaluate((el: HTMLVideoElement) => el.paused))
-    .toBe(true);
-  await expect
-    .poll(() => background.evaluate((el: HTMLVideoElement) => el.paused))
-    .toBe(false);
+  await expect(page).toHaveURL(/#traeningsforloeb$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const section = page.locator("#traeningsforloeb");
+  await expect(page.locator("#workout-film")).toBeInViewport();
+  await expectPlayingWorkoutFilm(page, info.project.name === "mobile");
+  expect(requested.size).toBe(1);
+  await page.screenshot({ path: `/tmp/tm-site-evidence/bench-film-${info.project.name}-playing.png` });
+  await page.locator("#workout-film").evaluate((el: HTMLVideoElement) => el.pause());
+
+  const nav = page.getByRole("navigation", { name: "Hovednavigation" });
+  const menu = nav.locator("summary");
+  if (await menu.isVisible()) await menu.click();
+  await nav.getByRole("link", { name: "Funktioner", exact: true }).click();
+  await expect(page.locator("#feature-heading")).toBeInViewport();
+  await page.goBack();
+  await expect(page).toHaveURL(/#traeningsforloeb$/);
+  await expect(section).toBeInViewport();
+  await page.goForward();
+  await expect(page.locator("#feature-heading")).toBeInViewport();
+});
+
+test("a direct film link shows the poster until a deliberate play and offers the optional set", async ({ page }, info) => {
+  const requested = requestedWorkoutMovies(page);
+  await page.goto("/#traeningsforloeb", { waitUntil: "networkidle" });
+  const section = page.locator("#traeningsforloeb");
+  const film = page.locator("#workout-film");
+  await expect(section.getByRole("heading", { name: "Hvad løftede jeg sidst?", exact: true })).toBeInViewport();
+  const poster = section.locator("picture img");
+  await expect(poster).toBeInViewport();
+  await poster.evaluate((el: HTMLImageElement) => el.decode());
+  expect(await poster.evaluate((el: HTMLImageElement) => new URL(el.currentSrc).pathname))
+    .toBe(`/product/film/kridt-${info.project.name === "mobile" ? "hoej" : "bred"}.webp`);
+  await expect(film).toBeHidden();
+  await expect.poll(() => film.evaluate((el: HTMLVideoElement) => el.paused)).toBe(true);
+  expect(requested.size).toBe(0);
+  const play = section.getByRole("link", { name: "Afspil filmen", exact: true });
+  await expect(play).toHaveAttribute("href", /\/baenkpres-(bred|hoej)\.mp4$/);
+  await expect(play).toBeInViewport();
+  await page.screenshot({ path: `/tmp/tm-site-evidence/bench-film-${info.project.name}-poster.png` });
+  await play.click();
+  await expectPlayingWorkoutFilm(page, info.project.name === "mobile");
+  await film.evaluate((el: HTMLVideoElement) => el.pause());
+  const disclosure = page.locator("summary").filter({ hasText: /^Prøv sættet selv/ });
+  await expect(page.locator("#baenkpres-log")).toBeHidden();
+  await disclosure.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#baenkpres-log")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Vægt for sæt 1", exact: true })).toBeEnabled();
+  expect(requested.size).toBe(1);
 });
 
 test("the selected background plays silently and honours pause when leaving and returning to the cover", async ({
@@ -408,29 +479,33 @@ test("a browser that declines autoplay can start the background by an explicit t
   ).toBeVisible();
 });
 
-test.describe("Pre-rendered training example", () => {
+test.describe("Pre-rendered training film", () => {
   test.use({ javaScriptEnabled: false });
-  test("the full photograph and the program, earlier set and current set are available without JavaScript", async ({
-    page,
-  }) => {
+  test("the photograph, film link and optional example remain useful without JavaScript", async ({ page }) => {
+    const background = requestedCoverMovies(page);
+    const movies = requestedWorkoutMovies(page);
     await page.goto("/");
     await expect(page.locator("h1")).toBeInViewport();
     const photo = page.locator(".focus-photo");
     await expect(photo).toBeInViewport();
     await photo.evaluate((image: HTMLImageElement) => image.decode());
-    const nav = page.getByRole("navigation", { name: "Hovednavigation" });
-    const menu = nav.locator("summary");
-    if (await menu.isVisible()) await menu.click();
-    await nav.getByRole("link", { name: "Sådan virker appen" }).click();
-    await expect(page.locator("#workout-story-heading")).toBeInViewport();
-    const story = page.locator("#traeningsforloeb");
-    await expect(story.locator("#dit-program img")).toHaveAccessibleName(
-      /Overkrop A.*Bænkpres.*60 kg/,
-    );
-    await expect(story).toContainText("Eksempeldata");
-    await story.getByRole("link", { name: "Sæt og pause" }).click();
-    const set = story.locator("#dit-saet img");
-    await expect(set).toBeInViewport();
-    await expect(set).toHaveAccessibleName(/62,5 kg.*60 kg × 8/);
+    const trigger = page.locator(".story-hero").getByRole("link", { name: /^Se bænkpres i appen/ });
+    await expect(trigger).toHaveAttribute("href", "#traeningsforloeb");
+    await trigger.click();
+    const section = page.locator("#traeningsforloeb");
+    await expect(section.getByRole("heading", { name: "Hvad løftede jeg sidst?", exact: true })).toBeInViewport();
+    const fallback = section.locator('a[href^="/product/film/"][href$=".mp4"]').first();
+    await expect(fallback).toBeVisible();
+    await expect(fallback).toHaveAttribute("href", /\/baenkpres-(bred|hoej)\.mp4$/);
+    const disclosure = page.locator("summary").filter({ hasText: /^Prøv sættet selv/ });
+    await disclosure.click();
+    const story = page.locator("#baenkpres-log");
+    await expect(story).toBeVisible();
+    await expect(story).toContainText("Eksempeltræning");
+    await expect(story.locator("dd").filter({ hasText: /^60\s*kg/ })).toBeVisible();
+    await expect(story.locator("dd").filter({ hasText: /^62,5\s*kg/ })).toBeVisible();
+    expect(background.size).toBe(0);
+    expect(movies.size).toBe(0);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });

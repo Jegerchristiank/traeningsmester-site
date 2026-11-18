@@ -1,252 +1,469 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { MouseEvent } from "react";
-import type { Flip } from "gsap/Flip";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  formatWeight,
+  useBenchSession,
+  type BenchHistory,
+} from "../benchSession";
+import BenchSetRow from "./BenchSetRow";
 import "../workout-story.css";
 
-const frames = {
-  program: {
-    anchor: "dit-program",
-    src: "story-program-day",
-    width: 932,
-    height: 581,
-    caption: "Dit program er klar. Overkrop A begynder med bænkpres.",
-    alt: "Overkrop A i appen. Bænkpres Med Stang er planlagt med tre sæt af otte, 60 kg og to minutters pause.",
-  },
-  set: {
-    anchor: "dit-saet",
-    src: "revision-detail-set",
-    width: 1200,
-    height: 510,
-    caption: "Se, hvad du løftede sidst, mens du registrerer det næste sæt.",
-    alt: "Første arbejdssæt i appen. Der står 62,5 kg og otte gentagelser i den aktive række. Ovenover står det tidligere sæt, 60 kg × 8.",
-  },
-  rest: {
-    anchor: "din-pause",
-    src: "story-rest-detail",
-    width: 932,
-    height: 699,
-    caption: "Sættet er registreret. Pausen er i gang, og næste sæt er klar.",
-    alt: "Det første sæt har et grønt flueben ved 62,5 kg × 8. Andet sæt er aktivt. Under rækkerne viser pausetimeren 01:42.",
-  },
-  history: {
-    anchor: "din-historik",
-    src: "story-history-detail",
-    width: 889,
-    height: 454,
-    caption: "Næste gang finder du sættet under Tidligere i den samme øvelse.",
-    alt: "Tidligere sæt for Bænkpres Med Stang. Den 15. november er ét sæt registreret med 62,5 kg × 8. Herunder ligger træningen den 12. november med tre sæt.",
-  },
-} as const;
-type Frame = keyof typeof frames;
-const frameKeys = Object.keys(frames) as Frame[];
-const nextSteps: Partial<Record<Frame, { frame: Frame; label: string }>> = {
-  program: { frame: "set", label: "Se sættet" },
-  set: { frame: "rest", label: "Se pausen" },
-  rest: { frame: "history", label: "Se historikken" },
-};
-const chapters = [
-  { name: "Program", frame: "program" },
-  { name: "Sæt og pause", frame: "set" },
-  { name: "Historik", frame: "history" },
-] as const;
-const reducedMotion = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const frameFromHash = () =>
-  frameKeys.find((key) => `#${frames[key].anchor}` === window.location.hash);
+const product = "/product/";
+const dateFormat = new Intl.DateTimeFormat("da-DK", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
-export default function WorkoutStory() {
-  const [frame, setFrame] = useState<Frame>("program");
-  const [enhanced, setEnhanced] = useState(false);
-  const section = useRef<HTMLElement>(null);
-  const flip = useRef<typeof Flip | null>(null);
-  const beforeChange = useRef<ReturnType<typeof Flip.getState> | null>(null);
-  const animation = useRef<ReturnType<typeof Flip.from> | null>(null);
-  const focusPanel = useRef(false);
-  const motionRequested = useRef(false);
-  const disposed = useRef(false);
+function dateGroups(history: BenchHistory[]) {
+  const groups = new Map<string, BenchHistory["sets"]>();
+  for (const workout of history) {
+    const date =
+      workout.completedAt === null
+        ? "Forrige eksempeltræning"
+        : dateFormat.format(workout.completedAt);
+    groups.set(date, [...(groups.get(date) || []), ...workout.sets]);
+  }
+  return Array.from(groups);
+}
+
+function HistoryIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.65"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 5v5h5" />
+      <path d="M3.4 9.5a8.7 8.7 0 1 1 .15 5.4M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+function ExercisePlate({
+  ready,
+  resting,
+}: {
+  ready: boolean;
+  resting: boolean;
+}) {
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const stop = () => setPlaying(false);
+    preference.addEventListener("change", stop);
+    return () => preference.removeEventListener("change", stop);
+  }, []);
+  return (
+    <div className="bench-plate" id="dit-program">
+      <div className="bench-context">
+        <span>Overkrop A</span>
+        <span>Eksempeltræning</span>
+      </div>
+      <h2 id="workout-story-heading">
+        Bænkpres <span>med stang.</span>
+      </h2>
+      <figure className="bench-motion">
+        <img
+          width="512"
+          height="512"
+          loading="lazy"
+          decoding="async"
+          src={
+            product + (playing ? "baenkpres-bevaegelse.webp" : "baenkpres.webp")
+          }
+          alt="Bænkpres med stang på flad bænk fra Træningsmesters øvelsesbibliotek."
+        />
+        <button
+          type="button"
+          className="bench-motion-button"
+          aria-pressed={playing}
+          disabled={!ready}
+          onClick={() => setPlaying(!playing)}
+        >
+          <span
+            aria-hidden="true"
+            className={playing ? "bench-pause-icon" : "bench-play-icon"}
+          />
+          {playing ? "Pause bevægelsen" : "Vis bevægelsen"}
+        </button>
+      </figure>
+      <dl className="bench-plan" aria-label="Planen for bænkpres">
+        <div>
+          <dt>Arbejdssæt</dt>
+          <dd>3</dd>
+        </div>
+        <div>
+          <dt>Gentagelser</dt>
+          <dd>8</dd>
+        </div>
+        <div id={resting ? undefined : "din-pause"}>
+          <dt>Pause</dt>
+          <dd>2:00</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+export default function WorkoutStory({
+  accessLink,
+}: {
+  accessLink: ReactNode;
+}) {
+  const {
+    session,
+    ready,
+    remaining,
+    setDraft,
+    saveSet,
+    uncheckSet,
+    skipRest,
+    finish,
+    nextWorkout,
+  } = useBenchSession();
+  const historyDialog = useRef<HTMLDialogElement>(null);
+  const finishDialog = useRef<HTMLDialogElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const returnFocus = useRef(false);
+  const historyTrigger = useRef<HTMLButtonElement>(null);
+  const [message, setMessage] = useState("");
+  const [revealErrors, setRevealErrors] = useState(false);
+  const count = session.rows.filter((row) => row.saved !== null).length;
+  const next = session.rows.findIndex((row) => !row.saved);
+  const finished = session.phase === "finished";
+  const previous = session.history[0].sets.at(-1)!;
 
   useEffect(() => {
-    disposed.current = false;
-    setEnhanced(true);
-    const followHash = () => {
-      const next = frameFromHash();
-      if (next) setFrame(next);
-    };
-    followHash();
-    window.addEventListener("hashchange", followHash);
-    window.addEventListener("popstate", followHash);
-    return () => {
-      disposed.current = true;
-      animation.current?.kill();
-      window.removeEventListener("hashchange", followHash);
-      window.removeEventListener("popstate", followHash);
-    };
+    function followFragment() {
+      if (
+        window.location.hash === "#din-historik" &&
+        !historyDialog.current?.open
+      ) {
+        historyDialog.current?.showModal();
+      } else if (
+        window.location.hash !== "#din-historik" &&
+        historyDialog.current?.open
+      ) {
+        historyDialog.current.close();
+      }
+    }
+    followFragment();
+    window.addEventListener("hashchange", followFragment);
+    return () => window.removeEventListener("hashchange", followFragment);
   }, []);
 
-  // Only visitors who interact with the example download motion. The first
-  // choice works immediately even while these optional modules are loading.
-  function prepareMotion() {
-    if (motionRequested.current || reducedMotion()) return;
-    motionRequested.current = true;
-    void Promise.all([import("gsap"), import("gsap/Flip")])
-      .then(([{ gsap }, { Flip: plugin }]) => {
-        if (disposed.current) return;
-        gsap.registerPlugin(plugin);
-        flip.current = plugin;
-      })
-      .catch(() => {
-        // Every state remains available if motion cannot be loaded.
-      });
+  useEffect(() => {
+    if (returnFocus.current) {
+      returnFocus.current = false;
+      heading.current?.focus({ preventScroll: true });
+    }
+  }, [finished]);
+
+  function commitFinish() {
+    finishDialog.current?.close();
+    if (finish()) {
+      returnFocus.current = true;
+      setMessage("Eksempeltræningen er afsluttet.");
+    } else {
+      setRevealErrors(true);
+      setMessage("Kontrollér tallene i de registrerede sæt.");
+    }
   }
 
-  useLayoutEffect(() => {
-    if (!enhanced) return;
-    const panel = section.current?.querySelector<HTMLElement>(
-      `[data-frame="${frame}"]`,
-    );
-    const image = panel?.querySelector("img");
-    if (beforeChange.current && flip.current && image && !reducedMotion()) {
-      animation.current = flip.current.from(beforeChange.current, {
-        targets: image,
-        duration: 0.22,
-        ease: "power2.out",
-        scale: true,
-      });
-    }
-    beforeChange.current = null;
-    if (focusPanel.current) {
-      panel?.focus({ preventScroll: true });
-      focusPanel.current = false;
-    }
-  }, [frame, enhanced]);
+  function openHistory() {
+    if (!historyDialog.current?.open) historyDialog.current?.showModal();
+  }
 
-  function showFrame(event: MouseEvent<HTMLAnchorElement>, next: Frame) {
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
-    event.preventDefault();
-    prepareMotion();
-    if (window.location.hash !== `#${frames[next].anchor}`) {
-      window.history.pushState(null, "", `#${frames[next].anchor}`);
+  function closeHistory() {
+    if (window.location.hash === "#din-historik") {
+      window.history.replaceState(window.history.state, "", "#baenkpres-log");
     }
-    if (next === frame) return;
-    animation.current?.kill();
-    const image = section.current?.querySelector<HTMLImageElement>(
-      `[data-frame="${frame}"] img`,
-    );
-    beforeChange.current =
-      image && flip.current && !reducedMotion()
-        ? flip.current.getState(image)
-        : null;
-    // Chapter links keep focus. A next-step link is about to be hidden, so
-    // focus follows its destination instead of falling back to the body.
-    focusPanel.current = Boolean(
-      event.currentTarget.closest(".ws-description"),
-    );
-    setFrame(next);
+    historyTrigger.current?.focus({ preventScroll: true });
   }
 
   return (
     <section
-      id="traeningsforloeb"
+      id="baenkpres-log"
       className="workout-story"
       aria-labelledby="workout-story-heading"
       tabIndex={-1}
-      ref={section}
-      data-enhanced={enhanced ? "true" : undefined}
     >
-      <div className="ws-inner">
-        <header className="ws-header">
-          <h2 id="workout-story-heading">Fra sidste sæt til næste træning.</h2>
-        </header>
-        <nav
-          className="ws-nav"
-          aria-label="Se et træningsforløb"
-          onPointerEnter={prepareMotion}
-          onPointerDown={prepareMotion}
-          onFocusCapture={prepareMotion}
-        >
-          {chapters.map((chapter) => (
-            <a
-              key={chapter.frame}
-              href={`#${frames[chapter.frame].anchor}`}
-              aria-controls={frames[chapter.frame].anchor}
-              aria-current={
-                enhanced &&
-                (frame === chapter.frame ||
-                  (frame === "rest" && chapter.frame === "set"))
-                  ? "step"
-                  : undefined
-              }
-              onClick={(event) => showFrame(event, chapter.frame)}
-            >
-              {chapter.name}
-            </a>
-          ))}
-        </nav>
-        <div className="ws-viewer">
-          {frameKeys.map((key) => {
-            const state = frames[key];
-            return (
-              <figure
-                key={key}
-                id={state.anchor}
-                className="ws-panel"
-                data-frame={key}
-                data-active={frame === key ? "true" : undefined}
-                aria-labelledby={`${state.anchor}-caption`}
-                tabIndex={-1}
-              >
-                <div className="ws-product">
-                  <img
-                    src={`/product/${state.src}.webp`}
-                    width={state.width}
-                    height={state.height}
-                    alt={state.alt}
-                    loading="lazy"
-                    decoding="async"
-                    data-flip-id="overkrop-workout-window"
-                  />
-                </div>
-              </figure>
-            );
-          })}
-        </div>
-        <div className="ws-descriptions">
-          {frameKeys.map((key) => {
-            const state = frames[key];
-            const next = nextSteps[key];
-            return (
-              <div
-                key={key}
-                className="ws-description"
-                data-description={key}
-                data-active={frame === key ? "true" : undefined}
-              >
-                <p id={`${state.anchor}-caption`}>{state.caption}</p>
-                {next && (
-                  <a
-                    href={`#${frames[next.frame].anchor}`}
-                    onPointerEnter={prepareMotion}
-                    onFocus={prepareMotion}
-                    onClick={(event) => showFrame(event, next.frame)}
-                  >
-                    {next.label} <span aria-hidden="true">→</span>
-                  </a>
-                )}
+      <div className="bench-spread">
+        <ExercisePlate ready={ready} resting={!finished && remaining > 0} />
+        <div className="bench-desk" id="dit-saet">
+          <span
+            id="din-historik"
+            className="bench-history-anchor"
+            aria-hidden="true"
+          />
+          <div className="bench-interactive">
+            <header className="bench-toolbar">
+              <h3 ref={heading} tabIndex={-1}>
+                {finished ? "Træning afsluttet." : "Arbejdssæt"}
+              </h3>
+              {!finished && (
+                <button
+                  ref={historyTrigger}
+                  type="button"
+                  className="bench-history-link"
+                  disabled={!ready}
+                  onClick={openHistory}
+                >
+                  <HistoryIcon /> Tidligere
+                </button>
+              )}
+            </header>
+            {finished ? (
+              <div className="bench-summary">
+                <p>
+                  Du registrerede {count === 1 ? "ét sæt" : `${count} sæt`} i
+                  bænkpres. Næste gang finder du tallene under Tidligere.
+                </p>
+                <ol className="bench-results" aria-label="Registrerede sæt">
+                  {session.rows.map(
+                    (row, i) =>
+                      row.saved && (
+                        <li key={i}>
+                          <span>Sæt {i + 1}</span>
+                          <strong>
+                            {formatWeight(row.saved.weight)} kg ×{" "}
+                            {row.saved.reps}
+                          </strong>
+                        </li>
+                      ),
+                  )}
+                </ol>
+                <button
+                  type="button"
+                  className="bench-primary"
+                  onClick={() => {
+                    returnFocus.current = true;
+                    setRevealErrors(false);
+                    setMessage("");
+                    nextWorkout();
+                  }}
+                >
+                  Start næste træning <span aria-hidden="true">→</span>
+                </button>
+                {accessLink}
               </div>
-            );
-          })}
+            ) : (
+              <>
+                <div className="bench-previous">
+                  <span>Sidste sæt</span>
+                  <strong>
+                    {formatWeight(previous.weight)} <small>kg</small> <i>×</i>{" "}
+                    {previous.reps}
+                  </strong>
+                </div>
+                <div
+                  className="bench-columns bench-row-grid"
+                  aria-hidden="true"
+                >
+                  <span>Sæt</span>
+                  <span>Gentagelser</span>
+                  <span>Kg</span>
+                  <span>Udført</span>
+                </div>
+                <ol className="bench-rows" aria-label="Arbejdssæt for bænkpres">
+                  {session.rows.map((row, index) => (
+                    <BenchSetRow
+                      key={index}
+                      row={row}
+                      index={index}
+                      active={index === next}
+                      revealErrors={revealErrors}
+                      ready={ready}
+                      edit={setDraft}
+                      save={saveSet}
+                      uncheck={uncheckSet}
+                      announce={setMessage}
+                    />
+                  ))}
+                </ol>
+                <div className="bench-feedback">
+                  {remaining > 0 ? (
+                    <div className="bench-rest" id="din-pause">
+                      <img
+                        width="42"
+                        height="48"
+                        src={product + "saetpause.webp"}
+                        alt=""
+                      />
+                      <div>
+                        <span>Pausetid mellem sæt</span>
+                        <strong role="timer">
+                          {Math.floor(remaining / 60)
+                            .toString()
+                            .padStart(2, "0")}
+                          :{(remaining % 60).toString().padStart(2, "0")}
+                        </strong>
+                      </div>
+                      <button
+                        type="button"
+                        className="bench-cancel"
+                        aria-label="Annuller pausetid mellem sæt"
+                        onClick={skipRest}
+                      >
+                        −
+                      </button>
+                      <div className="bench-rest-track" aria-hidden="true">
+                        <span
+                          style={{ width: `${(remaining / 120) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="bench-hint">
+                      {count === 0
+                        ? "Tilpas tallene, og tryk på cirklen, når sættet er udført."
+                        : count === 3
+                          ? "Alle tre sæt er registreret."
+                          : "Næste sæt er klar, når du er."}
+                    </p>
+                  )}
+                </div>
+                <footer className="bench-workout-footer">
+                  <span>
+                    <span className="bench-tally" aria-hidden="true">
+                      {session.rows.map((row, i) => (
+                        <i key={i} data-done={row.saved ? "" : undefined} />
+                      ))}
+                    </span>
+                    {count} af 3 udført
+                  </span>
+                  {count > 0 && (
+                    <button
+                      type="button"
+                      className="bench-end"
+                      onClick={() => {
+                        if (count < session.rows.length)
+                          finishDialog.current?.showModal();
+                        else commitFinish();
+                      }}
+                    >
+                      Afslut træning <span aria-hidden="true">→</span>
+                    </button>
+                  )}
+                </footer>
+              </>
+            )}
+          </div>
+          <noscript>
+            <style>
+              {
+                ".bench-interactive,.bench-motion-button{display:none!important}"
+              }
+            </style>
+            <div className="bench-static">
+              <h3>Fra sidste sæt til næste træning.</h3>
+              <dl>
+                <div>
+                  <dt>Sidste sæt</dt>
+                  <dd>60 kg × 8</dd>
+                </div>
+                <div>
+                  <dt>Registreret sæt</dt>
+                  <dd>62,5 kg × 8</dd>
+                </div>
+                <div>
+                  <dt>Pause</dt>
+                  <dd>2:00</dd>
+                </div>
+              </dl>
+              <p>
+                I næste træning viser Tidligere dit registrerede sæt. Slå
+                JavaScript til for selv at prøve tallene.
+              </p>
+            </div>
+          </noscript>
+          <p className="mk-sr-only" role="status">
+            {message}
+          </p>
         </div>
-        <p className="ws-disclosure">
-          Eksempeldata · Appvisningerne er rekonstrueret.
-        </p>
       </div>
+      <dialog
+        ref={historyDialog}
+        className="bench-dialog"
+        aria-labelledby="bench-history-title"
+        onClose={closeHistory}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            const box = e.currentTarget.getBoundingClientRect();
+            if (
+              e.clientX < box.left ||
+              e.clientX > box.right ||
+              e.clientY < box.top ||
+              e.clientY > box.bottom
+            )
+              e.currentTarget.close();
+          }
+        }}
+      >
+        <div className="bench-dialog-head">
+          <span>Bænkpres med stang</span>
+          <button
+            type="button"
+            className="bench-close"
+            aria-label="Luk historik"
+            onClick={() => historyDialog.current?.close()}
+          >
+            ×
+          </button>
+        </div>
+        <h3 id="bench-history-title">Seneste registreringer</h3>
+        {dateGroups(session.history).map(([date, sets], index) => (
+          <details key={date} open={index === 0} className="bench-history-day">
+            <summary>
+              <span>{date}</span>
+              <small>{sets.length} sæt</small>
+            </summary>
+            <ul className="bench-results">
+              {sets.map((set, i) => (
+                <li key={i}>
+                  <span>Sæt {set.number}</span>
+                  <strong>
+                    {formatWeight(set.weight)} kg × {set.reps} gent.
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+      </dialog>
+      <dialog
+        ref={finishDialog}
+        className="bench-dialog bench-confirm"
+        aria-labelledby="bench-finish-title"
+      >
+        <h3 id="bench-finish-title">Afslut træning?</h3>
+        <p>
+          Du har registreret {count} af 3 sæt. De udførte sæt kommer med i din
+          eksempelhistorik.
+        </p>
+        <div className="bench-dialog-actions">
+          <button
+            type="button"
+            className="bench-secondary"
+            onClick={() => finishDialog.current?.close()}
+          >
+            Fortsæt træning
+          </button>
+          <button
+            type="button"
+            className="bench-primary"
+            onClick={commitFinish}
+          >
+            Afslut træning
+          </button>
+        </div>
+      </dialog>
     </section>
   );
 }

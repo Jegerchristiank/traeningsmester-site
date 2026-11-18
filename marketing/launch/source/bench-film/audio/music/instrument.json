@@ -1,0 +1,116 @@
+{
+  "a2_vl1_down": {
+    "at": 0,
+    "frames": 82471,
+    "original": "Samples/arco/a2_vl1_down.wav",
+    "sha256": "80528ee5e4621e413d66278a85e24a7a364ef0c91103cd288e22f1942b5c7057"
+  },
+  "a2_vl1_up": {
+    "at": 82471,
+    "frames": 117310,
+    "original": "Samples/arco/a2_vl1_up.wav",
+    "sha256": "c879655efdf5f31cd293e36f2d0baf28d2c086037c3bad98251deb11bd6b3868"
+  },
+  "c3_vl1_down": {
+    "at": 199781,
+    "frames": 103460,
+    "original": "Samples/arco/c3_vl1_down.wav",
+    "sha256": "4eb2ea1fd357f1179e9ed8a33669027997f100ba9005f208c49dc8f46d6f7f1d"
+  },
+  "a1_vl3_rr2": {
+    "at": 303241,
+    "frames": 28113,
+    "original": "Samples/pizz/a1_vl3_rr2.wav",
+    "sha256": "d806d682590ae79e34e874c40aa78807ea8ec0f221e36a1d85d7d18d616e4896"
+  },
+  "a2_vl2_rr1": {
+    "at": 331354,
+    "frames": 49140,
+    "original": "Samples/pizz/a2_vl2_rr1.wav",
+    "sha256": "b32a2c5e22a22ef373e19b3c4593f73b78bcdae37ddab38ff03e612150ee2642"
+  },
+  "a2_vl2_rr2": {
+    "at": 380494,
+    "frames": 51769,
+    "original": "Samples/pizz/a2_vl2_rr2.wav",
+    "sha256": "40ae99ab6683571f1abf8e6534340e19ca519eb8f3860c1b95f4374161500fa8"
+  },
+  "a2_vl3_rr2": {
+    "at": 432263,
+    "frames": 53083,
+    "original": "Samples/pizz/a2_vl3_rr2.wav",
+    "sha256": "6d1e0cafb334501f0d0795e287a56b05531802cbb8aae1d2b213ccf6241911e7"
+  },
+  "a2_vl3_rr3": {
+    "at": 485346,
+    "frames": 57025,
+    "original": "Samples/pizz/a2_vl3_rr3.wav",
+    "sha256": "e636567fd6b52b0d336207e83546f5c23ebdc546b0fe0a8b4bf666a83ae81a58"
+  },
+  "a2_vl3_rr4": {
+    "at": 542371,
+    "frames": 53083,
+    "original": "Samples/pizz/a2_vl3_rr4.wav",
+    "sha256": "8eac4c459f81b9adf2fa6080a5cd8dc077e72ee3b8d07b0a705048560eee8ed0"
+  },
+  "c3_vl2_rr1": {
+    "at": 595454,
+    "frames": 25141,
+    "original": "Samples/pizz/c3_vl2_rr1.wav",
+    "sha256": "0903b6e1ab5b89d80a46041446c93df372701f08ed37c70a40ff4f00dcc8755e"
+  },
+  "c3_vl3_rr4": {
+    "at": 620595,
+    "frames": 30081,
+    "original": "Samples/pizz/c3_vl3_rr4.wav",
+    "sha256": "68d534dda78874bf8fc9c3bb0ad13ac159ef4be0e1f5c59f06649d2ede708722"
+  },
+  "eb2_vl2_rr1": {
+    "at": 650676,
+    "frames": 97406,
+    "original": "Samples/pizz/eb2_vl2_rr1.wav",
+    "sha256": "7af31126e4d6cfb9fc1f7aba4e02f39bd4b7a83eced346c6e3f73f067bde6fe4"
+  },
+  "eb2_vl2_rr2": {
+    "at": 748082,
+    "frames": 61888,
+    "original": "Samples/pizz/eb2_vl2_rr2.wav",
+    "sha256": "d69447945d412d883ee8e8b0b9d3ba0b1eb6f37b06ceeb9cd481bde2b44dcb98"
+  },
+  "eb2_vl3_rr2": {
+    "at": 809970,
+    "frames": 59407,
+    "original": "Samples/pizz/eb2_vl3_rr2.wav",
+    "sha256": "48d589780d23f89cf56339c8ca26af96a928f98855113bb790adefe339825cf8"
+  },
+  "eb2_vl3_rr3": {
+    "at": 869377,
+    "frames": 61267,
+    "original": "Samples/pizz/eb2_vl3_rr3.wav",
+    "sha256": "0466ded34676c17f0e368074309d5ac3515eba10fd1e9fbf921a9d7294a682f9"
+  },
+  "eb2_vl3_rr4": {
+    "at": 930644,
+    "frames": 55065,
+    "original": "Samples/pizz/eb2_vl3_rr4.wav",
+    "sha256": "b621aa182dfa9d53833cfe4640d7a4a4512652ace4cd9eba6fd10604cfb7d4ab"
+  },
+  "gb2_vl2_rr2": {
+    "at": 985709,
+    "frames": 26536,
+    "original": "Samples/pizz/gb2_vl2_rr2.wav",
+    "sha256": "f8f05a6c6242e22c6e4005d5c9452d9385f0cd5684b6510741cab6613eb6d204"
+  },
+  "gb2_vl3_rr2": {
+    "at": 1012245,
+    "frames": 45762,
+    "original": "Samples/pizz/gb2_vl3_rr2.wav",
+    "sha256": "ca4739c9f5433afe711deced81b92337d9b5b52aa143b5f1bef2e4e331a965bd"
+  },
+  "gb2_vl3_rr3": {
+    "at": 1058007,
+    "frames": 56239,
+    "original": "Samples/pizz/gb2_vl3_rr3.wav",
+    "sha256": "f10b018ca28e75442d6d19c142a7bd46ddfd82f17a04fc3baf9c01afec2bf50a"
+  }
+}

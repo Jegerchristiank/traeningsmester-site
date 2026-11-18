@@ -1,0 +1,223 @@
+.workout-cinema {
+  background: #141a19;
+  color: #fff;
+}
+.cinema-frame {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: #0c100f;
+}
+/* The picture and the text share a row. Either can set its minimum height. */
+.cinema-frame::before {
+  content: "";
+  grid-area: 1 / 1;
+  align-self: start;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: min(60rem, calc(100svh - var(--mast-compact) - 4rem));
+  min-height: 16rem;
+  pointer-events: none;
+}
+.cinema-poster,
+.cinema-poster img,
+.cinema-frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.cinema-poster img {
+  object-fit: cover;
+  object-position: 61% 48%;
+}
+.cinema-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(10 17 16 / 78%),
+      rgb(12 18 18 / 35%) 39%,
+      transparent 72%
+    ),
+    linear-gradient(0deg, rgb(11 16 15 / 45%), transparent 55%);
+}
+.cinema-intro {
+  isolation: isolate;
+  grid-area: 1 / 1;
+  align-self: end;
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(0.85rem, 2.5vh, 2rem);
+  padding: clamp(1.75rem, 7vh, 5.5rem) var(--page-inset);
+}
+.cinema-intro > p {
+  color: #e1e6e0;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 1.12vw, 1.25rem);
+}
+.cinema-intro h2 {
+  font: 800 clamp(3.15rem, min(7.5vw, 13.6svh), 8.5rem)/0.89 var(--tm-display);
+  letter-spacing: -0.045em;
+  max-width: 12ch;
+}
+.cinema-intro h2 span {
+  display: block;
+}
+.cinema-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 48px;
+  margin-top: 0.35rem;
+  padding: 0.72rem 1.2rem;
+  border-radius: 99px;
+  background: #fff;
+  color: #141a19 !important;
+  text-decoration: none;
+  font: 700 1rem/1.2 var(--tm-text);
+}
+.cinema-start:hover {
+  background: #e5eced;
+}
+.cinema-play-shape {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-block: 0.37em solid transparent;
+  border-left: 0.57em solid currentColor;
+}
+.cinema-length {
+  border-left: 1px solid #c4ccca;
+  padding-left: 0.75rem;
+  color: #48534f;
+  font-size: 0.87rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.cinema-frame video {
+  background: #0c100f;
+  object-fit: contain;
+}
+.cinema-frame video[hidden] {
+  display: none;
+}
+.cinema-frame[data-state="player"] :is(.cinema-intro, .cinema-poster) {
+  display: none;
+}
+.cinema-frame[data-state="player"]::before {
+  min-height: 0;
+}
+.cinema-frame video::cue {
+  font-family: system-ui, sans-serif;
+  background-color: rgb(7 11 10 / 88%);
+  color: white;
+}
+.cinema-credits {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
+  flex-wrap: wrap;
+  min-height: 3.5rem;
+  padding: 0.6rem var(--page-inset);
+}
+.cinema-credits > span {
+  font-size: 0.85rem;
+  color: #d5dfd9;
+}
+.cinema-credits > span + span {
+  color: #afbab4;
+}
+.cinema-credits i {
+  padding-inline: 0.22em;
+  font-style: normal;
+}
+.cinema-credits a {
+  color: #fff;
+  font-weight: 700;
+}
+.cinema-error {
+  max-width: 35ch;
+}
+.bench-disclosure {
+  background: #fff;
+  color: #15181d;
+}
+.bench-disclosure > summary {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.6rem;
+  padding: 0.8rem var(--page-inset);
+  border-bottom: 1px solid #d8dedf;
+  font: 800 clamp(1.3rem, 2.05vw, 2rem)/1.2 var(--tm-display);
+}
+.bench-disclosure > summary:hover {
+  background: #f4f6f2;
+}
+.bench-expand {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #b9c4ca;
+  border-radius: 50%;
+  font: 400 1.2rem/1 var(--tm-text);
+}
+.bench-disclosure[open] > summary .bench-expand {
+  transform: rotate(45deg);
+}
+@media (max-aspect-ratio: 4/5) {
+  .cinema-frame::before {
+    aspect-ratio: 9/16;
+    max-height: min(55rem, calc(100svh - var(--mast-compact) - 4.25rem));
+  }
+  .cinema-intro {
+    width: 100%;
+    padding-bottom: clamp(1.8rem, 6.75svh, 4.5rem);
+    gap: 1rem;
+  }
+  .cinema-intro h2 {
+    font-size: clamp(3.4rem, 15.4vw, 6.2rem);
+  }
+  .cinema-poster::after {
+    background: linear-gradient(
+      0deg,
+      rgb(7 13 13 / 87%),
+      rgb(11 15 15 / 34%) 48%,
+      transparent 78%
+    );
+  }
+}
+@media (max-width: 640px) {
+  .cinema-credits {
+    min-height: 3rem;
+  }
+  .cinema-credits > span + span {
+    display: none;
+  }
+  .bench-disclosure > summary {
+    min-height: 3.75rem;
+  }
+}
+@media (max-height: 480px) {
+  .cinema-frame::before {
+    min-height: 0;
+  }
+  .cinema-intro {
+    padding-block: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+  .cinema-intro h2 {
+    font-size: clamp(1.7rem, 10svh, 2.8rem);
+  }
+}

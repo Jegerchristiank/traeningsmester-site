@@ -3,8 +3,8 @@ import AccessForm, { focusAccessForm } from "./components/AccessForm";
 import AnalyticsConsent from "./components/AnalyticsConsent";
 import SiteBrand from "./components/SiteBrand";
 import WorkoutStory from "./components/WorkoutStory";
+import WorkoutFilm, { type FilmControl } from "./components/WorkoutFilm";
 import TrainingInformation from "./components/TrainingInformation";
-import WorkoutFilm from "./components/WorkoutFilm";
 import CoverMotion from "./components/CoverMotion";
 import { recordMarketingVisit } from "./marketingAnalytics";
 import "./training-story.css";
@@ -96,6 +96,7 @@ function SiteNavigation() {
 
 export default function MarketingHome() {
   const topMarker = useRef<HTMLSpanElement>(null);
+  const film = useRef<FilmControl>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -142,11 +143,38 @@ export default function MarketingHome() {
                 </p>
               </noscript>
             </div>
-            <WorkoutFilm />
+            <a
+              className="bench-link"
+              href="#traeningsforloeb"
+              aria-controls="workout-film"
+              onClick={(event) => {
+                if (
+                  event.button === 0 &&
+                  !event.ctrlKey &&
+                  !event.metaKey &&
+                  !event.shiftKey &&
+                  !event.altKey
+                )
+                  film.current?.play();
+              }}
+            >
+              <span className="bench-link-icon" aria-hidden="true">
+                <span className="cinema-play-shape" />
+              </span>
+              <span className="bench-link-text">
+                <strong>Se bænkpres i appen</strong>
+                <span>0:40 · Film med dansk tale</span>
+              </span>
+            </a>
           </div>
           <CoverMotion />
         </section>
-        <WorkoutStory />
+        <WorkoutFilm
+          control={film}
+          accessLink={<AccessLink className="cinema-access" />}
+        >
+          <WorkoutStory accessLink={<AccessLink className="bench-access" />} />
+        </WorkoutFilm>
         <TrainingInformation />
         <div className="closing">
           <div className="closing-inner">

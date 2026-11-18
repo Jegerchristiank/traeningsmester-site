@@ -45,6 +45,8 @@ Kontinuitet: program »Mit styrkeprogram«, dag »Overkrop A«, Bænkpres Med St
 
 Mærk på web/materiale: »Eksempeldata · rekonstruerede appvisninger«. Bevar læsbarhed frem for stærkt perspektiv.
 
+I den længere bænkpresfilm ses den opdaterede afkrydsning. Første sætrække har en tom ring. Under gemning viser den et ur, og ved gemt sæt kommer det grønne flueben og næste aktive række. Tidligere registreringer viser afsluttede træninger. Den frivillige øvelse på websiden følger de samme tilstande og holder eksempeltallene i fanens sessionslager. Den henter illustrationen og pausemotivet fra webprojektets egne filer. [Billedkilder og appgrundlag](../marketing/launch/source/bench-film/README.md) · [Film og undertekster](../marketing/launch/README.md).
+
 ## Supabase read-only, lille godkendt udvalg
 
 Kun schema metadata og offentligt godkendt øvelseskatalog læst; ingen brugere/programmer/logs. Filter: `user_id is null and is_private is false and "erGodkendt" is true`. To katalogresultater ved bænkpres-søgning; kun Bænkpres Med Stang anvendt. En afgrænset søgning på seated cable row gav ingen række.

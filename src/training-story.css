@@ -144,7 +144,7 @@
   gap: 0.45rem;
 }
 .header-login::after {
-  content: "↗";
+  content: "↗\FE0E";
   font-family: Arial, sans-serif;
   font-weight: 400;
 }
@@ -157,7 +157,7 @@
 }
 .cover-header[data-scrolled]::before {
   inset-block-end: 0;
-  background: rgb(250 249 246 / 0.93);
+  background: #faf9f6;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -314,7 +314,7 @@
 .hero-access noscript a {
   text-decoration: underline;
 }
-.film-trigger {
+.bench-link {
   display: inline-flex;
   align-items: center;
   justify-self: end;
@@ -322,7 +322,7 @@
   min-height: 48px;
   color: #fff;
 }
-.film-play {
+.bench-link-icon {
   display: grid;
   flex: none;
   place-items: center;
@@ -332,91 +332,23 @@
   border-radius: 50%;
   background: rgb(20 24 24 / 0.18);
 }
-.film-trigger:hover .film-play {
+.bench-link:hover .bench-link-icon {
   background: #fff;
   color: #18221d;
 }
-.film-label {
+.bench-link-text {
   display: grid;
   gap: 0.12em;
 }
-.film-label strong {
+.bench-link-text strong {
   display: flex;
   align-items: baseline;
   gap: 0.64em;
   font-size: clamp(1rem, 1.15vw, 1.35rem);
 }
-.film-label small,
-.film-label > span {
+.bench-link-text > span {
   font-size: clamp(0.8rem, 0.88vw, 1rem);
   color: #e1e5de;
-}
-.film-label small {
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-}
-.workout-film {
-  position: fixed;
-  inset: 0;
-  width: min(28rem, calc(100% - 1.5rem), calc((100dvh - 8rem) * 9 / 16));
-  min-width: min(15.5rem, calc(100% - 1.5rem));
-  max-height: calc(100dvh - 1.5rem);
-  max-width: none;
-  margin: auto;
-  padding: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  border: 1px solid #43504b;
-  border-radius: 0.9rem;
-  background: #17211c;
-  color: #fff;
-}
-.workout-film::backdrop {
-  background: rgb(8 13 10 / 0.84);
-}
-.film-bar,
-.film-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-  padding-inline: 1rem;
-}
-.film-bar h2 {
-  font: 700 1rem/1.2 var(--tm-text);
-}
-.film-close {
-  width: 44px;
-  height: 48px;
-  margin-right: -0.6rem;
-  font:
-    400 1.5rem/1 Arial,
-    sans-serif;
-  background: none;
-  color: inherit;
-  border: 0;
-}
-.workout-film video:not([hidden]) {
-  display: block;
-  width: 100%;
-  max-height: calc(100dvh - 8rem);
-  aspect-ratio: 9 / 16;
-  background: #101413;
-}
-.film-action {
-  width: 100%;
-  min-height: 46px;
-  border: 0;
-  color: inherit;
-  background: transparent;
-  font-size: 0.94rem;
-  font-weight: 700;
-}
-.film-action:hover {
-  text-decoration: underline;
-}
-.film-error {
-  padding: 1.5rem 1rem;
 }
 #main-content :is(#traeningsforloeb, #funktioner, #faq):focus-visible {
   outline: none;
@@ -435,7 +367,7 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 0.14em;
 }
-html:has(.access-form[open], .workout-film[open]) {
+html:has(.access-form[open], .bench-dialog[open]) {
   overflow: hidden;
 }
 dialog.access-form {
@@ -711,7 +643,7 @@ dialog.access-form::backdrop {
       width 220ms,
       height 220ms;
   }
-  .film-play {
+  .bench-link-icon {
     transition:
       background-color 160ms,
       color 160ms;
@@ -811,10 +743,10 @@ dialog.access-form::backdrop {
     gap: clamp(1.35rem, 3.4svh, 2.3rem);
     padding-bottom: max(1.4rem, env(safe-area-inset-bottom), 3.8svh);
   }
-  .film-trigger {
+  .bench-link {
     justify-self: start;
   }
-  .film-play {
+  .bench-link-icon {
     width: 2.6rem;
     height: 2.6rem;
   }
@@ -891,7 +823,7 @@ dialog.access-form::backdrop {
   .hero-access > p {
     margin-top: 0.35rem;
   }
-  .film-trigger {
+  .bench-link {
     justify-self: end;
   }
 }

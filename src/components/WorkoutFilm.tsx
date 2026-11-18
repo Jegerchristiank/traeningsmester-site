@@ -1,139 +1,213 @@
-import { useRef, useState } from "react";
-import type { MouseEvent } from "react";
-import filmUrl from "../../marketing/launch/traen-videre.mp4?url";
-import { focusAccessForm } from "./AccessForm";
+import {
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+} from "react";
+import "../workout-film.css";
 
-export default function WorkoutFilm() {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const [failed, setFailed] = useState(false);
+const asset = "/product/film/";
+const portraitQuery = "(max-aspect-ratio: 4/5)";
+const demoAnchors = new Set([
+  "#baenkpres-log",
+  "#dit-program",
+  "#dit-saet",
+  "#din-pause",
+  "#din-historik",
+]);
 
-  function closeFilm() {
-    video.current?.pause();
-    dialog.current?.close();
-  }
+export type FilmControl = { play: () => void };
 
-  function play(event: MouseEvent<HTMLAnchorElement>) {
-    const player = video.current;
-    const viewer = dialog.current;
+export default function WorkoutFilm({
+  control,
+  children,
+  accessLink,
+}: {
+  control: Ref<FilmControl>;
+  children: ReactNode;
+  accessLink: ReactNode;
+}) {
+  const player = useRef<HTMLVideoElement>(null);
+  const practice = useRef<HTMLDetailsElement>(null);
+  const [state, setState] = useState<"poster" | "player" | "error">("poster");
+  const [ended, setEnded] = useState(false);
+  const [format, setFormat] = useState<"bred" | "hoej">("bred");
+
+  function play() {
+    const video = player.current;
+    if (!video) return;
+    const chosen = window.matchMedia(portraitQuery).matches ? "hoej" : "bred";
     if (
-      !player ||
-      !viewer?.showModal ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
-    event.preventDefault();
-    event.currentTarget.focus({ preventScroll: true });
-    viewer.showModal();
-    setFailed(false);
-    // Start the first media request inside the user gesture, including on iOS.
-    if (!player.hasAttribute("src") || player.error) player.src = filmUrl;
-    else player.currentTime = 0;
-    void player.play().catch(() => {
-      // The native controls also work when the browser requires a second tap.
+      !video.getAttribute("src") ||
+      video.error ||
+      (video.ended && chosen !== format)
+    ) {
+      setFormat(chosen);
+      video.poster = asset + "kridt-" + chosen + ".webp";
+      video.src = asset + "baenkpres-" + chosen + ".mp4";
+    } else if (video.ended) {
+      video.currentTime = 0;
+    }
+    // Keep play inside the initiating tap so iOS can start the voice track.
+    video.hidden = false;
+    setEnded(false);
+    setState("player");
+    void video.play().catch(() => {
+      if (video.error) setState("error");
+      // Browsers that require a second tap display their own accessible controls.
     });
   }
 
+  useImperativeHandle(control, () => ({ play }));
+
+  useEffect(() => {
+    const video = player.current;
+    if (!video) return;
+    let seen = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) seen = true;
+        else if (seen) {
+          video.pause();
+          seen = false;
+        }
+      },
+      { threshold: 0.02 },
+    );
+    observer.observe(video.parentElement!);
+    const onHidden = () => {
+      if (document.hidden) video.pause();
+    };
+    const followFragment = () => {
+      if (!demoAnchors.has(window.location.hash) || !practice.current) return;
+      practice.current.open = true;
+      requestAnimationFrame(() =>
+        document
+          .getElementById(window.location.hash.slice(1))
+          ?.scrollIntoView(),
+      );
+    };
+    followFragment();
+    window.addEventListener("hashchange", followFragment);
+    document.addEventListener("visibilitychange", onHidden);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("hashchange", followFragment);
+      document.removeEventListener("visibilitychange", onHidden);
+      video.pause();
+    };
+  }, []);
+
   return (
     <>
-      <a
-        className="film-trigger"
-        href="#traeningsforloeb"
-        aria-haspopup="dialog"
-        aria-controls="workout-film"
-        onClick={play}
+      <section
+        id="traeningsforloeb"
+        className="workout-cinema"
+        tabIndex={-1}
+        aria-labelledby="onsite-film-title"
       >
-        <span className="film-play" aria-hidden="true">
-          <svg width="16" height="18" viewBox="0 0 16 18" fill="currentColor">
-            <path d="M3 2.4c0-.8.8-1.2 1.5-.8l9 6.5a1.1 1.1 0 0 1 0 1.8l-9 6.5c-.7.4-1.5 0-1.5-.8z" />
-          </svg>
-        </span>
-        <span className="film-label">
-          <strong>
-            Se bænkpres i appen <small>0:19</small>
-          </strong>
-          <span>Overkrop A · 60 → 62,5 kg × 8 · Eksempel</span>
-        </span>
-      </a>
-      <dialog
-        ref={dialog}
-        id="workout-film"
-        className="workout-film"
-        aria-labelledby="film-title"
-        onCancel={() => video.current?.pause()}
-        onClose={() => {
-          if (!dialog.current?.open) video.current?.pause();
-        }}
-        onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
-          const { left, right, top, bottom } =
-            event.currentTarget.getBoundingClientRect();
-          if (
-            event.clientX < left ||
-            event.clientX > right ||
-            event.clientY < top ||
-            event.clientY > bottom
-          )
-            closeFilm();
-        }}
-      >
-        <div className="film-bar">
-          <h2 id="film-title">Et sæt i Træningsmester</h2>
-          <button
-            className="film-close"
-            aria-label="Luk filmen"
-            onClick={closeFilm}
-          >
-            ×
-          </button>
-        </div>
-        <video
-          ref={video}
-          controls
-          playsInline
-          preload="none"
-          aria-label="Film med eksempeldata fra Overkrop A"
-          aria-describedby="film-description"
-          onError={() => setFailed(true)}
-          hidden={failed}
-        />
-        <p className="mk-sr-only" id="film-description">
-          Lydløs film. Sidst løftede du 60 kg otte gange i bænkpres. I Overkrop
-          A registrerer du 62,5 kg otte gange. Pausen begynder, og næste gang
-          finder du sættet i din historik.
-        </p>
-        {failed ? (
-          <>
-            <p className="film-error" role="status">
-              Filmen kunne ikke afspilles.
-            </p>
+        <div
+          className="cinema-frame"
+          data-state={state}
+          data-format={state === "player" ? format : undefined}
+        >
+          <picture className="cinema-poster" aria-hidden="true">
+            <source
+              media={portraitQuery}
+              srcSet={asset + "kridt-hoej.webp"}
+              width="720"
+              height="1280"
+            />
+            <img
+              src={asset + "kridt-bred.webp"}
+              width="1600"
+              height="900"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+          <div className="cinema-intro">
+            <p>Overkrop A · Bænkpres med stang</p>
+            <h2 id="onsite-film-title">
+              Hvad løftede <span>jeg sidst?</span>
+            </h2>
             <a
-              className="film-action"
-              href="#traeningsforloeb"
-              onClick={closeFilm}
+              className="cinema-start"
+              href={asset + "baenkpres-bred.mp4"}
+              aria-controls="workout-film"
+              onClick={(event) => {
+                if (
+                  event.button ||
+                  event.metaKey ||
+                  event.altKey ||
+                  event.ctrlKey ||
+                  event.shiftKey
+                )
+                  return;
+                event.preventDefault();
+                play();
+                player.current?.focus({ preventScroll: true });
+              }}
             >
-              Se træningen trin for trin <span aria-hidden="true">↓</span>
+              <span className="cinema-play-shape" aria-hidden="true" />
+              {state === "error" ? "Prøv at afspille igen" : "Afspil filmen"}
+              <span aria-hidden="true" className="cinema-length">
+                0:40
+              </span>
             </a>
-          </>
-        ) : (
-          <button
-            className="film-action"
-            type="button"
-            aria-haspopup="dialog"
-            aria-controls="access-dialog"
-            onClick={() => {
-              closeFilm();
-              focusAccessForm();
-            }}
+            {state === "error" && (
+              <p className="cinema-error" role="alert">
+                Filmen kunne ikke indlæses. Du kan også prøve sættet nedenfor.
+              </p>
+            )}
+          </div>
+          <video
+            ref={player}
+            id="workout-film"
+            controls
+            playsInline
+            preload="none"
+            hidden={state !== "player"}
+            tabIndex={0}
+            aria-label="Bænkpres i Træningsmester, 40 sekunder med dansk tale"
+            aria-describedby="onsite-film-info"
+            onError={() => setState("error")}
+            onEnded={() => setEnded(true)}
+            onPlay={() => setEnded(false)}
           >
-            Få besked om adgang <span aria-hidden="true">→</span>
-          </button>
-        )}
-      </dialog>
+            <track
+              kind="captions"
+              srcLang="da"
+              label="Dansk"
+              src={asset + "baenkpres-da.vtt"}
+            />
+          </video>
+        </div>
+        <div className="cinema-credits" id="onsite-film-info">
+          <span>
+            40 sek. <i>·</i> Dansk AI-stemme <i>·</i> Danske undertekster
+          </span>
+          {ended ? accessLink : <span>Træningsmester · Eksempeltræning</span>}
+        </div>
+      </section>
+      <details
+        ref={practice}
+        className="bench-disclosure"
+        onToggle={(event) => {
+          if (event.currentTarget.open) player.current?.pause();
+        }}
+      >
+        <summary>
+          <span>Prøv sættet selv</span>
+          <span className="bench-expand" aria-hidden="true">
+            +
+          </span>
+        </summary>
+        {children}
+      </details>
     </>
   );
 }

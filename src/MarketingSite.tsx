@@ -192,11 +192,11 @@ export const legalDocuments: Record<
     title: "Cookiepolitik",
     intro:
       "Hjemmesiden kan bruges uden statistik. Browseren gemmer dit valg. Login og godkendelse af værktøjer bruger særskilt nødvendig lagring.",
-    updated: "17. november 2026",
+    updated: "18. november 2026",
     sections: [
       {
         title: "På hjemmesiden",
-        body: "Forsiden, produktinformationen og ventelisten kræver ikke cookies. Appskærme, logo og animation leveres fra samme website.",
+        body: "Forsiden, produktinformationen og ventelisten kræver ikke cookies. Appskærme, film og lyd leveres fra samme website. Prøver du selv at registrere et sæt i bænkpres på forsiden, gemmes dine eksempeltal kun i fanens sessionslager, så du kan se dem igen, hvis du genindlæser siden.",
       },
       {
         title: "Login og godkendelse af værktøjer",

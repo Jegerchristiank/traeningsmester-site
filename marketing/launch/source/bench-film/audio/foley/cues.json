@@ -1,0 +1,175 @@
+{
+  "version": 3,
+  "duration_seconds": 40,
+  "sample_rate": 48000,
+  "picture_fps": 24,
+  "frame_numbering": "zero-based",
+  "contact_frame_uncertainty": 1,
+  "sources": [
+    {
+      "sample": "chalk-impact.wav",
+      "recording": "151219-owlstorm-solo-clap-hq.mp3",
+      "author": "Ashe Kirk / OwlStorm",
+      "source_url": "https://freesound.org/people/OwlStorm/sounds/151219/",
+      "license": "CC0 1.0",
+      "recording_slice_seconds": [
+        0.706,
+        0.8959999999999999
+      ],
+      "recording_sha256": "a653c0d7ea9929d4ed7a6ef942accbf87d220c3542f071ffb60ca5827bf01442",
+      "sample_sha256": "d78ddc098a5978a6bf47e343926140f5bdb9e2702f142b117a0ac6ee3e740dc7"
+    },
+    {
+      "sample": "palm-touch-a.wav",
+      "recording": "0663-rubbing-hands.wav",
+      "author": "Joseph Sardin",
+      "source_url": "https://bigsoundbank.com/rubbing-hands-s0663.html",
+      "license": "CC0 1.0",
+      "recording_slice_seconds": [
+        16.52,
+        16.77
+      ],
+      "recording_sha256": "3d60300d72cabdcbb5e21ae5f3210d5534965affe2db7bf967625dc27a272360",
+      "sample_sha256": "fe7f87e864439a621f94480e8cd3fb64104039158e717d8572339e32e31d1641"
+    },
+    {
+      "sample": "palm-touch-b.wav",
+      "recording": "0663-rubbing-hands.wav",
+      "author": "Joseph Sardin",
+      "source_url": "https://bigsoundbank.com/rubbing-hands-s0663.html",
+      "license": "CC0 1.0",
+      "recording_slice_seconds": [
+        3.52,
+        3.79
+      ],
+      "recording_sha256": "3d60300d72cabdcbb5e21ae5f3210d5534965affe2db7bf967625dc27a272360",
+      "sample_sha256": "b74625cc2e4862ef703ab09e6f7cd1dfa77dc2bdfaad8195a1f46fc4f145526e"
+    },
+    {
+      "sample": "hand-slide.wav",
+      "recording": "0663-rubbing-hands.wav",
+      "author": "Joseph Sardin",
+      "source_url": "https://bigsoundbank.com/rubbing-hands-s0663.html",
+      "license": "CC0 1.0",
+      "recording_slice_seconds": [
+        4.12,
+        4.37
+      ],
+      "recording_sha256": "3d60300d72cabdcbb5e21ae5f3210d5534965affe2db7bf967625dc27a272360",
+      "sample_sha256": "9e5babfd6b2a7b24637823ac0a1f970b39032176baca7766dd1e96ccb176b5ad"
+    },
+    {
+      "sample": "hand-grain.wav",
+      "recording": "0663-rubbing-hands.wav",
+      "author": "Joseph Sardin",
+      "source_url": "https://bigsoundbank.com/rubbing-hands-s0663.html",
+      "license": "CC0 1.0",
+      "recording_slice_seconds": [
+        1.045,
+        1.2349999999999999
+      ],
+      "recording_sha256": "3d60300d72cabdcbb5e21ae5f3210d5534965affe2db7bf967625dc27a272360",
+      "sample_sha256": "d74f23eb8031f7de181d69f8b8712c63da0932f50b5700818e5f60b75a5f6b33"
+    }
+  ],
+  "events": [
+    {
+      "id": "chalk-contact",
+      "frame": 162,
+      "sample": "chalk-impact.wav",
+      "align": "peak",
+      "peak_dbfs": -20,
+      "highpass_hz": 140,
+      "lowpass_hz": 7800,
+      "fade_out_seconds": 0.055,
+      "left": 0.94,
+      "right": 1,
+      "reason": "First visible firm palm contact, not the earlier shot cut."
+    },
+    {
+      "id": "chalk-grain",
+      "frame": 166,
+      "sample": "hand-grain.wav",
+      "align": "start",
+      "peak_dbfs": -34,
+      "highpass_hz": 180,
+      "lowpass_hz": 6800,
+      "fade_out_seconds": 0.045,
+      "left": 0.94,
+      "right": 1,
+      "reason": "Brief texture while the real hands remain in contact; no sound for graphical particles."
+    },
+    {
+      "id": "rest-contact-1",
+      "frame": 526,
+      "sample": "palm-touch-a.wav",
+      "align": "peak",
+      "peak_dbfs": -26,
+      "highpass_hz": 220,
+      "lowpass_hz": 5600,
+      "fade_out_seconds": 0.085,
+      "left": 0.97,
+      "right": 1,
+      "reason": "Distinct real palm-friction transient, warmer and softer than the chalk strike."
+    },
+    {
+      "id": "rest-release-1",
+      "frame": 559,
+      "sample": "hand-slide.wav",
+      "align": "start",
+      "peak_dbfs": -33,
+      "highpass_hz": 180,
+      "lowpass_hz": 6200,
+      "fade_out_seconds": 0.055,
+      "left": 0.97,
+      "right": 1,
+      "reason": "Hands slide apart; ends at frame565."
+    },
+    {
+      "id": "rest-contact-2",
+      "frame": 602,
+      "sample": "palm-touch-b.wav",
+      "align": "peak",
+      "peak_dbfs": -25.5,
+      "highpass_hz": 180,
+      "lowpass_hz": 4600,
+      "fade_out_seconds": 0.065,
+      "left": 0.98,
+      "right": 1,
+      "reason": "Different real palm-friction stroke; distinct attack and shorter, darker release."
+    },
+    {
+      "id": "rest-release-2",
+      "frame": 644,
+      "sample": "hand-slide.wav",
+      "align": "start",
+      "peak_dbfs": -34,
+      "highpass_hz": 180,
+      "lowpass_hz": 5200,
+      "fade_out_seconds": 0.065,
+      "left": 0.98,
+      "right": 1,
+      "reason": "Second visible hand release; ends at frame650."
+    }
+  ],
+  "silent_regions": [
+    [
+      0,
+      5
+    ],
+    [
+      9,
+      20
+    ],
+    [
+      28,
+      40
+    ]
+  ],
+  "no_foley": [
+    "No audible stream in any of the three Pexels masters.",
+    "No clearly visible rack contact in the included opening or closing footage.",
+    "No digital save, rest or history sound.",
+    "No generated room tone, crescendo, or reverb."
+  ]
+}
